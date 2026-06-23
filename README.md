@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Choire Reader Player
 
-## Getting Started
+Upload a photo or PDF of choral sheet music and hear it played back — voice by
+voice. Built for choir rehearsal: solo your part, mute the others, slow the
+tempo, and follow along as a cursor tracks the music.
 
-First, run the development server:
+## How it works
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Upload image/PDF  →  Audiveris (OMR)  →  MusicXML  →  OSMD (render)  →  Tone.js (playback)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. The image/PDF is uploaded to `/api/omr/process`, which runs **Audiveris**
+   (Optical Music Recognition) as a background job.
+2. The client polls `/api/omr/status/[jobId]` until the job is `done`, then
+   fetches the recognized score from `/api/omr/result/[jobId]` (a `.mxl`).
+3. **OpenSheetMusicDisplay (OSMD)** renders the score to SVG.
+4. The score is parsed into voice parts (`lib/musicxml-parts.ts`), and
+   **Tone.js** (`lib/audio-engine.ts`) builds one piano sampler + channel per
+   voice for synchronized playback.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Per-voice **mute / solo / volume** mixer (auto-detected S / A / T / B roles,
+  overridable)
+- **Tempo** control (40–200 BPM) that re-paces playback without re-scheduling
+- Transport: **play / pause / stop**, **seek bar**, elapsed / total time
+- **Spacebar** toggles play/pause
+- Score **cursor that follows playback** (scrollable score view)
+- **Download** the recognized MusicXML
 
-## Learn More
+## Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- **Node.js** (project built with Next.js 16 / React 19)
+- **Audiveris** OMR engine placed at:
+  `tools/audiveris/Audiveris/Audiveris.exe`
+  (The `tools/` folder is git-ignored because of its size — install Audiveris
+  there locally. See `lib/audiveris.ts` for the exact path the server invokes.)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Getting started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+Open <http://localhost:3000>, upload sheet music, and press Play.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> Note: Audiveris OMR can take a minute or two per page, and recognition
+> quality depends on the clarity of the input scan.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project layout
+
+| Path | Purpose |
+|------|---------|
+| `app/page.tsx` | The reader UI (upload, score, transport, voice mixer) |
+| `app/api/omr/*` | Upload → process → status → result endpoints |
+| `lib/audiveris.ts` | Spawns the Audiveris CLI, returns the `.mxl` path |
+| `lib/jobs.ts` | In-memory OMR job store |
+| `lib/musicxml-parts.ts` | Parses MusicXML into voice parts (ticks) |
+| `lib/audio-engine.ts` | Tone.js playback graph (sampler/channel/part per voice) |

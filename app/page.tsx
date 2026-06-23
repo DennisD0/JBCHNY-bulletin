@@ -46,6 +46,7 @@ export default function Home() {
   const [bpm, setBpm] = useState(DEFAULT_BPM);
   const [positionSec, setPositionSec] = useState(0);
   const [durationSec, setDurationSec] = useState(0);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const osmdRef = useRef<OpenSheetMusicDisplay | null>(null);
@@ -182,6 +183,7 @@ export default function Home() {
       setPositionSec(0);
       setDurationSec(engine.getDurationSeconds());
       setIsPlaying(false);
+      setResultUrl(musicXmlUrl);
       setStage("ready");
       setStatusMsg("");
     } catch (err) {
@@ -224,6 +226,7 @@ export default function Home() {
       setIsPlaying(false);
       setPositionSec(0);
       setDurationSec(0);
+      setResultUrl(null);
       setError(null);
       setFileName(file.name);
       setStage("uploading");
@@ -325,6 +328,38 @@ export default function Home() {
   const setPartRole = useCallback((id: string, role: PartRole) => {
     setParts((prev) => prev.map((p) => (p.id === id ? { ...p, role } : p)));
   }, []);
+
+  const resetMix = useCallback(() => {
+    const engine = engineRef.current;
+    setParts((prev) =>
+      prev.map((p) => {
+        engine?.setMute(p.id, false);
+        engine?.setSolo(p.id, false);
+        engine?.setVolume(p.id, 0);
+        return { ...p, mute: false, solo: false, volume: 0 };
+      })
+    );
+  }, []);
+
+  // Spacebar toggles play/pause once a score is ready.
+  useEffect(() => {
+    if (stage !== "ready") return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "SELECT" ||
+          target.tagName === "TEXTAREA");
+      if (e.code === "Space" && !typing) {
+        e.preventDefault();
+        if (isPlaying) handlePause();
+        else handlePlay();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [stage, isPlaying, handlePlay, handlePause]);
 
   const busy =
     stage === "uploading" || stage === "processing" || stage === "loading";
@@ -441,8 +476,31 @@ export default function Home() {
             </section>
 
             {/* Voice mixer */}
-            <section className="grid gap-3 sm:grid-cols-2">
-              {parts.map((p) => (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  Voices ({parts.length})
+                </h2>
+                <div className="flex items-center gap-2">
+                  {resultUrl && (
+                    <a
+                      href={resultUrl}
+                      download="score.mxl"
+                      className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                    >
+                      Download MusicXML
+                    </a>
+                  )}
+                  <button
+                    onClick={resetMix}
+                    className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  >
+                    Reset mix
+                  </button>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {parts.map((p) => (
                 <div
                   key={p.id}
                   className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
@@ -509,7 +567,8 @@ export default function Home() {
                     />
                   </div>
                 </div>
-              ))}
+                ))}
+              </div>
             </section>
           </>
         )}
@@ -526,8 +585,11 @@ export default function Home() {
               begin.
             </p>
           )}
-          {/* OSMD renders its SVG into this container. */}
-          <div ref={containerRef} className="overflow-x-auto bg-white" />
+          {/* OSMD renders its SVG here; scrollable so the cursor can follow. */}
+          <div
+            ref={containerRef}
+            className="max-h-[70vh] overflow-auto bg-white"
+          />
         </section>
       </main>
     </div>
