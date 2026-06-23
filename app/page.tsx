@@ -21,6 +21,12 @@ const VOCAL_ROLES: (PartRole & VoiceFilter)[] = [
   "bass",
 ];
 
+// Octave shift applied to playback. Defaults high because piano-sampler
+// playback of choral scores sits low; users can dial it back down.
+const DEFAULT_OCTAVE = 3;
+const MIN_OCTAVE = -2;
+const MAX_OCTAVE = 4;
+
 /** Pre-processed demo score so the app can be tried instantly, no OMR wait. */
 const DEMO_URL = "/presets/remember-me.mxl";
 const DEMO_NAME = "기억하라 (Remember Me) — demo";
@@ -57,7 +63,7 @@ export default function Home() {
 
   const [parts, setParts] = useState<ScorePart[]>([]);
   const [voiceFilter, setVoiceFilter] = useState<VoiceFilter>("all");
-  const [octave, setOctave] = useState(0);
+  const [octave, setOctave] = useState(DEFAULT_OCTAVE);
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
   const [positionSec, setPositionSec] = useState(0);
@@ -171,7 +177,16 @@ export default function Home() {
         guard += 1;
       }
       osmd.cursor.reset();
+      // Re-assert the red note-box style (belt-and-suspenders vs. the
+      // constructor option) and paint it at the start position.
+      osmd.cursor.CursorOptions = {
+        type: 0,
+        color: "#ef4444",
+        alpha: 0.45,
+        follow: true,
+      };
       osmd.cursor.show();
+      osmd.cursor.update();
       stepOnsetsRef.current = onsets;
       stepIndexRef.current = 0;
 
@@ -193,11 +208,11 @@ export default function Home() {
       });
       engineRef.current = engine;
       engine.setBpm(startBpm);
-      engine.setTranspose(0);
+      engine.setTranspose(DEFAULT_OCTAVE * 12);
 
       setParts(scoreParts);
       setVoiceFilter("all");
-      setOctave(0);
+      setOctave(DEFAULT_OCTAVE);
       setBpm(startBpm);
       setPositionSec(0);
       setDurationSec(engine.getDurationSeconds());
@@ -340,7 +355,7 @@ export default function Home() {
   }, []);
 
   const handleOctave = useCallback((next: number) => {
-    const clamped = Math.max(-2, Math.min(2, next));
+    const clamped = Math.max(MIN_OCTAVE, Math.min(MAX_OCTAVE, next));
     engineRef.current?.setTranspose(clamped * 12);
     setOctave(clamped);
   }, []);
@@ -537,7 +552,7 @@ export default function Home() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleOctave(octave - 1)}
-                  disabled={octave <= -2}
+                  disabled={octave <= MIN_OCTAVE}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-lg font-bold text-stone-700 transition-colors hover:bg-stone-200 disabled:opacity-40"
                   aria-label="Octave down"
                 >
@@ -548,7 +563,7 @@ export default function Home() {
                 </span>
                 <button
                   onClick={() => handleOctave(octave + 1)}
-                  disabled={octave >= 2}
+                  disabled={octave >= MAX_OCTAVE}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-lg font-bold text-stone-700 transition-colors hover:bg-stone-200 disabled:opacity-40"
                   aria-label="Octave up"
                 >
