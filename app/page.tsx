@@ -30,6 +30,8 @@ interface Song {
   /** Progress text while processing. */
   message?: string;
   error?: string;
+  /** Tempo (BPM) recovered from the scanned page by OCR, when found. */
+  ocrTempo?: number;
 }
 
 /** How many files may be added in a single selection. */
@@ -348,7 +350,11 @@ export default function Home() {
     rafRef.current = requestAnimationFrame(tick);
   }, [syncHighlight, drawHighlights, cancelLoop]);
 
-  const loadScore = useCallback(async (musicXmlUrl: string, fallbackTitle?: string) => {
+  const loadScore = useCallback(async (
+    musicXmlUrl: string,
+    fallbackTitle?: string,
+    preferredTempo?: number
+  ) => {
     setStage("loading");
     setStatusMsg("Rendering score...");
     setError(null);
@@ -437,11 +443,15 @@ export default function Home() {
         throw new Error("No playable notes were found in the recognized score.");
       }
 
-      // Honor the tempo printed on the score (e.g. ♩ = 76) when present and
-      // sane; otherwise fall back to the default.
+      // Tempo priority: the score's own embedded tempo (MusicXML), else a tempo
+      // OCR'd from the scanned page (OMR strips it), else the default.
       const scoreTempo = Math.round(osmd.Sheet?.DefaultStartTempoInBpm ?? 0);
       const startBpm =
-        scoreTempo >= 20 && scoreTempo <= 400 ? scoreTempo : DEFAULT_BPM;
+        scoreTempo >= 20 && scoreTempo <= 400
+          ? scoreTempo
+          : preferredTempo && preferredTempo >= 20 && preferredTempo <= 400
+            ? preferredTempo
+            : DEFAULT_BPM;
 
       // Surface the title printed on the score (the "music name") when present.
       const scoreTitle = osmd.Sheet?.TitleString?.trim();
@@ -532,6 +542,15 @@ export default function Home() {
         return;
       }
 
+      // OMR drops the printed tempo, so OCR the scan for it in parallel (the
+      // printed tempo lives only in the image). Best-effort; never blocks.
+      import("@/lib/ocr-tempo")
+        .then(({ extractTempoFromFile }) => extractTempoFromFile(file))
+        .then((bpm) => {
+          if (bpm) updateSong(songId, { ocrTempo: bpm });
+        })
+        .catch(() => {});
+
       try {
         const form = new FormData();
         form.append("file", file);
@@ -595,7 +614,7 @@ export default function Home() {
       }
       setActiveSongId(song.id);
       resetForLoad(song.name);
-      await loadScore(song.url, song.name);
+      await loadScore(song.url, song.name, song.ocrTempo);
     },
     [activeSongId, stage, resetForLoad, loadScore]
   );
