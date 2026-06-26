@@ -110,48 +110,6 @@ async function detectPageCrop(oriented: Buffer): Promise<sharp.Region | null> {
   }
 }
 
-/**
- * Whether the page's staff lines run vertically (the photo is rotated ~90°).
- * Staff lines are the strongest long-line structure on a score: when they're
- * horizontal, whole rows are dark (high row-projection variance); when the page
- * is on its side, whole columns are dark instead. Compares the two.
- */
-async function stavesAreVertical(input: Uint8Array): Promise<boolean> {
-  try {
-    const { data, info } = await sharp(input, { failOn: "none" })
-      .rotate() // honor EXIF first
-      .grayscale()
-      .resize({ width: 800, height: 800, fit: "inside" })
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    const W = info.width;
-    const H = info.height;
-    const rows = new Float64Array(H);
-    const cols = new Float64Array(W);
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const dark = 255 - data[y * W + x];
-        rows[y] += dark;
-        cols[x] += dark;
-      }
-    }
-    const variance = (a: Float64Array): number => {
-      let mean = 0;
-      for (const v of a) mean += v;
-      mean /= a.length;
-      let sum = 0;
-      for (const v of a) sum += (v - mean) ** 2;
-      return sum / a.length;
-    };
-    // Normalize by the number of pixels summed so the two axes are comparable.
-    const vRows = variance(rows) / (W * W);
-    const vCols = variance(cols) / (H * H);
-    return vCols > vRows * 1.3;
-  } catch {
-    return false;
-  }
-}
-
 /** Render the EXIF-corrected image rotated by `deg`, grayscaled and downscaled. */
 async function candidate(input: Uint8Array, deg: number): Promise<Buffer> {
   let pipe = sharp(input, { failOn: "none" }).rotate();
@@ -164,21 +122,20 @@ async function candidate(input: Uint8Array, deg: number): Promise<Buffer> {
 }
 
 /**
- * For a page whose staves are vertical, decide whether it's rotated 90° or
- * 270° by OCR-ing both candidates and keeping whichever reads as the most real
- * text (upright text recognizes far better than upside-down). Returns the
- * degrees to rotate the EXIF-corrected image so it stands upright.
+ * Decide how to rotate the EXIF-corrected image so it stands upright. We OCR
+ * all four 90° orientations and keep whichever reads as the most real text —
+ * upright text recognizes far better than sideways or upside-down. This is
+ * more robust than a geometry heuristic (staff-line direction), which false-
+ * positives on busy pages and can't tell up from down. Returns 0/90/180/270.
  */
 async function uprightRotation(input: Uint8Array): Promise<number> {
-  if (!(await stavesAreVertical(input))) return 0; // already horizontal
-
   try {
     const { createWorker } = await import("tesseract.js");
     const worker = await createWorker("eng");
     try {
-      let best = 90;
+      let best = 0;
       let bestScore = -1;
-      for (const deg of [90, 270]) {
+      for (const deg of [0, 90, 180, 270]) {
         const { data } = await worker.recognize(await candidate(input, deg));
         const letters = (data.text.match(/[A-Za-z]/g) ?? []).length;
         const score = letters * (data.confidence ?? 0);
@@ -192,7 +149,7 @@ async function uprightRotation(input: Uint8Array): Promise<number> {
       await worker.terminate();
     }
   } catch {
-    return 90; // OCR unavailable: still turn it upright-ish so OMR has a chance
+    return 0; // OCR unavailable: trust EXIF orientation only
   }
 }
 
