@@ -13,6 +13,12 @@ import { createJob, updateJob } from "@/lib/jobs";
 import { isImageFile, preprocessImageVariants } from "@/lib/image-preprocess";
 import { enqueueOmr } from "@/lib/omr-queue";
 import { getHymnPreset, hymnNumberFromFilename } from "@/lib/hymn-presets";
+import {
+  checkIpRate,
+  clientIp,
+  releaseSlot,
+  tryReserveSlot,
+} from "@/lib/rate-limit";
 
 // Use a writable temp dir: serverless hosts (Vercel) mount the project read-only
 // and only allow writes under the OS temp dir. Jobs store absolute paths, so the
@@ -25,6 +31,16 @@ export async function POST(req: NextRequest) {
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  }
+
+  // Abuse protection: the service is public (--allow-unauthenticated), so cap how
+  // fast any one visitor can submit uploads before doing any work.
+  const ipRate = checkIpRate(clientIp(req.headers), Date.now());
+  if (!ipRate.ok) {
+    return NextResponse.json(
+      { error: ipRate.reason },
+      { status: 429, headers: { "Retry-After": String(ipRate.retryAfter ?? 60) } }
+    );
   }
 
   // For a hymn with a user-supplied canonical score, prefer that score over a
@@ -76,6 +92,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ jobId });
   }
 
+  // Recognition is serialized and slow (minutes each). Reject once the queue is
+  // full rather than letting it be stuffed with more work than it can clear.
+  const slot = tryReserveSlot();
+  if (!slot.ok) {
+    return NextResponse.json(
+      { error: slot.reason },
+      { status: 429, headers: { "Retry-After": String(slot.retryAfter ?? 30) } }
+    );
+  }
+
   // Photos/scans try the cleaned image first, but retain the original crop as
   // a fallback because aggressive enhancement can trigger Audiveris bugs.
   const attempts: Array<{ path: string; label: string }> = [];
@@ -100,8 +126,11 @@ export async function POST(req: NextRequest) {
   });
 
   // Audiveris is memory-heavy. Queue jobs in the background while the client
-  // polls /api/omr/status/[jobId].
-  void enqueueOmr(() => processJob(jobId, attempts, outputDir));
+  // polls /api/omr/status/[jobId]. Free the queue slot once the job settles,
+  // however it settles, so the global in-flight cap stays accurate.
+  void enqueueOmr(() => processJob(jobId, attempts, outputDir)).finally(
+    releaseSlot
+  );
 
   return NextResponse.json({ jobId });
 }
