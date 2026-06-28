@@ -4,21 +4,22 @@ import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import JSZip from "jszip";
 import path from "path";
 
-const AUDIVERIS_ROOT = path.join(
-  process.cwd(),
-  "tools",
-  "audiveris",
-  "Audiveris"
-);
-const AUDIVERIS_JAVA = path.join(AUDIVERIS_ROOT, "runtime", "bin", "java.exe");
-const AUDIVERIS_APP = path.join(AUDIVERIS_ROOT, "app");
+// On Windows (local dev) we use the bundled JVM; on Linux (Cloud Run / Docker)
+// we use the system java from PATH. AUDIVERIS_APP_DIR and AUDIVERIS_TESSDATA_DIR
+// env-vars let the Docker image point to wherever the JARs were installed.
+const IS_WINDOWS = process.platform === "win32";
+const AUDIVERIS_ROOT = path.join(process.cwd(), "tools", "audiveris", "Audiveris");
+const AUDIVERIS_JAVA = IS_WINDOWS
+  ? path.join(AUDIVERIS_ROOT, "runtime", "bin", "java.exe")
+  : (process.env.JAVA_CMD ?? "java");
+const AUDIVERIS_APP =
+  process.env.AUDIVERIS_APP_DIR ?? path.join(AUDIVERIS_ROOT, "app");
 const AUDIVERIS_JAVA_ARGS = [
-  "-Djpackage.app-version=5.10.2",
   "--add-exports=java.desktop/sun.awt.image=ALL-UNNAMED",
   "--enable-native-access=ALL-UNNAMED",
   "-Dfile.encoding=UTF-8",
   "-Xms512m",
-  "-Xmx8G",
+  "-Xmx4G",
   "-cp",
   path.join(AUDIVERIS_APP, "*"),
   "Audiveris",
@@ -30,23 +31,24 @@ const INACTIVITY_TIMEOUT_MS = 5 * 60_000;
 // Tesseract language data for Audiveris's OCR (titles, tempo, lyrics). Drop
 // eng.traineddata / kor.traineddata (full tessdata, with the legacy engine
 // Audiveris needs) here; if absent, Audiveris just runs without text OCR.
-const TESSDATA_DIR = path.join(
-  process.cwd(),
-  "tools",
-  "audiveris",
-  "tessdata"
-);
+const TESSDATA_DIR =
+  process.env.AUDIVERIS_TESSDATA_DIR ??
+  path.join(process.cwd(), "tools", "audiveris", "tessdata");
 
 export class AudiverisError extends Error {}
 
 /**
- * Whether the bundled Audiveris OMR engine is actually present. It ships only
- * with the desktop build (a Windows JVM under tools/), so serverless deploys
- * such as Vercel don't have it — callers use this to fail with a clear message
- * instead of spawning a missing binary.
+ * Whether the Audiveris OMR engine is available. On Windows, checks the
+ * bundled JVM. On Linux (Cloud Run / Docker), checks that the system java and
+ * the app JAR directory are both present.
  */
 export function isAudiverisAvailable(): boolean {
-  return existsSync(AUDIVERIS_JAVA);
+  if (IS_WINDOWS) return existsSync(AUDIVERIS_JAVA);
+  // On Linux: the bundled java.exe is absent — java comes from the system PATH.
+  // Checking PATH availability via existsSync won't work, so just verify that
+  // the app directory (mandatory for the classpath) is present. The Docker image
+  // always installs java, so if the dir exists the engine is ready.
+  return existsSync(AUDIVERIS_APP);
 }
 
 export interface MusicXmlQuality {

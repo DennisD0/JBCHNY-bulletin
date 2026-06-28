@@ -37,9 +37,13 @@ server-*.log
 # vercel
 .vercel
 
-# local OMR engine (downloaded by setup, see tools/README.md)
-/tools
-/.tools
+# Windows-only parts of the OMR engine (not needed in the Docker image)
+/tools/audiveris/audiveris.msi
+/tools/audiveris/Audiveris/Audiveris.exe
+/tools/audiveris/Audiveris/runtime
+/tools/audiveris/Audiveris/app/*-windows-x86_64.jar
+# Tunnel binary (downloaded locally, not needed in repo)
+/tools/cloudflared.exe
 
 # OMR working files (uploads, job output)
 /omr-data
