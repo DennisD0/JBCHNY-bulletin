@@ -9,9 +9,11 @@ RUN npm run build
 
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
-# eclipse-temurin gives us a production JRE 21 on Ubuntu Jammy — exactly what
-# Audiveris needs. We add Node.js 20 on top for Next.js.
-FROM eclipse-temurin:21-jre-jammy AS runner
+# eclipse-temurin gives us a production JRE on Ubuntu Jammy. Audiveris's classes
+# are compiled for Java 25 (the version its bundled jpackage runtime ships), so
+# the runtime JRE must be 25+ or every class load throws UnsupportedClassVersionError
+# (a LinkageError). We add Node.js 20 on top for Next.js.
+FROM eclipse-temurin:25-jre-jammy AS runner
 
 # Node.js 20 (LTS)
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
@@ -19,9 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
  && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
 
-# System libraries Sharp needs (image processing for the upload pipeline)
+# System libraries Sharp needs (image processing for the upload pipeline), plus
+# libgomp1 — the bytedeco tesseract/leptonica native libs link against OpenMP and
+# fail to load with UnsatisfiedLinkError on a minimal JRE image without it.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libvips-dev python3 make g++ \
+    libvips-dev libgomp1 python3 make g++ \
  && rm -rf /var/lib/apt/lists/*
 
 # ── Audiveris JARs ────────────────────────────────────────────────────────────
