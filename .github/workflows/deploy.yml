@@ -42,12 +42,13 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --port 8080 \
-            --memory 4Gi \
+            --memory 8Gi \
             --cpu 2 \
             --timeout 300 \
-            --concurrency 5 \
+            --concurrency 40 \
             --min-instances 0 \
-            --max-instances 2 \
+            --max-instances 1 \
+            --no-cpu-throttling \
             --project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Print service URL
