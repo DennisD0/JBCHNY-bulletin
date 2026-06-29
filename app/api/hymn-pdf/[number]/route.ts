@@ -30,11 +30,17 @@ export async function GET(
 
   const padded = String(n).padStart(3, "0");
 
+  // We fetch the JPG render rather than the PDF. The PDF is a high-resolution
+  // scan (~30 MP) that exceeds Audiveris's image-size limit and would be
+  // rejected. The JPG is pre-rendered at ~1327×2560 (3.4 MP) — comfortably
+  // within Audiveris's limit and passes through our CLAHE/sharpen preprocessing
+  // pipeline as a normal image file.
+
   // Step 1: get a short-lived JWT from the site's token endpoint.
   let token: string;
   try {
     const tokenRes = await fetch(
-      `${SITE}/api/download/sheet-music?action=token&number=${padded}&format=pdf`,
+      `${SITE}/api/download/sheet-music?action=token&number=${padded}&format=jpg`,
       { headers: { "User-Agent": UA, Referer: REFERER + padded } }
     );
     if (!tokenRes.ok) throw new Error(`token ${tokenRes.status}`);
@@ -48,32 +54,33 @@ export async function GET(
     );
   }
 
-  // Step 2: exchange the token for the actual PDF.
-  let pdfRes: Response;
+  // Step 2: exchange the token for the actual image.
+  let imgRes: Response;
   try {
-    pdfRes = await fetch(
-      `${SITE}/api/download/sheet-music?token=${token}&format=pdf`,
+    imgRes = await fetch(
+      `${SITE}/api/download/sheet-music?token=${token}&format=jpg`,
       { headers: { "User-Agent": UA, Referer: REFERER + padded } }
     );
-    if (!pdfRes.ok) throw new Error(`pdf ${pdfRes.status}`);
-    const ct = pdfRes.headers.get("content-type") ?? "";
-    if (!ct.includes("pdf")) throw new Error(`unexpected content-type: ${ct}`);
+    if (!imgRes.ok) throw new Error(`image ${imgRes.status}`);
+    const ct = imgRes.headers.get("content-type") ?? "";
+    if (!ct.includes("image") && !ct.includes("jpeg") && !ct.includes("jpg")) {
+      throw new Error(`unexpected content-type: ${ct}`);
+    }
   } catch (err) {
     return NextResponse.json(
-      { error: `Could not download PDF: ${err instanceof Error ? err.message : String(err)}` },
+      { error: `Could not download sheet image: ${err instanceof Error ? err.message : String(err)}` },
       { status: 502 }
     );
   }
 
-  // Stream the PDF straight through with a safe filename.
-  const filename = `${padded}.pdf`;
-  return new NextResponse(pdfRes.body, {
+  // Return as JPEG so the client names it .jpg and our isImageFile() check
+  // routes it through the preprocessing pipeline instead of raw-to-Audiveris.
+  const filename = `${padded}.jpg`;
+  return new NextResponse(imgRes.body, {
     status: 200,
     headers: {
-      "Content-Type": "application/pdf",
+      "Content-Type": "image/jpeg",
       "Content-Disposition": `attachment; filename="${filename}"`,
-      // Short cache: the token is ephemeral, but the PDF content for a given
-      // hymn number never changes, so an edge cache miss once per hour is fine.
       "Cache-Control": "public, max-age=3600",
     },
   });

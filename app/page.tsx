@@ -799,7 +799,7 @@ export default function Home() {
       }
       const blob = await res.blob();
       const padded = String(n).padStart(3, "0");
-      const file = new File([blob], `${padded}장.pdf`, { type: "application/pdf" });
+      const file = new File([blob], `${padded}장.jpg`, { type: "image/jpeg" });
       addToLibrary([file]);
       setHymnQuery("");
     } catch (err) {
