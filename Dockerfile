@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 # libgomp1 — the bytedeco tesseract/leptonica native libs link against OpenMP and
 # fail to load with UnsatisfiedLinkError on a minimal JRE image without it.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libvips-dev libgomp1 python3 make g++ poppler-utils \
+    libvips-dev libgomp1 python3 make g++ \
  && rm -rf /var/lib/apt/lists/*
 
 # ── Audiveris JARs ────────────────────────────────────────────────────────────
