@@ -11,6 +11,12 @@ import { partsToMidi } from "@/lib/midi-export";
 import CropModal from "./crop-modal";
 import type { AudioEngine } from "@/lib/audio-engine";
 import type { OpenSheetMusicDisplay } from "opensheetmusicdisplay";
+import {
+  toNewHymnalNumber,
+  HYMNAL_LABELS,
+  HYMNAL_MAX,
+  type HymnalEdition,
+} from "@/lib/hymnal-map";
 
 // The player's own lifecycle, independent of per-song upload/OMR progress.
 type Stage = "idle" | "loading" | "ready" | "error";
@@ -138,6 +144,7 @@ export default function Home() {
   const [hymnQuery, setHymnQuery] = useState("");
   const [hymnFetching, setHymnFetching] = useState(false);
   const [hymnFetchError, setHymnFetchError] = useState<string | null>(null);
+  const [hymnalEdition, setHymnalEdition] = useState<HymnalEdition>("unified");
   const [uploadNote, setUploadNote] = useState<string | null>(null);
   // Photos awaiting the crop step, processed one at a time.
   const [cropQueue, setCropQueue] = useState<File[]>([]);
@@ -769,15 +776,23 @@ export default function Home() {
     [addToLibrary]
   );
 
-  /** Fetch the high-res PDF for a 새찬송가 number via our server proxy and
-   * drop it straight into the OMR pipeline — no manual download step. */
+  /** Fetch the high-res PDF for a hymn number via our server proxy and
+   * drop it straight into the OMR pipeline — no manual download step.
+   * Converts 통합찬송가 numbers to 새찬송가 automatically. */
   const fetchHymnSheet = useCallback(async () => {
     const n = parseInt(hymnQuery.trim(), 10);
-    if (!Number.isFinite(n) || n < 1 || n > 645) return;
+    const max = HYMNAL_MAX[hymnalEdition];
+    if (!Number.isFinite(n) || n < 1 || n > max) return;
     setHymnFetching(true);
     setHymnFetchError(null);
     try {
-      const res = await fetch(`/api/hymn-pdf/${n}`);
+      const newNumber = toNewHymnalNumber(n, hymnalEdition);
+      if (newNumber === null) {
+        throw new Error(
+          `찬송가 ${n}장은 새찬송가에 수록되지 않은 곡입니다 (was removed in the 2006 revision).`
+        );
+      }
+      const res = await fetch(`/api/hymn-pdf/${newNumber}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Failed to fetch sheet (${res.status})`);
@@ -792,7 +807,7 @@ export default function Home() {
     } finally {
       setHymnFetching(false);
     }
-  }, [hymnQuery, addToLibrary]);
+  }, [hymnQuery, hymnalEdition, addToLibrary]);
 
   /** Finish cropping the current photo: add the chosen region to the library. */
   const handleCropConfirm = useCallback(
@@ -1035,26 +1050,39 @@ export default function Home() {
 
           {/* Get the official high-res sheet by number — fetches the PDF via
               our server proxy and sends it straight into OMR (no manual step). */}
-          <div className="flex flex-col gap-1.5 rounded-2xl border border-stone-100 bg-stone-50 px-3 py-3">
-            <label
-              htmlFor="hymn-number"
-              className="text-xs font-bold uppercase tracking-wide text-stone-400"
-            >
+          <div className="flex flex-col gap-2 rounded-2xl border border-stone-100 bg-stone-50 px-3 py-3">
+            <span className="text-xs font-bold uppercase tracking-wide text-stone-400">
               Get official sheet by number
-            </label>
+            </span>
+            {/* Hymnal edition toggle */}
+            <div className="flex gap-1.5">
+              {(["unified", "new"] as HymnalEdition[]).map((ed) => (
+                <button
+                  key={ed}
+                  onClick={() => { setHymnalEdition(ed); setHymnFetchError(null); }}
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                    hymnalEdition === ed
+                      ? "bg-blue-900 text-white"
+                      : "border border-stone-200 bg-white text-stone-500 hover:bg-stone-100"
+                  }`}
+                >
+                  {HYMNAL_LABELS[ed]}
+                </button>
+              ))}
+            </div>
             <div className="flex items-center gap-2">
               <input
                 id="hymn-number"
                 type="number"
                 inputMode="numeric"
                 min={1}
-                max={645}
+                max={HYMNAL_MAX[hymnalEdition]}
                 value={hymnQuery}
                 onChange={(e) => { setHymnQuery(e.target.value); setHymnFetchError(null); }}
                 onKeyDown={(e) => { if (e.key === "Enter") void fetchHymnSheet(); }}
-                placeholder="새찬송가 no. (1–645)"
+                placeholder={`찬송가 번호 (1–${HYMNAL_MAX[hymnalEdition]})`}
                 disabled={hymnFetching}
-                className="w-40 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 outline-none focus:border-blue-400 disabled:opacity-50"
+                className="w-44 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 outline-none focus:border-blue-400 disabled:opacity-50"
               />
               <button
                 onClick={() => void fetchHymnSheet()}
@@ -1078,9 +1106,8 @@ export default function Home() {
               <p className="text-xs font-medium text-red-500">{hymnFetchError}</p>
             )}
             <p className="text-xs text-stone-400">
-              Type a 새찬송가 number (1–645) and tap Get sheet — the high-res PDF
-              loads automatically and starts recognizing. Clean scans recognize
-              more accurately than photos.
+              Type your hymnal number and tap Get sheet — the high-res PDF loads
+              and starts recognizing automatically.
             </p>
           </div>
         </section>
