@@ -196,7 +196,7 @@ function CalGrid({ month, year, events, banners }: {
                   }}>
                     <div style={{
                       fontWeight:700, fontSize:11, lineHeight:1.2,
-                      color: di===0 ? SUN : di===6 ? SAT : "#222",
+                      color: "#222",
                     }}>{cell.day === 1 ? `${cell.month}/1` : cell.day}</div>
                     {evts.map((e,ei) => (
                       <div key={ei} style={{ fontSize:10, color:GR, lineHeight:1.2 }}>•{e}</div>
@@ -546,7 +546,7 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
           <img
             src="/logo-full.png"
             alt="Jesus Baptist U.S.A. Conference — New York Church"
-            style={{ position:"absolute", left:25, top:718, width:393, height:68, objectFit:"fill" }}
+            style={{ position:"absolute", left:96, top:725, width:243, height:55, objectFit:"fill" }}
           />
         </div>
       </div>
@@ -659,8 +659,8 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               </colgroup>
               <thead>
                 <tr>
-                  <TH grid>Who</TH><TH grid>Whom</TH><TH grid>Relation</TH>
-                  <TH grid>Who</TH><TH grid>Whom</TH><TH grid>Relation</TH>
+                  <TH grid center>Who</TH><TH grid center>Whom</TH><TH grid center>Relation</TH>
+                  <TH grid center>Who</TH><TH grid center>Whom</TH><TH grid center>Relation</TH>
                 </tr>
               </thead>
               <tbody>
@@ -669,12 +669,12 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                   const R = data.prayerRequests[i*2+1];
                   return (
                     <tr key={i} style={{ height:23 }}>
-                      <TD xs grid>{L?.who}</TD>
-                      <TD xs grid>{L?.whom}</TD>
-                      <TD xs grid pr={10}>{L?.relation}</TD>
-                      <TD xs grid>{R?.who??""}</TD>
-                      <TD xs grid>{R?.whom??""}</TD>
-                      <TD xs grid>{R?.relation??""}</TD>
+                      <TD xs center>{L?.who}</TD>
+                      <TD xs center>{L?.whom}</TD>
+                      <TD xs center pr={10}>{L?.relation}</TD>
+                      <TD xs grid center>{R?.who??""}</TD>
+                      <TD xs center>{R?.whom??""}</TD>
+                      <TD xs center>{R?.relation??""}</TD>
                     </tr>
                   );
                 })}
