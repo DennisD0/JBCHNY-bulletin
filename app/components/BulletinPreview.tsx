@@ -546,7 +546,7 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
           <img
             src="/logo-full.png"
             alt="Jesus Baptist U.S.A. Conference — New York Church"
-            style={{ position:"absolute", left:96, top:725, width:243, height:55, objectFit:"fill" }}
+            style={{ position:"absolute", left:25, top:718, width:393, height:68, objectFit:"fill" }}
           />
         </div>
       </div>
