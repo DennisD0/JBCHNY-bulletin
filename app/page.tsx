@@ -7,6 +7,7 @@ import {
   CalendarDays, CalendarClock, Newspaper, HandHeart, Sparkles,
   BookMarked, CalendarRange, Save as SaveIcon,
   MousePointer2, Hand, ZoomIn, Maximize2, Download,
+  RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   type LucideIcon,
 } from "lucide-react";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
@@ -495,59 +496,212 @@ function BibleReadingTab({
 }
 
 // ---------------------------------------------------------------------------
-// Tab: Memory Verses
+// Sidebar panel: Memory Verses automation
 // ---------------------------------------------------------------------------
 
-function MemoryVersesTab({
+type VersePreview = {
+  index: number;
+  total: number;
+  theme: string;
+  themeKorean: string;
+  reference: string;
+  referenceEn: string;
+  text: string;
+  translation: string;
+  hasApiKey: boolean;
+};
+
+function MemoryVersesSidebarPanel({
   data,
   set,
 }: {
   data: BulletinData;
   set: (patch: Partial<BulletinData>) => void;
 }) {
-  const update = (i: number, patch: Partial<MemoryVerse>) => {
-    const arr = data.memoryVerses.map((v, idx) =>
-      idx === i ? { ...v, ...patch } : v
-    );
-    set({ memoryVerses: arr });
+  const [preview, setPreview] = useState<VersePreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [rolling, setRolling] = useState(false);
+  const [rollMsg, setRollMsg] = useState<string | null>(null);
+  const [detecting, setDetecting] = useState(false);
+
+  const loadPreview = useCallback(async (index?: number) => {
+    setPreviewLoading(true);
+    try {
+      const url = index !== undefined
+        ? `/api/memory-verse?index=${index}`
+        : "/api/memory-verse";
+      const res = await fetch(url);
+      if (res.ok) setPreview(await res.json());
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadPreview(); }, [loadPreview]);
+
+  const navigate = async (delta: number) => {
+    if (!preview) return;
+    const newIdx = ((preview.index + delta) % preview.total + preview.total) % preview.total;
+    await loadPreview(newIdx);
+    // persist the new position
+    await fetch("/api/memory-verse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setIndex", index: newIdx }),
+    });
   };
 
+  const detectPosition = async () => {
+    const nextWeek = data.memoryVerses.find((v) => v.label === "Next week");
+    if (!nextWeek) return;
+    setDetecting(true);
+    try {
+      const res = await fetch("/api/memory-verse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "detect", referenceEn: nextWeek.reference }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        await loadPreview(json.nextWeekIndex);
+        setRollMsg(`Position set — next verse is #${json.nextWeekIndex + 1}`);
+      } else {
+        setRollMsg("Current 'Next week' verse not found in list");
+      }
+    } finally {
+      setDetecting(false);
+      setTimeout(() => setRollMsg(null), 3000);
+    }
+  };
+
+  const roll = async () => {
+    setRolling(true);
+    setRollMsg(null);
+    try {
+      // compute next Sunday after the current "next week" date
+      const nextWeekEntry = data.memoryVerses.find((v) => v.label === "Next week");
+      let nextDate = "";
+      if (nextWeekEntry?.date) {
+        const parts = nextWeekEntry.date.split("/").map(Number);
+        if (parts.length >= 2) {
+          const d = new Date(new Date().getFullYear(), parts[0] - 1, parts[1]);
+          d.setDate(d.getDate() + 7);
+          nextDate = `${d.getMonth() + 1}/${d.getDate()}`;
+        }
+      }
+      const res = await fetch("/api/memory-verse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "roll",
+          currentVerses: data.memoryVerses,
+          nextDate,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        set({ memoryVerses: json.memoryVerses });
+        await loadPreview(json.newIndex);
+        setRollMsg(`Rolled! Translation: ${json.translation || "—"}`);
+      } else {
+        setRollMsg("Roll failed — check console");
+      }
+    } finally {
+      setRolling(false);
+      setTimeout(() => setRollMsg(null), 4000);
+    }
+  };
+
+  const BL = "#1E3A8A";
+
   return (
-    <div className="flex flex-col gap-5">
-      {data.memoryVerses.map((verse, i) => (
-        <Card key={i}>
-          <SectionTitle>{verse.label} — Memory Verse</SectionTitle>
-          <div className="grid grid-cols-3 gap-4">
-            <Field
-              label="Label"
-              value={verse.label}
-              onChange={(v) => update(i, { label: v })}
-            />
-            <Field
-              label="Date"
-              value={verse.date}
-              onChange={(v) => update(i, { date: v })}
-            />
-            <Field
-              label="Theme"
-              value={verse.theme}
-              onChange={(v) => update(i, { theme: v })}
-            />
+    <div style={{ margin: "0 10px 4px", display: "flex", flexDirection: "column", gap: 8 }}>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#6B7A99", textTransform: "uppercase" }}>
+          Memory Verse Auto-Fill
+        </span>
+        {preview && (
+          <span style={{ fontSize: 10, color: "#6B7A99" }}>
+            #{preview.index + 1}/{preview.total}{" "}
+            <span style={{ color: preview.translation === "NKJV" ? "#4ADE80" : "#FACC15", fontWeight: 700 }}>
+              {preview.translation || (previewLoading ? "…" : "—")}
+            </span>
+          </span>
+        )}
+      </div>
+
+      {/* Next verse preview box */}
+      <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 7, padding: "9px 10px", minHeight: 48, border: "1px solid rgba(255,255,255,0.06)" }}>
+        {previewLoading ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#6B7A99", fontSize: 11 }}>
+            <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", borderTopColor: "#4472C4", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+            Fetching…
           </div>
-          <Field
-            label="Scripture reference"
-            value={verse.reference}
-            onChange={(v) => update(i, { reference: v })}
-          />
-          <Field
-            label="Verse text"
-            value={verse.text}
-            onChange={(v) => update(i, { text: v })}
-            multiline
-            rows={4}
-          />
-        </Card>
-      ))}
+        ) : preview ? (
+          <>
+            <div style={{ fontSize: 10, color: "#4472C4", fontWeight: 700, marginBottom: 3 }}>
+              {preview.theme} — {preview.referenceEn}
+            </div>
+            <div style={{ fontSize: 11, color: "#B0BAD4", lineHeight: 1.45, fontStyle: "italic" }}>
+              {preview.text
+                ? (preview.text.length > 120 ? preview.text.slice(0, 117) + "…" : preview.text)
+                : <span style={{ color: "#6B7A99" }}>No text yet</span>}
+            </div>
+          </>
+        ) : (
+          <div style={{ color: "#6B7A99", fontSize: 11 }}>—</div>
+        )}
+      </div>
+
+      {!preview?.hasApiKey && (
+        <div style={{ fontSize: 9.5, color: "#D6A400", background: "rgba(214,164,0,0.08)", border: "1px solid rgba(214,164,0,0.2)", borderRadius: 5, padding: "4px 8px", lineHeight: 1.45 }}>
+          KJV fallback active. For NKJV: add <code style={{ fontFamily: "monospace", fontSize: 9 }}>BIBLE_API_KEY</code> to .env.local (free at scripture.api.bible).
+        </div>
+      )}
+
+      {/* Position nav row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <button onClick={() => navigate(-1)} disabled={previewLoading}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 5, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aaa", cursor: "pointer", flexShrink: 0 }}>
+          <ChevronLeft size={13} />
+        </button>
+        <button onClick={() => navigate(1)} disabled={previewLoading}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 5, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aaa", cursor: "pointer", flexShrink: 0 }}>
+          <ChevronRight size={13} />
+        </button>
+        <button onClick={detectPosition} disabled={detecting || previewLoading}
+          title="Sync position from current 'Next week' verse in bulletin"
+          style={{ display: "flex", alignItems: "center", gap: 4, height: 26, padding: "0 8px", borderRadius: 5, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#aaa", cursor: "pointer", fontSize: 10.5, fontWeight: 600, flexShrink: 0 }}>
+          <LocateFixed size={11} />
+          Sync
+        </button>
+        {rollMsg && (
+          <span style={{ fontSize: 10, color: "#4ADE80", fontWeight: 600, marginLeft: 4, flex: 1, textAlign: "right" }}>{rollMsg}</span>
+        )}
+      </div>
+
+      {/* Roll button */}
+      <motion.button
+        onClick={roll}
+        disabled={rolling || previewLoading}
+        whileHover={!rolling ? { scale: 1.02 } : undefined}
+        whileTap={!rolling ? { scale: 0.97 } : undefined}
+        transition={{ duration: 0.13 }}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+          padding: "9px 12px", borderRadius: 7,
+          background: rolling ? "rgba(30,58,138,0.5)" : BL,
+          color: "#fff", border: "none", cursor: rolling ? "not-allowed" : "pointer",
+          fontSize: 12, fontWeight: 800,
+        }}
+      >
+        <RefreshCw size={13} strokeWidth={2.5} style={{ animation: rolling ? "spin 0.8s linear infinite" : undefined }} />
+        {rolling ? "Rolling…" : "Roll to next week →"}
+      </motion.button>
+      <div style={{ fontSize: 9.5, color: "#3A3A55", lineHeight: 1.45, padding: "0 2px" }}>
+        Promotes Last←This←Next and fills Next week with verse #{(preview?.index ?? 0) + 1}
+      </div>
     </div>
   );
 }
@@ -2328,13 +2482,17 @@ export default function Home() {
             Page 1
           </div>
           {SECTIONS.filter((sec) => sec.page === 1).map((sec) => (
-            <NavItem
-              key={sec.id}
-              icon={sec.icon}
-              label={sec.label}
-              isActive={activeTab === sec.id}
-              onClick={() => handleSectionClick(sec.id)}
-            />
+            <div key={sec.id}>
+              <NavItem
+                icon={sec.icon}
+                label={sec.label}
+                isActive={activeTab === sec.id}
+                onClick={() => handleSectionClick(sec.id)}
+              />
+              {sec.id === "memory" && activeTab === "memory" && data && (
+                <MemoryVersesSidebarPanel data={data} set={patch} />
+              )}
+            </div>
           ))}
 
           {/* ── Page 2 group ── */}
