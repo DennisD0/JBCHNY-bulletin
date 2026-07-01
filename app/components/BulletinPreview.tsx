@@ -1,4 +1,5 @@
-import { Fragment } from "react";
+"use client";
+import { Fragment, useState } from "react";
 import type { BulletinData, CalendarBanner } from "@/lib/bulletin-types";
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -123,11 +124,13 @@ function VerseRow({ label, date, reference, theme }: {
 
 // ── Monthly calendar grid ──────────────────────────────────────────────────────
 
-function CalGrid({ month, year, events, banners }: {
+function CalGrid({ month, year, events, banners, onUpdate }: {
   month: number; year: number;
   events: Record<string, string[]>;
   banners: CalendarBanner[];
+  onUpdate?: (patch: { calendarEvents?: Record<string,string[]>; calendarBanners?: CalendarBanner[] }) => void;
 }) {
+  const [focusKey, setFocusKey] = useState<string | null>(null);
   const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const first = new Date(year, month - 1, 1).getDay();
   const days = new Date(year, month, 0).getDate();
@@ -182,21 +185,48 @@ function CalGrid({ month, year, events, banners }: {
             {week.map((cell, di) => {
               const key = `${cell.month}/${cell.day}`;
               const evts = events[key] ?? [];
+              // shrink font as events accumulate: 10px for ≤3, down to 7px minimum
+              const evtFs = Math.max(7, 10 - Math.max(0, evts.length - 3) * 1);
               return (
-                <div key={di} style={{
-                  gridRow, gridColumn: di + 1,
-                  height:93, background:"#fff",
-                  padding:"1px 2px", overflow:"hidden",
-                  borderBottom:`${RULE}px solid ${BL}`,
-                  borderLeft: di===0 ? `${RULE}px solid ${BL}` : "none",
-                  borderRight:`${RULE}px solid ${BL}`,
-                }}>
+                <div key={di}
+                  onClick={(e) => {
+                    if (!(e.target as HTMLElement).closest('[contenteditable]') && onUpdate) {
+                      const newKey = `${key}-${evts.length}`;
+                      onUpdate({ calendarEvents: { ...events, [key]: [...evts, ""] } });
+                      setFocusKey(newKey);
+                    }
+                  }}
+                  style={{
+                    gridRow, gridColumn: di + 1,
+                    height:93, background:"#fff",
+                    padding:"1px 2px", overflow:"hidden",
+                    borderBottom:`${RULE}px solid ${BL}`,
+                    borderLeft: di===0 ? `${RULE}px solid ${BL}` : "none",
+                    borderRight:`${RULE}px solid ${BL}`,
+                    cursor: onUpdate ? "text" : "default",
+                  }}>
                   <div style={{ fontWeight:700, fontSize:11, lineHeight:1.2, color:"#222" }}>
                     {cell.day === 1 ? `${cell.month}/1` : cell.day}
                   </div>
-                  {evts.map((e,ei) => (
-                    <div key={ei} style={{ fontSize:10, color:GR, lineHeight:1.2 }}>•{e}</div>
-                  ))}
+                  {evts.map((e,ei) => {
+                    const itemKey = `${key}-${ei}`;
+                    const isNew = focusKey === itemKey;
+                    return (
+                      <E key={ei} block
+                        value={"•" + e}
+                        autoFocus={isNew}
+                        style={{ fontSize:evtFs, color:GR, lineHeight:1.2 }}
+                        onSave={onUpdate ? (v) => {
+                          if (isNew) setFocusKey(null);
+                          const clean = v.replace(/^•\s*/, "").trim();
+                          const newEvts = clean
+                            ? evts.map((ev,j) => j===ei ? clean : ev)
+                            : evts.filter((_,j) => j!==ei);
+                          onUpdate({ calendarEvents: { ...events, [key]: newEvts } });
+                        } : undefined}
+                      />
+                    );
+                  })}
                 </div>
               );
             })}
@@ -216,7 +246,10 @@ function CalGrid({ month, year, events, banners }: {
                   border:`${RULE}px solid ${BL}`,
                 }}>
                   <span style={{ fontSize:11, color:BL, fontWeight:700, whiteSpace:"nowrap" }}>
-                    {banner.label}
+                    <E
+                      value={banner.label}
+                      onSave={onUpdate ? (v) => onUpdate({ calendarBanners: banners.map((b,j) => j===bi ? {...b, label:v} : b) }) : undefined}
+                    />
                   </span>
                 </div>
               );
@@ -228,9 +261,56 @@ function CalGrid({ month, year, events, banners }: {
   );
 }
 
+// ── Inline-editable text primitive ────────────────────────────────────────────
+// Renders as contenteditable when onSave is provided, with a blue focus ring.
+// dangerouslySetInnerHTML prevents React from resetting the cursor while typing.
+function E({
+  value, onSave, block = false, multi = false, autoFocus = false, style: extraStyle,
+}: {
+  value: string;
+  onSave?: (v: string) => void;
+  block?: boolean;
+  multi?: boolean;
+  autoFocus?: boolean;
+  style?: React.CSSProperties;
+}) {
+  if (!onSave) return <>{value}</>;
+  const html = value
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const onFocus = (e: React.FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.background = "rgba(68,114,196,0.09)";
+    e.currentTarget.style.boxShadow = "0 0 0 1.5px rgba(68,114,196,0.45)";
+    e.currentTarget.style.borderRadius = "2px";
+  };
+  const onBlur = (e: React.FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.background = "";
+    e.currentTarget.style.boxShadow = "";
+    e.currentTarget.style.borderRadius = "";
+    const v = multi
+      ? (e.currentTarget as HTMLElement).innerText
+      : (e.currentTarget.textContent ?? "");
+    if (v !== value) onSave(v);
+  };
+  const shared = {
+    contentEditable: true as const,
+    suppressContentEditableWarning: true,
+    dangerouslySetInnerHTML: { __html: html },
+    autoFocus,
+    onFocus, onBlur,
+    style: { outline: "none", cursor: "text", whiteSpace: multi ? "pre-wrap" as const : undefined, ...extraStyle },
+  };
+  return block ? <div {...shared} /> : <span {...shared} />;
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function BulletinPreview({ data }: { data: BulletinData }) {
+export default function BulletinPreview({
+  data,
+  onUpdate,
+}: {
+  data: BulletinData;
+  onUpdate?: (patch: Partial<BulletinData>) => void;
+}) {
   const [mm, yyyy] = data.calendarMonth.split("/").map(Number);
 
   const page: React.CSSProperties = {
@@ -267,6 +347,26 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
 
   const tbl: React.CSSProperties = { width:"100%", borderCollapse:"collapse", marginBottom:9 };
 
+  // Helper: update a top-level string field
+  const upK = (key: keyof BulletinData) =>
+    onUpdate ? (val: string) => onUpdate({ [key]: val } as Partial<BulletinData>) : undefined;
+
+  // Helper: update one field inside an array item
+  const upA = <T extends object>(
+    arr: T[],
+    key: keyof BulletinData,
+    idx: number,
+    field: keyof T,
+  ) =>
+    onUpdate
+      ? (val: string) =>
+          onUpdate({
+            [key]: arr.map((item, i) =>
+              i === idx ? { ...item, [field]: val } : item,
+            ),
+          } as Partial<BulletinData>)
+      : undefined;
+
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div id="bulletin-preview" style={{ width:PAGE_W, background:"#F0F0F0" }}>
@@ -285,14 +385,18 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               <thead>
                 <tr>
                   <TH w={28}>Date</TH>
-                  {data.bibleReadingDates.map((d,i) => <TH key={i} center>{d}</TH>)}
+                  {data.bibleReadingDates.map((d,i) => (
+                    <TH key={i} center>
+                      <E value={d} onSave={onUpdate ? (v) => onUpdate({ bibleReadingDates: data.bibleReadingDates.map((x,j) => j===i ? v : x) }) : undefined} />
+                    </TH>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {([
-                  ["1\nReading",  data.bibleReading1],
-                  ["2\nReadings", data.bibleReading2],
-                ] as [string,string[]][]).map(([lbl,vals]) => (
+                  ["1\nReading",  data.bibleReading1,  "bibleReading1"  ],
+                  ["2\nReadings", data.bibleReading2,  "bibleReading2"  ],
+                ] as [string, string[], "bibleReading1"|"bibleReading2"][]).map(([lbl, vals, key]) => (
                   <tr key={lbl}>
                     <td style={{
                       color:BL, fontWeight:700, fontSize:F.small,
@@ -302,10 +406,12 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                     }}>{lbl}</td>
                     {vals.map((v,i) => (
                       <td key={i} style={{
-                        fontSize:F.small, textAlign:"center", verticalAlign:"top",
+                        fontSize:F.small, textAlign:"center", verticalAlign:"bottom",
                         padding:"2px 2px 2px 0", whiteSpace:"pre-line",
                         borderBottom:`0.5px solid ${LG}`, color:GR, lineHeight:1.25,
-                      }}>{v}</td>
+                      }}>
+                        <E value={v} onSave={onUpdate ? (nv) => onUpdate({ [key]: vals.map((x,j) => j===i ? nv : x) }) : undefined} />
+                      </td>
                     ))}
                   </tr>
                 ))}
@@ -320,9 +426,19 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             <div data-fit-body>
             {data.memoryVerses.map((v,i) => (
               <div key={i} style={{ marginBottom:8 }}>
-                <VerseRow label={v.label} date={v.date} reference={v.reference} theme={v.theme} />
+                <div style={{ display: "flex", alignItems: "baseline" }}>
+                  <span style={{ fontWeight: 700, fontSize: F.body, whiteSpace: "nowrap" }}>
+                    <E value={v.label}     onSave={upA(data.memoryVerses,"memoryVerses",i,"label")} />{" "}
+                    (<E value={v.date}     onSave={upA(data.memoryVerses,"memoryVerses",i,"date")} />){" "}
+                    <E value={v.reference} onSave={upA(data.memoryVerses,"memoryVerses",i,"reference")} />
+                  </span>
+                  <span style={{ flex:1, borderBottom:`1px dotted ${GR}`, margin:"0 3px 1.5px", minWidth:6 }} />
+                  <span style={{ fontWeight: 700, fontSize: F.body, whiteSpace: "nowrap" }}>
+                    <E value={v.theme} onSave={upA(data.memoryVerses,"memoryVerses",i,"theme")} />
+                  </span>
+                </div>
                 <p style={{ fontSize:F.body, color:GR, lineHeight:1.35, marginTop:2 }}>
-                  {v.text}
+                  <E value={v.text} onSave={upA(data.memoryVerses,"memoryVerses",i,"text")} multi />
                 </p>
               </div>
             ))}
@@ -340,8 +456,8 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               <tbody>
                 {data.cleaningAreas.map((r,i) => (
                   <tr key={i}>
-                    <TD xs>{r.location}</TD>
-                    <TD xs>{r.group}</TD>
+                    <TD xs><E value={r.location} onSave={upA(data.cleaningAreas,"cleaningAreas",i,"location")} /></TD>
+                    <TD xs><E value={r.group}    onSave={upA(data.cleaningAreas,"cleaningAreas",i,"group")} /></TD>
                   </tr>
                 ))}
               </tbody>
@@ -360,11 +476,11 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             <table style={{ ...tbl }}>
               <tbody>
                 {([
-                  ["Title",         data.sermonTitle],
-                  ["Main verse",    data.sermonVerse],
-                  ["Speaker",       data.sermonSpeaker],
-                  ["Ending praise", data.sermonEndingPraise],
-                ] as [string,string][]).map(([lbl,val]) => (
+                  ["Title",         data.sermonTitle,        "sermonTitle"],
+                  ["Main verse",    data.sermonVerse,        "sermonVerse"],
+                  ["Speaker",       data.sermonSpeaker,      "sermonSpeaker"],
+                  ["Ending praise", data.sermonEndingPraise, "sermonEndingPraise"],
+                ] as [string, string, keyof BulletinData][]).map(([lbl, val, key]) => (
                   <tr key={lbl}>
                     <td style={{
                       color:BL, fontWeight:700, fontSize:F.body,
@@ -375,7 +491,7 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                     <td style={{
                       fontSize:F.body, color:GR,
                       padding:"1.5px 0", verticalAlign:"top", lineHeight:1.3,
-                    }}>{val}</td>
+                    }}><E value={val} onSave={upK(key)} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -398,9 +514,11 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               <tbody>
                 {data.services.map((r,i) => (
                   <tr key={i}>
-                    {[r.date, r.usherSun, r.lunchDuty, r.childCare, r.usherWed].map((v,j) => (
+                    {(["date","usherSun","lunchDuty","childCare","usherWed"] as const).map((field,j) => (
                       <TD key={j} top xs>
-                        <span style={{ whiteSpace:"pre-line" }}>{v}</span>
+                        <span style={{ whiteSpace:"pre-line" }}>
+                          <E value={r[field]} onSave={upA(data.services,"services",i,field)} />
+                        </span>
                       </TD>
                     ))}
                   </tr>
@@ -423,10 +541,10 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               <tbody>
                 {data.eastCoastSeminar.map((r,i) => (
                   <tr key={i}>
-                    <TD noWrap xs>{r.date}</TD>
-                    <TD xs>{r.church}</TD>
-                    <TD xs>{r.speaker}</TD>
-                    <TD xs>{r.language}</TD>
+                    <TD noWrap xs><E value={r.date}     onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"date")} /></TD>
+                    <TD xs>       <E value={r.church}   onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"church")} /></TD>
+                    <TD xs>       <E value={r.speaker}  onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"speaker")} /></TD>
+                    <TD xs>       <E value={r.language} onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"language")} /></TD>
                   </tr>
                 ))}
               </tbody>
@@ -442,14 +560,18 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               <tbody>
                 {data.fellowship.map((r,i) => (
                   <tr key={i}>
-                    <td style={{
-                      color:BL, fontWeight:700, fontSize:F.body,
-                      padding:"2px 8px 2px 0", whiteSpace:"nowrap",
-                      borderBottom:`0.5px solid ${LG}`,
-                    }}>{r.name}</td>
-                    <td style={{ fontSize:F.body, color:GR, padding:"2px 8px 2px 0", borderBottom:`0.5px solid ${LG}` }}>{r.day}</td>
-                    <td style={{ fontSize:F.body, color:GR, padding:"2px 8px 2px 0", whiteSpace:"nowrap", borderBottom:`0.5px solid ${LG}` }}>{r.time}</td>
-                    <td style={{ fontSize:F.body, color:GR, padding:"2px 0", borderBottom:`0.5px solid ${LG}` }}>{r.location}</td>
+                    <td style={{ color:BL, fontWeight:700, fontSize:F.body, padding:"2px 8px 2px 0", whiteSpace:"nowrap", borderBottom:`0.5px solid ${LG}` }}>
+                      <E value={r.name}     onSave={upA(data.fellowship,"fellowship",i,"name")} />
+                    </td>
+                    <td style={{ fontSize:F.body, color:GR, padding:"2px 8px 2px 0", borderBottom:`0.5px solid ${LG}` }}>
+                      <E value={r.day}      onSave={upA(data.fellowship,"fellowship",i,"day")} />
+                    </td>
+                    <td style={{ fontSize:F.body, color:GR, padding:"2px 8px 2px 0", whiteSpace:"nowrap", borderBottom:`0.5px solid ${LG}` }}>
+                      <E value={r.time}     onSave={upA(data.fellowship,"fellowship",i,"time")} />
+                    </td>
+                    <td style={{ fontSize:F.body, color:GR, padding:"2px 0", borderBottom:`0.5px solid ${LG}` }}>
+                      <E value={r.location} onSave={upA(data.fellowship,"fellowship",i,"location")} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -460,10 +582,10 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
           {/* Contact — pinned to bottom */}
           <div style={{ marginTop:"auto", paddingTop:6, borderTop:`${RULE}px solid ${B}` }}>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
-              Pastor {data.phone}&nbsp;&nbsp;&nbsp;&nbsp;{data.email}
+              Pastor <E value={data.phone} onSave={upK("phone")} />&nbsp;&nbsp;&nbsp;&nbsp;<E value={data.email} onSave={upK("email")} />
             </p>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
-              Address {data.address}
+              Address <E value={data.address} onSave={upK("address")} />
             </p>
           </div>
         </div>
@@ -478,8 +600,8 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             fontFamily:"'Nanum Gothic', 'Malgun Gothic', Calibri, sans-serif",
             fontSize:15, fontWeight:700, lineHeight:1,
           }}>
-            <span>No. {data.number}</span>
-            <span>{data.date}</span>
+            <span>No. <E value={data.number} onSave={upK("number")} /></span>
+            <span><E value={data.date} onSave={upK("date")} /></span>
           </div>
 
           {/* "Church Bulletin" — forced two-line break, matches original's stacked title */}
@@ -502,10 +624,10 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
               fontWeight:700, fontSize:F.quote,
               lineHeight:"23px", whiteSpace:"pre-line", margin:0,
             }}>
-              {data.quote}
+              <E value={data.quote} onSave={upK("quote")} multi />
             </p>
             <p style={{ fontWeight:700, fontSize:F.quoteRef, marginTop:0, marginBottom:0 }}>
-              {data.quoteRef}
+              <E value={data.quoteRef} onSave={upK("quoteRef")} />
             </p>
           </div>
 
@@ -528,7 +650,7 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             position:"absolute", left:0, right:0, top:669,
             textAlign:"center", fontSize:F.pastor, lineHeight:1, margin:0,
           }}>
-            Pastor <strong style={{ fontWeight:700 }}>{data.pastor}</strong>
+            Pastor <strong style={{ fontWeight:700 }}><E value={data.pastor} onSave={upK("pastor")} /></strong>
           </p>
 
           {/* Full logo */}
@@ -549,7 +671,7 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
           <div data-fit-section="monthly-calendar" style={{ height:560, overflow:"hidden" }}>
             <SecHead title={`Monthly Schedule ${data.calendarMonth}`} />
             <div data-fit-body>
-              <CalGrid month={mm} year={yyyy} events={data.calendarEvents} banners={data.calendarBanners} />
+              <CalGrid month={mm} year={yyyy} events={data.calendarEvents} banners={data.calendarBanners} onUpdate={onUpdate} />
             </div>
           </div>
 
@@ -562,17 +684,19 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                 fontSize:16, margin:"0 0 8px", paddingBottom:5,
                 lineHeight:1.3, borderBottom:`${RULE}px solid ${BL}`,
               }}>
-                {data.seminarInfo.title}
+                <E value={data.seminarInfo.title} onSave={onUpdate ? (v) => onUpdate({ seminarInfo: { ...data.seminarInfo, title: v } }) : undefined} />
               </p>
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <tbody>
                   {([
-                    ["DATE",    data.seminarInfo.date],
-                    ["SPEAKER", data.seminarInfo.speaker],
-                  ] as [string,string][]).map(([lbl,val]) => (
+                    ["DATE",    data.seminarInfo.date,    "date"],
+                    ["SPEAKER", data.seminarInfo.speaker, "speaker"],
+                  ] as [string, string, "date"|"speaker"][]).map(([lbl, val, field]) => (
                     <tr key={lbl}>
                       <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:2, width:54, whiteSpace:"nowrap" }}>{lbl}</td>
-                      <td style={{ fontSize:F.body, color:GR, paddingBottom:2 }}>{val}</td>
+                      <td style={{ fontSize:F.body, color:GR, paddingBottom:2 }}>
+                        <E value={val} onSave={onUpdate ? (v) => onUpdate({ seminarInfo: { ...data.seminarInfo, [field]: v } }) : undefined} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -600,12 +724,12 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                           verticalAlign:"top", whiteSpace:"nowrap",
                           borderBottom:`0.5px solid ${LG}`, color:"#000",
                         }}>
-                          {day.date}
+                          <E value={day.date} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, date:v} : d) }) : undefined} />
                         </td>
                       )}
-                      <TD top xs>{item.name}</TD>
-                      <TD top xs>{item.location}</TD>
-                      <TD top xs noWrap>{item.time}</TD>
+                      <TD top xs><E value={item.name}     onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, name:v} : it)} : d) }) : undefined} /></TD>
+                      <TD top xs><E value={item.location} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, location:v} : it)} : d) }) : undefined} /></TD>
+                      <TD top xs noWrap><E value={item.time} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, time:v} : it)} : d) }) : undefined} /></TD>
                     </tr>
                   ))
                 )}
@@ -620,16 +744,11 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             {data.news.map((item,i) => (
               <div key={i} style={{ marginBottom:7 }}>
                 <p style={{ fontWeight:700, fontSize:F.body, lineHeight:1.3, margin:"0 0 1px" }}>
-                  {i+1}. {item.title}
+                  {i+1}. <E value={item.title} onSave={upA(data.news,"news",i,"title")} />
                 </p>
-                {item.body.split("\n").filter(Boolean).map((line,li) => (
-                  <p key={li} style={{
-                    fontSize:F.small, color:GR,
-                    paddingLeft:10, lineHeight:1.45, margin:0,
-                  }}>
-                    {"- "+line.replace(/^[-–•]\s*/,"")}
-                  </p>
-                ))}
+                <p style={{ fontSize:F.small, color:GR, paddingLeft:10, lineHeight:1.45, margin:0, whiteSpace:"pre-wrap" }}>
+                  <E value={item.body} onSave={upA(data.news,"news",i,"body")} multi />
+                </p>
               </div>
             ))}
             </div>
@@ -653,12 +772,12 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
                   const R = data.prayerRequests[i*2+1];
                   return (
                     <tr key={i} style={{ height:23 }}>
-                      <TD xs center>{L?.who}</TD>
-                      <TD xs center>{L?.whom}</TD>
-                      <TD xs center pr={10}>{L?.relation}</TD>
-                      <TD xs grid center>{R?.who??""}</TD>
-                      <TD xs center>{R?.whom??""}</TD>
-                      <TD xs center>{R?.relation??""}</TD>
+                      <TD xs center><E value={L?.who??""} onSave={L ? upA(data.prayerRequests,"prayerRequests",i*2,"who") : undefined} /></TD>
+                      <TD xs center><E value={L?.whom??""} onSave={L ? upA(data.prayerRequests,"prayerRequests",i*2,"whom") : undefined} /></TD>
+                      <TD xs center pr={10}><E value={L?.relation??""} onSave={L ? upA(data.prayerRequests,"prayerRequests",i*2,"relation") : undefined} /></TD>
+                      <TD xs grid center><E value={R?.who??""} onSave={R ? upA(data.prayerRequests,"prayerRequests",i*2+1,"who") : undefined} /></TD>
+                      <TD xs center><E value={R?.whom??""} onSave={R ? upA(data.prayerRequests,"prayerRequests",i*2+1,"whom") : undefined} /></TD>
+                      <TD xs center><E value={R?.relation??""} onSave={R ? upA(data.prayerRequests,"prayerRequests",i*2+1,"relation") : undefined} /></TD>
                     </tr>
                   );
                 })}
@@ -673,10 +792,10 @@ export default function BulletinPreview({ data }: { data: BulletinData }) {
             {data.jointPrayer.map((item,i) => (
               <div key={i} style={{ marginBottom:7 }}>
                 <p style={{ fontWeight:700, fontSize:F.body, lineHeight:1.3, margin:"0 0 1px" }}>
-                  {i+1}. {item.title}
+                  {i+1}. <E value={item.title} onSave={upA(data.jointPrayer,"jointPrayer",i,"title")} />
                 </p>
                 <p style={{ fontSize:F.small, color:GR, paddingLeft:10, lineHeight:1.45, margin:0 }}>
-                  {"- "+item.body}
+                  {"- "}<E value={item.body} onSave={upA(data.jointPrayer,"jointPrayer",i,"body")} multi />
                 </p>
               </div>
             ))}

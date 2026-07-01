@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
+import { UploadModal } from "@/app/components/UploadModal";
 import type {
   BulletinData,
   ServiceRow,
@@ -1070,78 +1072,145 @@ function CleaningTab({
 }
 
 // ---------------------------------------------------------------------------
-// Tab: Preview
+// Date Check Modal
 // ---------------------------------------------------------------------------
 
-function PreviewTab({ data }: { data: BulletinData }) {
-  const [zoom, setZoom] = useState(0.72);
-  const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState("");
-  const scaledH = (PAGE_H * 2 + 6) * zoom;
+function getNextSunday(): { formatted: string; display: string } {
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun
+  const daysAhead = dow === 0 ? 0 : 7 - dow;
+  const sun = new Date(today);
+  sun.setDate(today.getDate() + daysAhead);
+  const mm = String(sun.getMonth() + 1).padStart(2, "0");
+  const dd = String(sun.getDate()).padStart(2, "0");
+  return {
+    formatted: `${mm}/${dd}/${sun.getFullYear()}`,
+    display: sun.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+  };
+}
 
-  async function exportPDF() {
-    setExporting(true);
-    setExportError("");
-    try {
-      // Server-side: Chrome headless renders /print with native fonts → perfect fidelity
-      const res = await fetch("/api/export-pdf");
-      if (!res.ok) {
-        const result = await res.json();
-        const sections = Array.isArray(result.overflowingSections)
-          ? ` (${result.overflowingSections.join(", ")})`
-          : "";
-        setExportError(`Export failed: ${result.error}${sections}`);
-        return;
-      }
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
-      a.href     = url;
-      a.download = `bulletin-${data.number}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
+function DateCheckModal({
+  bulletinDate,
+  onKeep,
+  onUpdate,
+}: {
+  bulletinDate: string;
+  onKeep: () => void;
+  onUpdate: (date: string) => void;
+}) {
+  const today = new Date();
+  const todayDisplay = today.toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+  const { formatted: sundayFormatted, display: sundayDisplay } = getNextSunday();
+  const isAlreadyCorrect = bulletinDate === sundayFormatted;
+  const [customDate, setCustomDate] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Controls row */}
-      <div className="flex items-center gap-3 bg-white rounded-2xl border border-stone-100 px-4 py-2 shadow-sm">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Zoom</span>
-        <input
-          type="range" min={0.4} max={1.2} step={0.02} value={zoom}
-          onChange={(e) => setZoom(Number(e.target.value))}
-          className="flex-1 accent-blue-900"
-        />
-        <span className="w-10 text-right text-xs font-bold text-blue-900 tabular-nums">
-          {Math.round(zoom * 100)}%
-        </span>
-        <button
-          onClick={exportPDF}
-          disabled={exporting}
-          className="ml-2 px-4 py-1.5 rounded-xl bg-blue-900 text-white text-xs font-bold
-                     hover:bg-blue-800 disabled:opacity-50 disabled:cursor-wait transition"
-        >
-          {exporting ? "Exporting…" : "Export PDF"}
-        </button>
-      </div>
-
-      {exportError && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
-          {exportError}
-        </p>
-      )}
-
-      {/* Scaled bulletin */}
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 200,
+        background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+      }}
+    >
       <div
-        className="overflow-x-auto rounded-2xl border border-stone-200 shadow-sm"
-        style={{ height: scaledH + 2 }}
+        style={{
+          background: "#fff", borderRadius: 24, padding: "32px 28px",
+          maxWidth: 420, width: "100%",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
+          fontFamily: "'Segoe UI', system-ui, sans-serif",
+        }}
       >
-        <div style={{ transform: `scale(${zoom})`, transformOrigin: "top left", width: PAGE_W }}>
-          <BulletinPreview data={data} />
-          <BulletinFitController fitKey={JSON.stringify(data)} />
+        {/* Icon + title */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 14, background: "#EEF3FB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+            📅
+          </div>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.02em" }}>
+              Check bulletin date
+            </div>
+            <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>
+              {todayDisplay}
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div style={{ background: "#F8FAFD", borderRadius: 14, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "#64748B", marginBottom: 6 }}>Current bulletin date</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.02em" }}>
+            {bulletinDate || "Not set"}
+          </div>
+          {isAlreadyCorrect ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+              <span style={{ fontSize: 14 }}>✅</span>
+              <span style={{ fontSize: 13, color: "#16A34A", fontWeight: 700 }}>
+                Matches this Sunday — looks good!
+              </span>
+            </div>
+          ) : (
+            <div style={{ marginTop: 8 }}>
+              <span style={{ fontSize: 12, color: "#94A3B8" }}>
+                This Sunday is <strong style={{ color: "#1E3A8A" }}>{sundayDisplay}</strong>
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {!isAlreadyCorrect && (
+            <button
+              onClick={() => onUpdate(sundayFormatted)}
+              style={{
+                background: "#1E3A8A", color: "#fff", border: "none",
+                borderRadius: 14, padding: "13px 20px",
+                fontSize: 14, fontWeight: 800, cursor: "pointer",
+                textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}
+            >
+              <span>Update to {sundayDisplay}</span>
+              <span style={{ fontSize: 18, opacity: 0.7 }}>→</span>
+            </button>
+          )}
+          <button
+            onClick={onKeep}
+            style={{
+              background: "#F1F5F9", color: "#475569", border: "1.5px solid #E2E8F0",
+              borderRadius: 14, padding: "12px 20px",
+              fontSize: 14, fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            {isAlreadyCorrect ? "Looks good, continue" : `Keep ${bulletinDate}`}
+          </button>
+
+          {/* Custom date */}
+          <button
+            onClick={() => setShowCustom((v) => !v)}
+            style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 12, cursor: "pointer", padding: "2px 0", textDecoration: "underline", textAlign: "left" }}
+          >
+            {showCustom ? "Cancel custom date" : "Pick a different date"}
+          </button>
+          {showCustom && (
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                placeholder="MM/DD/YYYY"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                style={{ flex: 1, borderRadius: 10, border: "1.5px solid #CBD5E1", padding: "9px 12px", fontSize: 14, outline: "none", color: "#1E3A8A", fontWeight: 700 }}
+              />
+              <button
+                onClick={() => { if (customDate.trim()) onUpdate(customDate.trim()); }}
+                style={{ background: "#1E3A8A", color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+              >
+                Set
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1149,49 +1218,368 @@ function PreviewTab({ data }: { data: BulletinData }) {
 }
 
 // ---------------------------------------------------------------------------
-// Main page
+// Automation Panel (right column)
 // ---------------------------------------------------------------------------
 
-const TABS = [
-  { id: "header",    label: "Header" },
-  { id: "sermon",   label: "Sermon" },
-  { id: "services", label: "Services" },
-  { id: "bible",    label: "Bible Reading" },
-  { id: "memory",   label: "Memory Verses" },
-  { id: "calendar", label: "Calendar" },
-  { id: "schedule", label: "Weekly Schedule" },
-  { id: "news",     label: "News" },
-  { id: "prayer",   label: "Prayer" },
-  { id: "cleaning", label: "Cleaning" },
-  { id: "preview",  label: "Preview" },
+type ManageData = {
+  readingSources?: Array<{
+    name: string;
+    planFile: string | null;
+    totalDays: number;
+    coveredDays: number;
+    daysRemaining: number;
+    percentUsed: number;
+    status: string;
+  }>;
+  scheduleSrc?: {
+    name: string;
+    quarter: string | null;
+    status: string;
+    planFile: string | null;
+    events: Array<{ label: string; startDate: string; endDate: string; type: string }>;
+  } | null;
+  today?: string;
+};
+
+function AutomationPanel({ onDataRefreshed }: { onDataRefreshed?: () => void }) {
+  const [mgmt, setMgmt] = useState<ManageData | null>(null);
+  const [uploadTarget, setUploadTarget] = useState<null | "reading" | "schedule">(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await fetch("/api/manage");
+      if (r.ok) setMgmt(await r.json());
+    } catch {}
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const reading = mgmt?.readingSources?.[0];
+  const schedule = mgmt?.scheduleSrc;
+
+  // Status pill helper
+  function Pill({ ok, label }: { ok: boolean; label: string }) {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        background: ok ? "#F0FDF4" : "#FEF2F2",
+        color: ok ? "#15803D" : "#B91C1C",
+        border: `1px solid ${ok ? "#BBF7D0" : "#FECACA"}`,
+        borderRadius: 999, padding: "2px 10px", fontSize: 11, fontWeight: 700,
+      }}>
+        <span style={{ fontSize: 8 }}>{ok ? "●" : "●"}</span>
+        {label}
+      </span>
+    );
+  }
+
+  // Section label
+  function PanelLabel({ children }: { children: React.ReactNode }) {
+    return (
+      <div style={{ fontSize: 10, fontWeight: 900, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, marginTop: 20 }}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "20px 16px", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", marginBottom: 2 }}>
+        Auto-fill
+      </div>
+      <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4 }}>
+        Upload PDFs to refill reading & schedule data
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: "#E2E8F0", margin: "16px 0" }} />
+
+      {/* Bible Reading */}
+      <PanelLabel>Year Reading Plan</PanelLabel>
+      <div style={{ background: "#F8FAFD", borderRadius: 14, border: "1px solid #E2E8F0", padding: "14px 14px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {reading ? (
+          <>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1E3A8A" }}>
+                {reading.name}
+              </span>
+              <Pill ok={reading.status === "active" || reading.status === "warning"} label={reading.planFile ? (reading.status === "expired" ? "Expired" : "Active") : "Missing"} />
+            </div>
+            {reading.planFile && reading.totalDays > 0 && (
+              <>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94A3B8", marginBottom: 4 }}>
+                    <span>{reading.coveredDays} / {reading.totalDays} days</span>
+                    <span>{reading.percentUsed}%</span>
+                  </div>
+                  <div style={{ height: 6, background: "#E2E8F0", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${reading.percentUsed}%`, background: "#4472C4", borderRadius: 999, transition: "width 0.4s" }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: "#94A3B8" }}>
+                  {reading.daysRemaining} days remaining
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div style={{ fontSize: 12, color: "#94A3B8" }}>Loading…</div>
+        )}
+        <button
+          onClick={() => setUploadTarget("reading")}
+          style={{
+            background: "#fff", border: "1.5px solid #CBD5E1",
+            borderRadius: 10, padding: "8px 12px",
+            fontSize: 12, fontWeight: 700, color: "#1E3A8A",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          <span>📤</span> Upload new plan
+        </button>
+      </div>
+
+      {/* Monthly Schedule */}
+      <PanelLabel>Monthly Schedule</PanelLabel>
+      <div style={{ background: "#F8FAFD", borderRadius: 14, border: "1px solid #E2E8F0", padding: "14px 14px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {mgmt ? (
+          <>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1E3A8A" }}>
+                {schedule?.quarter ?? "Schedule"}
+              </span>
+              <Pill ok={!!schedule && (schedule.status === "active" || schedule.status === "warning")} label={schedule?.planFile ? (schedule.status === "expired" ? "Expired" : "Active") : "Missing"} />
+            </div>
+            {schedule && schedule.events.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: "#64748B" }}>
+                  {schedule.events.length} events loaded
+                </div>
+                {(() => {
+                  const todayIso = mgmt.today ?? "";
+                  const next = schedule.events
+                    .filter((e) => e.startDate >= todayIso)
+                    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+                  if (!next) return null;
+                  const ms = new Date(next.startDate).getTime() - new Date(todayIso).getTime();
+                  const days = Math.ceil(ms / 86400000);
+                  return (
+                    <div style={{ fontSize: 11, color: "#64748B" }}>
+                      Next:{" "}
+                      <span style={{ color: "#1E3A8A", fontWeight: 700 }}>
+                        {days === 0 ? "today" : `in ${days} day${days === 1 ? "" : "s"}`}
+                      </span>
+                    </div>
+                  );
+                })()}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {schedule.events.slice(0, 3).map((ev, i) => (
+                    <div key={i} style={{ fontSize: 11, color: "#475569", display: "flex", gap: 6 }}>
+                      <span style={{ color: "#94A3B8", flexShrink: 0 }}>
+                        {ev.startDate.replace(/^\d{4}-/, "").replace("-", "/")}
+                      </span>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {ev.label}
+                      </span>
+                    </div>
+                  ))}
+                  {schedule.events.length > 3 && (
+                    <div style={{ fontSize: 11, color: "#94A3B8" }}>+{schedule.events.length - 3} more…</div>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div style={{ fontSize: 12, color: "#94A3B8" }}>Loading…</div>
+        )}
+        <button
+          onClick={() => setUploadTarget("schedule")}
+          style={{
+            background: "#fff", border: "1.5px solid #CBD5E1",
+            borderRadius: 10, padding: "8px 12px",
+            fontSize: 12, fontWeight: 700, color: "#1E3A8A",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          <span>📤</span> Upload new schedule
+        </button>
+      </div>
+
+      {/* Upload modals */}
+      {uploadTarget === "reading" && (
+        <UploadModal
+          name="Year Reading Plan"
+          uploadType="reading"
+          onClose={() => setUploadTarget(null)}
+          onSaved={() => { setUploadTarget(null); load(); onDataRefreshed?.(); }}
+        />
+      )}
+      {uploadTarget === "schedule" && (
+        <UploadModal
+          name="Monthly Schedule"
+          uploadType="schedule"
+          onClose={() => setUploadTarget(null)}
+          onSaved={() => { setUploadTarget(null); load(); onDataRefreshed?.(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Editor sections + zoom targets
+// ---------------------------------------------------------------------------
+
+const SECTIONS = [
+  { id: "header",    label: "Header",          icon: "📋" },
+  { id: "sermon",   label: "Sermon",           icon: "✝️" },
+  { id: "services", label: "Services",         icon: "👥" },
+  { id: "bible",    label: "Bible Reading",    icon: "📖" },
+  { id: "memory",   label: "Memory Verses",    icon: "💭" },
+  { id: "calendar", label: "Calendar",         icon: "📅" },
+  { id: "schedule", label: "Weekly Schedule",  icon: "🗓️" },
+  { id: "news",     label: "News",             icon: "📰" },
+  { id: "prayer",   label: "Prayer",           icon: "🙏" },
+  { id: "cleaning", label: "Cleaning",         icon: "🧹" },
 ] as const;
 
-type TabId = (typeof TABS)[number]["id"];
+type TabId = (typeof SECTIONS)[number]["id"];
+
+// Section centers in full-PDF coordinate space (1344 × 1634 stacked)
+// h = approximate section height — used to compute zoom level
+const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
+  // Page 1 (y: 0–816), col widths ≈ [449, 448, 447]
+  header:   { cx: 1120, cy: 320,  h: 380 }, // col 3 – cover panel
+  sermon:   { cx: 673,  cy: 102,  h: 140 }, // col 2, y 32–172
+  services: { cx: 673,  cy: 251,  h: 157 }, // col 2, y 172–329
+  bible:    { cx: 225,  cy: 120,  h: 176 }, // col 1, y 32–208
+  memory:   { cx: 225,  cy: 394,  h: 372 }, // col 1, y 208–580
+  cleaning: { cx: 225,  cy: 698,  h: 236 }, // col 1, y 580–816
+  // Page 2 (y: 818–1634)
+  calendar: { cx: 225,  cy: 1098, h: 560 }, // col 1 p2
+  schedule: { cx: 673,  cy: 967,  h: 299 }, // col 2 p2, top half
+  news:     { cx: 673,  cy: 1374, h: 330 }, // col 2 p2, bottom half
+  prayer:   { cx: 1120, cy: 967,  h: 299 }, // col 3 p2, top half
+};
+
+// ---------------------------------------------------------------------------
+// Main page
+// Layout: [framer sidebar hover-expand] [slide-in form panel] [Miro canvas]
+// ---------------------------------------------------------------------------
 
 export default function Home() {
-  const [data, setData] = useState<BulletinData | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>("header");
-  const [saving, setSaving] = useState(false);
-  const [savedMsg, setSavedMsg] = useState("");
+  const [data, setData]           = useState<BulletinData | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [saving, setSaving]       = useState(false);
+  const [savedMsg, setSavedMsg]   = useState("");
+  const [showDateCheck, setShowDateCheck] = useState(false);
 
+  const [mgmt, setMgmt]           = useState<ManageData | null>(null);
+  const [uploadTarget, setUploadTarget] = useState<null | "reading" | "schedule">(null);
+
+  // Canvas refs — transform applied directly to DOM for smooth drag perf
+  const canvasRef   = useRef<HTMLDivElement>(null);
+  const pdfDivRef   = useRef<HTMLDivElement>(null);
+  const transformRef = useRef({ x: 0, y: 0, z: 0.5 });
+  const dragging    = useRef(false);
+  const dragOrigin  = useRef({ mx: 0, my: 0, tx: 0, ty: 0 });
+  const initialized = useRef(false);
+
+  const [exporting, setExporting]     = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  // Two-layer transform: outer div pans via translate, inner div zooms via CSS zoom.
+  // CSS zoom re-rasterizes at the display size → crisp text (vs transform:scale which blurs).
+  const pdfPanRef  = useRef<HTMLDivElement>(null);
+  const pdfZoomRef = useRef<HTMLDivElement>(null);
+
+  const applyTransform = useCallback((x: number, y: number, z: number, animate = false) => {
+    transformRef.current = { x, y, z };
+    const pan  = pdfPanRef.current;
+    const zoom = pdfZoomRef.current;
+    if (!pan || !zoom) return;
+    const easing = "cubic-bezier(0.4,0,0.2,1)";
+    pan.style.transition  = animate ? `transform 0.42s ${easing}` : "none";
+    zoom.style.transition = animate ? `zoom 0.42s ${easing}` : "none";
+    pan.style.transform   = `translate(${x}px,${y}px)`;
+    zoom.style.zoom       = String(z);
+  }, []);
+
+  // Load bulletin
   useEffect(() => {
     fetch("/api/bulletin")
       .then((r) => r.json())
       .then(async (bulletin) => {
-        // Auto-populate Bible Reading 1 from the year plan based on bulletin date
         if (bulletin.date) {
           try {
             const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(bulletin.date)}`);
             if (res.ok) {
               const { dates, reading1 } = await res.json();
               bulletin.bibleReadingDates = dates;
-              bulletin.bibleReading1 = reading1;
+              bulletin.bibleReading1     = reading1;
             }
           } catch {}
         }
         setData(bulletin);
+        setShowDateCheck(true);
       });
   }, []);
+
+  // Load auto-fill management data
+  const loadMgmt = useCallback(async () => {
+    try {
+      const r = await fetch("/api/manage");
+      if (r.ok) setMgmt(await r.json());
+    } catch {}
+  }, []);
+  useEffect(() => { loadMgmt(); }, [loadMgmt]);
+
+  // Initialize PDF canvas to fit both pages after data loads
+  useEffect(() => {
+    if (!data || !canvasRef.current || !pdfPanRef.current || initialized.current) return;
+    const el = canvasRef.current;
+    const cW = el.clientWidth, cH = el.clientHeight;
+    const totalH = PAGE_H * 2 + 4;
+    const z = Math.min(cW / (PAGE_W + 40), cH / (totalH + 40)) * 0.90;
+    applyTransform((cW - PAGE_W * z) / 2, Math.max(16, (cH - totalH * z) / 2), z);
+    initialized.current = true;
+  }, [data, applyTransform]);
+
+  // Non-passive wheel listener for zoom-toward-cursor
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      const { x, y, z } = transformRef.current;
+      const factor = e.deltaY < 0 ? 1.08 : 0.925;
+      const newZ = Math.min(4, Math.max(0.1, z * factor));
+      const rect = el.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      // With CSS zoom, pan coords are in un-zoomed space, so math is identical to scale()
+      applyTransform(mx - (mx - x) * (newZ / z), my - (my - y) * (newZ / z), newZ);
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [applyTransform]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setActiveTab(null); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+        e.preventDefault();
+        const el = canvasRef.current;
+        if (!el) return;
+        const totalH = PAGE_H * 2 + 4;
+        const z = Math.min(el.clientWidth / (PAGE_W + 40), el.clientHeight / (totalH + 40)) * 0.90;
+        applyTransform((el.clientWidth - PAGE_W * z) / 2, Math.max(16, (el.clientHeight - totalH * z) / 2), z, true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [applyTransform]);
 
   const patch = useCallback((p: Partial<BulletinData>) => {
     setData((prev) => (prev ? { ...prev, ...p } : prev));
@@ -1207,95 +1595,276 @@ export default function Home() {
     });
     setSaving(false);
     setSavedMsg(res.ok ? "Saved!" : "Error saving");
-    setTimeout(() => setSavedMsg(""), 2000);
+    setTimeout(() => setSavedMsg(""), 2500);
   };
 
+  const handleDateUpdate = async (newDate: string) => {
+    patch({ date: newDate });
+    setShowDateCheck(false);
+    try {
+      const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(newDate)}`);
+      if (res.ok) {
+        const { dates, reading1 } = await res.json();
+        patch({ bibleReadingDates: dates, bibleReading1: reading1 });
+      }
+    } catch {}
+  };
+
+  async function exportPDF() {
+    setExporting(true);
+    setExportError("");
+    try {
+      const res = await fetch("/api/export-pdf");
+      if (!res.ok) {
+        const result = await res.json();
+        setExportError(`Export failed: ${result.error ?? "unknown"}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url; a.download = `bulletin-${data?.number ?? "draft"}.pdf`;
+      a.click(); URL.revokeObjectURL(url);
+    } finally { setExporting(false); }
+  }
+
+  const refreshBulletin = async () => {
+    const bulletin = await fetch("/api/bulletin").then((r) => r.json());
+    if (bulletin.date) {
+      try {
+        const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(bulletin.date)}`);
+        if (res.ok) {
+          const { dates, reading1 } = await res.json();
+          bulletin.bibleReadingDates = dates;
+          bulletin.bibleReading1     = reading1;
+        }
+      } catch {}
+    }
+    setData(bulletin);
+    loadMgmt();
+  };
+
+  function handleSectionClick(id: TabId) {
+    setActiveTab((prev) => prev === id ? null : id);
+    // Zoom canvas to section center
+    const target = SECTION_ZOOM[id];
+    const el = canvasRef.current;
+    if (!el) return;
+    const cW = el.clientWidth, cH = el.clientHeight;
+    const targetZ = Math.min(Math.max((cH * 0.60) / target.h, 0.35), 2.8);
+    applyTransform(cW / 2 - target.cx * targetZ, cH / 2 - target.cy * targetZ, targetZ, true);
+  }
+
+  // Drag handlers (pointer-based for performance)
+  function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    dragging.current = true;
+    dragOrigin.current = { mx: e.clientX, my: e.clientY, tx: transformRef.current.x, ty: transformRef.current.y };
+    (e.currentTarget as HTMLDivElement).style.cursor = "grabbing";
+  }
+  function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!dragging.current) return;
+    const { mx, my, tx, ty } = dragOrigin.current;
+    applyTransform(tx + e.clientX - mx, ty + e.clientY - my, transformRef.current.z);
+  }
+  function onMouseUp(e: React.MouseEvent<HTMLDivElement>) {
+    dragging.current = false;
+    (e.currentTarget as HTMLDivElement).style.cursor = "grab";
+  }
+
+  const reading  = mgmt?.readingSources?.[0];
+  const schedule = mgmt?.scheduleSrc;
+
   return (
-    <div className="min-h-full flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2.5">
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+
+      {/* Modals */}
+      {showDateCheck && data && (
+        <DateCheckModal
+          bulletinDate={data.date}
+          onKeep={() => setShowDateCheck(false)}
+          onUpdate={handleDateUpdate}
+        />
+      )}
+      {uploadTarget && (
+        <UploadModal
+          name={uploadTarget === "reading" ? "Year Reading Plan" : "Monthly Schedule"}
+          uploadType={uploadTarget}
+          onClose={() => setUploadTarget(null)}
+          onSaved={() => { setUploadTarget(null); refreshBulletin(); }}
+        />
+      )}
+
+      {/* ── Figma-style layers sidebar (always visible) ── */}
+      <div style={{
+        width: 240, flexShrink: 0, height: "100%",
+        background: "#fff",
+        borderRight: "1px solid #E2E8F0",
+        display: "flex", flexDirection: "column",
+        overflow: "hidden", zIndex: 30,
+      }}>
+        {/* Logo header */}
+        <div style={{ flexShrink: 0, height: 52, borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", padding: "0 14px", gap: 10 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="New York Church"
-            className="h-9 w-9 shrink-0 object-contain"
-          />
-          <div className="min-w-0 flex-1">
-            <h1 className="whitespace-nowrap font-black leading-tight tracking-tight text-blue-900 text-[clamp(0.78rem,4vw,1rem)]">
-              NEW YORK CHURCH
-            </h1>
-            <p className="text-stone-400 text-xs mt-0.5 tracking-wide">
-              Bulletin editor
-            </p>
+          <img src="/logo.png" alt="" style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
+            <div style={{ fontSize: 10, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {savedMsg && (
-              <span
-                className={`text-xs font-bold ${
-                  savedMsg === "Saved!" ? "text-green-600" : "text-red-500"
-                }`}
-              >
-                {savedMsg}
-              </span>
+        {/* Layers nav */}
+        <nav style={{ flex: 1, overflowY: "auto", padding: "8px 0", scrollbarWidth: "none" }}>
+
+          {/* ── Page 1 group ── */}
+          <div style={{ padding: "6px 14px 3px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 5 }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            Page 1
+          </div>
+          {([
+            { id: "header",    label: "Header",        icon: "📋" },
+            { id: "sermon",    label: "Sermon",         icon: "✝️" },
+            { id: "services",  label: "Services",       icon: "👥" },
+            { id: "bible",     label: "Bible Reading",  icon: "📖" },
+            { id: "memory",    label: "Memory Verses",  icon: "💭" },
+            { id: "cleaning",  label: "Cleaning",       icon: "🧹" },
+          ] as { id: TabId; label: string; icon: string }[]).map((sec) => {
+            const isActive = activeTab === sec.id;
+            return (
+              <button key={sec.id} onClick={() => handleSectionClick(sec.id)} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                width: "100%", padding: "6px 14px 6px 26px",
+                background: isActive ? "#EEF3FB" : "transparent",
+                border: "none", borderLeft: `3px solid ${isActive ? "#4472C4" : "transparent"}`,
+                cursor: "pointer", color: isActive ? "#1E3A8A" : "#475569",
+                textAlign: "left",
+              }}>
+                <span style={{ fontSize: 13, flexShrink: 0 }}>{sec.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: isActive ? 700 : 400 }}>{sec.label}</span>
+              </button>
+            );
+          })}
+
+          {/* ── Page 2 group ── */}
+          <div style={{ padding: "10px 14px 3px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 5 }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            Page 2
+          </div>
+          {([
+            { id: "calendar", label: "Calendar",        icon: "📅" },
+            { id: "schedule", label: "Weekly Schedule", icon: "🗓️" },
+            { id: "news",     label: "News",            icon: "📰" },
+            { id: "prayer",   label: "Prayer",          icon: "🙏" },
+          ] as { id: TabId; label: string; icon: string }[]).map((sec) => {
+            const isActive = activeTab === sec.id;
+            return (
+              <button key={sec.id} onClick={() => handleSectionClick(sec.id)} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                width: "100%", padding: "6px 14px 6px 26px",
+                background: isActive ? "#EEF3FB" : "transparent",
+                border: "none", borderLeft: `3px solid ${isActive ? "#4472C4" : "transparent"}`,
+                cursor: "pointer", color: isActive ? "#1E3A8A" : "#475569",
+                textAlign: "left",
+              }}>
+                <span style={{ fontSize: 13, flexShrink: 0 }}>{sec.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: isActive ? 700 : 400 }}>{sec.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "#F1F5F9", margin: "10px 0" }} />
+
+          {/* ── Auto-fill group ── */}
+          <div style={{ padding: "0 14px 5px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Auto-fill
+          </div>
+          <button onClick={() => setUploadTarget("reading")} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 14px 6px 26px", background: "transparent", border: "none", borderLeft: "3px solid transparent", cursor: "pointer", color: "#475569", textAlign: "left" }}>
+            <span style={{ position: "relative", fontSize: 13, flexShrink: 0 }}>
+              📚
+              <span style={{ position: "absolute", top: -1, right: -5, width: 7, height: 7, borderRadius: "50%", background: reading?.status === "active" || reading?.status === "warning" ? "#22C55E" : "#EF4444", border: "1.5px solid #fff" }} />
+            </span>
+            <span style={{ fontSize: 13 }}>Reading Plan</span>
+            {reading?.planFile && reading.totalDays > 0 && (
+              <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: "auto" }}>{reading.daysRemaining}d</span>
             )}
-            <a
-              href="/manage"
-              className="rounded-full border border-blue-900 px-4 py-2 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-50"
-            >
-              ⚙️ Manage
-            </a>
-            <button
-              onClick={save}
-              disabled={saving || !data}
-              className="rounded-full bg-blue-900 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-800 disabled:opacity-40"
-            >
-              {saving ? "Saving…" : "Save"}
-            </button>
-          </div>
-        </div>
+          </button>
+          <button onClick={() => setUploadTarget("schedule")} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 14px 6px 26px", background: "transparent", border: "none", borderLeft: "3px solid transparent", cursor: "pointer", color: "#475569", textAlign: "left" }}>
+            <span style={{ position: "relative", fontSize: 13, flexShrink: 0 }}>
+              🗓️
+              <span style={{ position: "absolute", top: -1, right: -5, width: 7, height: 7, borderRadius: "50%", background: schedule?.planFile ? "#22C55E" : "#EF4444", border: "1.5px solid #fff" }} />
+            </span>
+            <span style={{ fontSize: 13 }}>{schedule?.quarter ?? "Schedule"}</span>
+            {schedule && (
+              <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: "auto" }}>{schedule.events.length}</span>
+            )}
+          </button>
+        </nav>
 
-        {/* Tab bar */}
-        <div className="max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 px-3 py-2 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-blue-900 text-blue-900"
-                  : "border-transparent text-stone-400 hover:text-stone-600"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Footer: date + save */}
+        <div style={{ flexShrink: 0, borderTop: "1px solid #F1F5F9", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
+          <button onClick={() => setShowDateCheck(true)} disabled={!data} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 10px", borderRadius: 7, background: "#F8FAFC", border: "1px solid #E2E8F0", cursor: "pointer", color: "#64748B" }}>
+            <span style={{ fontSize: 13 }}>📅</span>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>{data?.date ?? "…"}</span>
+          </button>
+          <button onClick={save} disabled={saving || !data} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "9px 10px", borderRadius: 7, background: "#1E3A8A", color: "#fff", border: "none", cursor: "pointer", opacity: saving || !data ? 0.5 : 1 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span style={{ fontSize: 13, fontWeight: 800 }}>
+              {savedMsg || (saving ? "Saving…" : "Save")}
+            </span>
+          </button>
         </div>
-      </header>
+      </div>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
-        {!data ? (
-          <div className="flex items-center gap-3 text-stone-400 text-sm">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-stone-200 border-t-blue-900" />
-            Loading bulletin…
+      {/* ── PDF canvas — Miro-like pan & zoom ── */}
+      <div
+        ref={canvasRef}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: "grab", userSelect: "none" }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+      >
+        {data ? (
+          /* Pan layer — translate only */
+          <div ref={pdfPanRef} style={{ position: "absolute", left: 0, top: 0, willChange: "transform" }}>
+            {/* Zoom layer — CSS zoom for crisp text re-rasterize */}
+            <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0" }}>
+              <BulletinPreview data={data} onUpdate={patch} />
+              <BulletinFitController fitKey={JSON.stringify(data)} />
+            </div>
           </div>
         ) : (
-          <>
-            {activeTab === "header"    && <HeaderTab    data={data} set={patch} />}
-            {activeTab === "sermon"    && <SermonTab    data={data} set={patch} />}
-            {activeTab === "services"  && <ServicesTab  data={data} set={patch} />}
-            {activeTab === "bible"     && <BibleReadingTab data={data} set={patch} />}
-            {activeTab === "memory"    && <MemoryVersesTab data={data} set={patch} />}
-            {activeTab === "calendar"  && <CalendarTab  data={data} set={patch} />}
-            {activeTab === "schedule"  && <WeeklyScheduleTab data={data} set={patch} />}
-            {activeTab === "news"      && <NewsTab      data={data} set={patch} />}
-            {activeTab === "prayer"    && <PrayerTab    data={data} set={patch} />}
-            {activeTab === "cleaning"  && <CleaningTab  data={data} set={patch} />}
-            {activeTab === "preview"   && <PreviewTab   data={data} />}
-          </>
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ display: "inline-block", width: 22, height: 22, borderRadius: "50%", border: "2.5px solid #3A3A52", borderTopColor: "#4472C4", animation: "spin 0.8s linear infinite" }} />
+          </div>
         )}
-      </main>
+
+        {/* Overlay controls */}
+        <div style={{ position: "absolute", bottom: 16, right: 16, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end", pointerEvents: "none" }}>
+          <button
+            onClick={exportPDF}
+            disabled={exporting || !data}
+            style={{ pointerEvents: "all", background: "#4472C4", color: "#fff", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 800, cursor: exporting || !data ? "not-allowed" : "pointer", opacity: exporting || !data ? 0.5 : 1, boxShadow: "0 4px 16px rgba(0,0,0,0.35)", display: "flex", alignItems: "center", gap: 8 }}
+          >
+            {exporting ? (
+              <><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />Generating…</>
+            ) : "Export PDF"}
+          </button>
+          <div style={{ fontSize: 10, color: "#444466", fontWeight: 600 }}>scroll to zoom · drag to pan · Ctrl+0 to fit · Esc to close panel</div>
+          {exportError && (
+            <div style={{ fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
+              {exportError}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
