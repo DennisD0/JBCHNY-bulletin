@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Church, Users, BookOpen, Quote,
   CalendarDays, CalendarClock, Newspaper, HandHeart, Sparkles,
   BookMarked, CalendarRange, Save as SaveIcon,
-  MousePointer2, Hand, ZoomIn, Maximize2, Download,
+  TextCursor, Hand, Maximize2, Download,
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2,
   type LucideIcon,
@@ -247,10 +247,9 @@ function ServicesTab({
     set({ services: data.services.filter((_, idx) => idx !== i) });
 
   const advanceWeek = () => {
-    if (data.services.length < 2) return;
-    const promoted = data.services[1];
-    const rest = data.services.slice(2);
     const blank: ServiceRow = { date: "", usherSun: "", lunchDuty: "", childCare: "", usherWed: "" };
+    const promoted = data.services[1] ?? blank;
+    const rest = data.services.slice(2);
     set({ services: [promoted, ...rest, blank] });
   };
 
@@ -259,16 +258,14 @@ function ServicesTab({
       <Card>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
           <SectionTitle>Weekly duty roster</SectionTitle>
-          {data.services.length >= 2 && (
-            <button
-              onClick={advanceWeek}
-              title="Promote next week to current; add blank row at end"
-              style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#4472C4", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6, padding: "4px 9px", cursor: "pointer", flexShrink: 0 }}
-            >
-              <ChevronRight size={12} strokeWidth={2.5} />
-              Advance week
-            </button>
-          )}
+          <button
+            onClick={advanceWeek}
+            title="Promote next week to current; add blank row at end"
+            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#4472C4", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6, padding: "4px 9px", cursor: "pointer", flexShrink: 0 }}
+          >
+            <ChevronRight size={12} strokeWidth={2.5} />
+            Advance week
+          </button>
         </div>
         {data.services.map((row, i) => (
           <div
@@ -725,7 +722,7 @@ function MemoryVersesSidebarPanel({
           })}
         </div>
       ) : (
-        <div style={{ fontSize: 11, color: "#94A3B8", padding: "6px 0" }}>No verses loaded — click Sync Verses.</div>
+        <div style={{ fontSize: 11, color: "#94A3B8", padding: "6px 0" }}>No verses loaded — click Preview.</div>
       )}
 
       {/* ── Sync button ───────────────────────────── */}
@@ -744,7 +741,7 @@ function MemoryVersesSidebarPanel({
         }}
       >
         <RefreshCw size={13} strokeWidth={2.5} style={{ animation: rolling ? "spin 0.8s linear infinite" : undefined, flexShrink: 0 }} />
-        {rolling ? "Syncing…" : "Sync Verses"}
+        {rolling ? "Loading…" : "Preview"}
       </motion.button>
       {rollMsg && <div style={{ fontSize: 10.5, color: "#15803D", fontWeight: 700, textAlign: "center", marginTop: -4 }}>{rollMsg}</div>}
       <div style={{ fontSize: 9.5, color: "#94A3B8", lineHeight: 1.45 }}>
@@ -1726,12 +1723,11 @@ function AutomationPanel({ onDataRefreshed }: { onDataRefreshed?: () => void }) 
 // Canvas mode toolbar
 // ---------------------------------------------------------------------------
 
-type CanvasMode = "grab" | "select" | "zoom";
+type CanvasMode = "grab" | "select";
 
 const CANVAS_TOOLS: { id: CanvasMode; label: string; shortcut: string; Icon: LucideIcon }[] = [
-  { id: "select", label: "Select & Edit", shortcut: "V", Icon: MousePointer2 },
+  { id: "select", label: "Select & Edit", shortcut: "V", Icon: TextCursor },
   { id: "grab",   label: "Grab & Pan",   shortcut: "H", Icon: Hand },
-  { id: "zoom",   label: "Zoom In",      shortcut: "Z", Icon: ZoomIn },
 ];
 
 function ToolbarTooltip({ text, children }: { text: string; children: React.ReactNode }) {
@@ -1744,31 +1740,32 @@ function ToolbarTooltip({ text, children }: { text: string; children: React.Reac
       {children}
       <AnimatePresence>
         {show && (
-          <motion.div
-            initial={{ opacity: 0, y: 5, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
-            style={{
-              position: "absolute",
-              bottom: "calc(100% + 10px)",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(10,10,18,0.96)",
-              border: "1px solid rgba(255,255,255,0.13)",
-              borderRadius: 8,
-              padding: "5px 9px",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#fff",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              zIndex: 9999,
-              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-            }}
-          >
-            {text}
-          </motion.div>
+          /* Zero-width anchor at horizontal center so the tooltip centers regardless of pill overflow */
+          <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: 0, right: 0, pointerEvents: "none", zIndex: 9999 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 5, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 5, scale: 0.95 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+              style={{
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(10,10,18,0.96)",
+                border: "1px solid rgba(255,255,255,0.13)",
+                borderRadius: 8,
+                padding: "5px 9px",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#fff",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+              }}
+            >
+              {text}
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
@@ -1801,6 +1798,7 @@ function FloatingToolbar({
     gap: 2,
     boxShadow: "0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
     userSelect: "none",
+    overflow: "visible",
   };
 
   const btnBase: React.CSSProperties = {
@@ -2307,7 +2305,6 @@ export default function Home() {
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         if (e.key === "v" || e.key === "V") setCanvasMode("select");
         if (e.key === "h" || e.key === "H") setCanvasMode("grab");
-        if (e.key === "z" || e.key === "Z") setCanvasMode("zoom");
       }
     };
     const upHandler = (e: KeyboardEvent) => {
@@ -2315,7 +2312,7 @@ export default function Home() {
         spaceHeld.current = false;
         const m = canvasModeRef.current;
         if (canvasRef.current && !dragging.current) {
-          canvasRef.current.style.cursor = m === "grab" ? "grab" : m === "zoom" ? "zoom-in" : "default";
+          canvasRef.current.style.cursor = m === "grab" ? "grab" : "default";
         }
       }
     };
@@ -2473,15 +2470,6 @@ export default function Home() {
       dragging.current = true;
       dragOrigin.current = { mx: e.clientX, my: e.clientY, tx: transformRef.current.x, ty: transformRef.current.y };
       (e.currentTarget as HTMLDivElement).style.cursor = "grabbing";
-    } else if (effective === "zoom") {
-      const { x, y, z } = transformRef.current;
-      const factor = e.altKey ? 1 / 1.3 : 1.3;
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const newZ = Math.min(4, Math.max(0.1, z * factor));
-      applyTransform(mx - (mx - x) * (newZ / z), my - (my - y) * (newZ / z), newZ, true);
-      e.preventDefault();
     }
     // select mode: do nothing — let clicks propagate to BulletinPreview
   }
@@ -2494,7 +2482,7 @@ export default function Home() {
     dragging.current = false;
     const m = spaceHeld.current ? "grab" : canvasModeRef.current;
     (e.currentTarget as HTMLDivElement).style.cursor =
-      m === "grab" ? "grab" : m === "zoom" ? "zoom-in" : "default";
+      m === "grab" ? "grab" : "default";
   }
 
   const reading  = mgmt?.readingSources?.[0];
@@ -2688,6 +2676,9 @@ export default function Home() {
                 isActive={activeTab === sec.id}
                 onClick={() => handleSectionClick(sec.id)}
               />
+              {sec.id === "services" && activeTab === "services" && data && (
+                <ServicesTab data={data} set={patch} />
+              )}
               {sec.id === "memory" && activeTab === "memory" && data && (
                 <MemoryVersesSidebarPanel data={data} set={patch} />
               )}
@@ -2764,7 +2755,7 @@ export default function Home() {
       {/* ── PDF canvas — Miro-like pan & zoom ── */}
       <div
         ref={canvasRef}
-        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : canvasMode === "zoom" ? "zoom-in" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}

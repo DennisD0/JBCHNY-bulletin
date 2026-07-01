@@ -899,6 +899,11 @@ export default function BulletinPreview({
             <SecHead title="This week's schedule" />
             <div data-fit-body>
             <table style={tbl}>
+              <thead>
+                <tr>
+                  {["Date","Event","Location","Time"].map(h => <TH key={h}>{h}</TH>)}
+                </tr>
+              </thead>
               <tbody>
                 {data.weekSchedule.flatMap((day,di) =>
                   day.items.map((item,ii) => (
