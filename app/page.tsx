@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Church, Users, BookOpen, Quote,
   CalendarDays, CalendarClock, Newspaper, HandHeart, Sparkles,
   BookMarked, CalendarRange, Save as SaveIcon,
+  MousePointer2, Hand, ZoomIn, Maximize2, Download,
   type LucideIcon,
 } from "lucide-react";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
@@ -1452,6 +1453,180 @@ function AutomationPanel({ onDataRefreshed }: { onDataRefreshed?: () => void }) 
 // Editor sections + zoom targets
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Canvas mode toolbar
+// ---------------------------------------------------------------------------
+
+type CanvasMode = "grab" | "select" | "zoom";
+
+const CANVAS_TOOLS: { id: CanvasMode; label: string; shortcut: string; Icon: LucideIcon }[] = [
+  { id: "select", label: "Select & Edit", shortcut: "V", Icon: MousePointer2 },
+  { id: "grab",   label: "Grab & Pan",   shortcut: "H", Icon: Hand },
+  { id: "zoom",   label: "Zoom In",      shortcut: "Z", Icon: ZoomIn },
+];
+
+function ToolbarTooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              bottom: "calc(100% + 10px)",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(10,10,18,0.96)",
+              border: "1px solid rgba(255,255,255,0.13)",
+              borderRadius: 8,
+              padding: "5px 9px",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#fff",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              zIndex: 9999,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+            }}
+          >
+            {text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function FloatingToolbar({
+  mode, onMode, onFit, onExport, exporting, disabled,
+}: {
+  mode: CanvasMode;
+  onMode: (m: CanvasMode) => void;
+  onFit: () => void;
+  onExport: () => void;
+  exporting: boolean;
+  disabled?: boolean;
+}) {
+  const pillStyle: React.CSSProperties = {
+    display: "inline-flex", alignItems: "center",
+    background: "rgba(10,10,18,0.88)",
+    backdropFilter: "blur(24px)",
+    WebkitBackdropFilter: "blur(24px)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    borderRadius: 14,
+    padding: "5px 7px",
+    gap: 2,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
+    userSelect: "none",
+  };
+
+  const btnBase: React.CSSProperties = {
+    position: "relative", display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center",
+    width: 44, height: 40, borderRadius: 9,
+    border: "none", background: "transparent",
+    cursor: "pointer", gap: 2, flexShrink: 0,
+  };
+
+  return (
+    <div style={{
+      position: "absolute", bottom: 20, left: "50%",
+      transform: "translateX(-50%)",
+      display: "flex", alignItems: "center", gap: 8,
+      zIndex: 30, pointerEvents: "all",
+    }}>
+      {/* Main pill */}
+      <div style={pillStyle}>
+        {/* Mode tools */}
+        {CANVAS_TOOLS.map(({ id, label, shortcut, Icon }) => {
+          const active = mode === id;
+          return (
+            <ToolbarTooltip key={id} text={`${label}  ${shortcut}`}>
+              <button
+                onClick={() => onMode(id)}
+                style={{ ...btnBase, color: active ? "#fff" : "rgba(255,255,255,0.45)" }}
+                aria-label={label}
+                aria-pressed={active}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="toolbar-active"
+                    transition={{ type: "spring", stiffness: 520, damping: 36 }}
+                    style={{
+                      position: "absolute", inset: 0,
+                      borderRadius: 9,
+                      background: "rgba(68,114,196,0.85)",
+                      boxShadow: "0 2px 8px rgba(68,114,196,0.4)",
+                    }}
+                  />
+                )}
+                <Icon size={16} strokeWidth={2} style={{ position: "relative", zIndex: 1, flexShrink: 0 }} />
+                <span style={{
+                  position: "relative", zIndex: 1,
+                  fontSize: 9, fontWeight: 700,
+                  letterSpacing: "0.04em", lineHeight: 1,
+                  color: active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.35)",
+                }}>
+                  {shortcut}
+                </span>
+              </button>
+            </ToolbarTooltip>
+          );
+        })}
+
+        {/* Separator */}
+        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px", flexShrink: 0 }} />
+
+        {/* Fit to screen */}
+        <ToolbarTooltip text="Fit to Screen  ⌃0">
+          <button
+            onClick={onFit}
+            style={{ ...btnBase, color: "rgba(255,255,255,0.45)", width: 36 }}
+            aria-label="Fit to screen"
+          >
+            <Maximize2 size={15} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
+          </button>
+        </ToolbarTooltip>
+      </div>
+
+      {/* Export button — separate accent pill */}
+      <ToolbarTooltip text="Export PDF">
+        <motion.button
+          onClick={onExport}
+          disabled={exporting || disabled}
+          whileHover={!exporting && !disabled ? { scale: 1.04 } : undefined}
+          whileTap={!exporting && !disabled ? { scale: 0.97 } : undefined}
+          transition={{ duration: 0.13 }}
+          style={{
+            display: "flex", alignItems: "center", gap: 7,
+            background: exporting || disabled ? "rgba(68,114,196,0.5)" : "#4472C4",
+            color: "#fff", border: "none", borderRadius: 11,
+            padding: "9px 16px",
+            fontSize: 13, fontWeight: 800, cursor: exporting || disabled ? "not-allowed" : "pointer",
+            boxShadow: exporting || disabled ? "none" : "0 4px 18px rgba(68,114,196,0.45)",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}
+          aria-label="Export PDF"
+        >
+          {exporting
+            ? <span style={{ display: "inline-block", width: 13, height: 13, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />
+            : <Download size={14} strokeWidth={2.5} />}
+          {exporting ? "Generating…" : "Export PDF"}
+        </motion.button>
+      </ToolbarTooltip>
+    </div>
+  );
+}
+
 const SECTIONS = [
   { id: "header",    label: "Header",          icon: LayoutDashboard, page: 1 },
   { id: "sermon",    label: "Sermon",          icon: Church,          page: 1 },
@@ -1678,6 +1853,9 @@ export default function Home() {
 
   const [exporting, setExporting]     = useState(false);
   const [exportError, setExportError] = useState("");
+  const [canvasMode, setCanvasMode]   = useState<CanvasMode>("grab");
+  const spaceHeld    = useRef(false);
+  const canvasModeRef = useRef<CanvasMode>("grab");
 
   // Two-layer transform: outer div pans via translate, inner div zooms via CSS zoom.
   // CSS zoom re-rasterizes at the display size → crisp text (vs transform:scale which blurs).
@@ -1738,16 +1916,20 @@ export default function Home() {
   }, []);
   useEffect(() => { loadMgmt(); }, [loadMgmt]);
 
+  const fitToScreen = useCallback(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const totalH = PAGE_H * 2 + 4;
+    const z = Math.min(el.clientWidth / (PAGE_W + 40), el.clientHeight / (totalH + 40)) * 0.90;
+    applyTransform((el.clientWidth - PAGE_W * z) / 2, Math.max(16, (el.clientHeight - totalH * z) / 2), z, true);
+  }, [applyTransform]);
+
   // Initialize PDF canvas to fit both pages after data loads
   useEffect(() => {
-    if (!data || !canvasRef.current || !pdfPanRef.current || initialized.current) return;
-    const el = canvasRef.current;
-    const cW = el.clientWidth, cH = el.clientHeight;
-    const totalH = PAGE_H * 2 + 4;
-    const z = Math.min(cW / (PAGE_W + 40), cH / (totalH + 40)) * 0.90;
-    applyTransform((cW - PAGE_W * z) / 2, Math.max(16, (cH - totalH * z) / 2), z);
+    if (!data || initialized.current) return;
+    fitToScreen();
     initialized.current = true;
-  }, [data, applyTransform]);
+  }, [data, fitToScreen]);
 
   // Non-passive wheel listener for zoom-toward-cursor
   useEffect(() => {
@@ -1768,22 +1950,55 @@ export default function Home() {
     return () => el.removeEventListener("wheel", handler);
   }, [applyTransform]);
 
+  // Sync mode ref whenever state changes + update cursor
+  useEffect(() => {
+    canvasModeRef.current = canvasMode;
+    const el = canvasRef.current;
+    if (el && !dragging.current) {
+      el.style.cursor = canvasMode === "grab" ? "grab" : canvasMode === "zoom" ? "zoom-in" : "default";
+    }
+  }, [canvasMode]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const editing = target.tagName === "INPUT" || target.tagName === "TEXTAREA"
+        || target.tagName === "SELECT" || target.isContentEditable;
+
       if (e.key === "Escape") { setActiveTab(null); }
       if ((e.ctrlKey || e.metaKey) && e.key === "0") {
         e.preventDefault();
-        const el = canvasRef.current;
-        if (!el) return;
-        const totalH = PAGE_H * 2 + 4;
-        const z = Math.min(el.clientWidth / (PAGE_W + 40), el.clientHeight / (totalH + 40)) * 0.90;
-        applyTransform((el.clientWidth - PAGE_W * z) / 2, Math.max(16, (el.clientHeight - totalH * z) / 2), z, true);
+        fitToScreen();
+      }
+
+      if (editing) return;
+      if (e.code === "Space" && !e.repeat) {
+        spaceHeld.current = true;
+        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
+      }
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (e.key === "v" || e.key === "V") setCanvasMode("select");
+        if (e.key === "h" || e.key === "H") setCanvasMode("grab");
+        if (e.key === "z" || e.key === "Z") setCanvasMode("zoom");
+      }
+    };
+    const upHandler = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        spaceHeld.current = false;
+        const m = canvasModeRef.current;
+        if (canvasRef.current && !dragging.current) {
+          canvasRef.current.style.cursor = m === "grab" ? "grab" : m === "zoom" ? "zoom-in" : "default";
+        }
       }
     };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [applyTransform]);
+    window.addEventListener("keyup", upHandler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("keyup", upHandler);
+    };
+  }, [applyTransform, fitToScreen]);
 
   const patch = useCallback((p: Partial<BulletinData>) => {
     setData((prev) => (prev ? { ...prev, ...p } : prev));
@@ -1897,12 +2112,25 @@ export default function Home() {
     applyTransform(cW / 2 - target.cx * targetZ, cH / 2 - target.cy * targetZ, targetZ, true);
   }
 
-  // Drag handlers (pointer-based for performance)
+  // Drag / zoom / select handlers — behaviour depends on canvasMode
   function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     if (e.button !== 0) return;
-    dragging.current = true;
-    dragOrigin.current = { mx: e.clientX, my: e.clientY, tx: transformRef.current.x, ty: transformRef.current.y };
-    (e.currentTarget as HTMLDivElement).style.cursor = "grabbing";
+    const effective = spaceHeld.current ? "grab" : canvasModeRef.current;
+    if (effective === "grab") {
+      dragging.current = true;
+      dragOrigin.current = { mx: e.clientX, my: e.clientY, tx: transformRef.current.x, ty: transformRef.current.y };
+      (e.currentTarget as HTMLDivElement).style.cursor = "grabbing";
+    } else if (effective === "zoom") {
+      const { x, y, z } = transformRef.current;
+      const factor = e.altKey ? 1 / 1.3 : 1.3;
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const newZ = Math.min(4, Math.max(0.1, z * factor));
+      applyTransform(mx - (mx - x) * (newZ / z), my - (my - y) * (newZ / z), newZ, true);
+      e.preventDefault();
+    }
+    // select mode: do nothing — let clicks propagate to BulletinPreview
   }
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (!dragging.current) return;
@@ -1911,7 +2139,9 @@ export default function Home() {
   }
   function onMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     dragging.current = false;
-    (e.currentTarget as HTMLDivElement).style.cursor = "grab";
+    const m = spaceHeld.current ? "grab" : canvasModeRef.current;
+    (e.currentTarget as HTMLDivElement).style.cursor =
+      m === "grab" ? "grab" : m === "zoom" ? "zoom-in" : "default";
   }
 
   const reading  = mgmt?.readingSources?.[0];
@@ -2177,7 +2407,7 @@ export default function Home() {
       {/* ── PDF canvas — Miro-like pan & zoom ── */}
       <div
         ref={canvasRef}
-        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: "grab", userSelect: "none" }}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : canvasMode === "zoom" ? "zoom-in" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
@@ -2198,24 +2428,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* Overlay controls */}
-        <div style={{ position: "absolute", bottom: 16, right: 16, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end", pointerEvents: "none" }}>
-          <button
-            onClick={exportPDF}
-            disabled={exporting || !data}
-            style={{ pointerEvents: "all", background: "#4472C4", color: "#fff", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 800, cursor: exporting || !data ? "not-allowed" : "pointer", opacity: exporting || !data ? 0.5 : 1, boxShadow: "0 4px 16px rgba(0,0,0,0.35)", display: "flex", alignItems: "center", gap: 8 }}
-          >
-            {exporting ? (
-              <><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />Generating…</>
-            ) : "Export PDF"}
-          </button>
-          <div style={{ fontSize: 10, color: "#444466", fontWeight: 600 }}>scroll to zoom · drag to pan · Ctrl+0 to fit · Esc to close panel</div>
-          {exportError && (
-            <div style={{ fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
-              {exportError}
-            </div>
-          )}
-        </div>
+        <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} />
+        {exportError && (
+          <div style={{ position: "absolute", bottom: 80, right: 16, fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
+            {exportError}
+          </div>
+        )}
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
