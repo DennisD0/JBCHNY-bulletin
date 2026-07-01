@@ -19,6 +19,9 @@ export async function GET(request: Request) {
   }
 
   const plan: Record<string, string | null> = JSON.parse(readFileSync(planPath, "utf8"));
+  const coveredDates = Object.keys(plan).filter((key) => plan[key] !== null).sort();
+  const coverageStart = coveredDates[0] ?? null;
+  const coverageEnd = coveredDates[coveredDates.length - 1] ?? null;
 
   let base: Date;
   if (dateStr) {
@@ -34,14 +37,24 @@ export async function GET(request: Request) {
 
   const dates: string[] = [];
   const reading1: string[] = [];
+  const missingDates: string[] = [];
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(sunday);
     d.setDate(sunday.getDate() + i);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     dates.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    reading1.push(fmt(plan[key] ?? null));
+    const reading = plan[key] ?? null;
+    reading1.push(fmt(reading));
+    if (!reading) missingDates.push(key);
   }
 
-  return NextResponse.json({ dates, reading1 });
+  return NextResponse.json({
+    dates,
+    reading1,
+    coverageStart,
+    coverageEnd,
+    missingDates,
+    complete: missingDates.length === 0,
+  });
 }

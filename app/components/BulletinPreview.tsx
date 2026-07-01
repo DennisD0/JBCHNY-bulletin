@@ -42,13 +42,15 @@ function SecHead({
   title,
   size = F.secHead,
   fontFamily,
+  gap = 7,
 }: {
   title: string;
   size?: number;
   fontFamily?: string;
+  gap?: number;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5, lineHeight: 1 }}>
+    <div style={{ display: "flex", alignItems: "center", gap, marginBottom: 5, lineHeight: 1 }}>
       <span style={{ color:B, fontWeight:700, fontSize:size, fontFamily, whiteSpace:"nowrap" }}>
         {title}
       </span>
@@ -153,6 +155,18 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
     weeks.push(flat.slice(index, index + 7));
   }
 
+  // Keep typography consistent across the calendar. The longest unbroken
+  // event controls the shared base size; only unusually crowded days go lower.
+  const longestEventWord = Math.max(
+    1,
+    ...Object.values(events).flatMap((items) =>
+      items.flatMap((item) => item.split(/\s+/).map((word) => word.length))
+    ),
+  );
+  const calendarFontSize = Math.max(8, Math.min(9, 12.5 - longestEventWord * 0.32));
+  const calendarHeight = 516;
+  const calendarHeaderHeight = 22;
+
   const bVal = (value: string) => {
     const [bannerMonth, day] = value.split("/").map(Number);
     return bannerMonth * 100 + day;
@@ -163,12 +177,17 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
   };
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(7, 1fr)" }}>
+    <div style={{
+      display:"grid",
+      gridTemplateColumns:"repeat(7, minmax(0, 1fr))",
+      gridTemplateRows:`${calendarHeaderHeight}px repeat(${weeks.length}, minmax(0, 1fr))`,
+      height:calendarHeight,
+    }}>
       {DOW.map((d,i) => (
         <div key={d} style={{
           gridRow:1, textAlign:"center", fontWeight:700, fontSize:9,
           color: i===6 ? SAT : B,
-          padding:"3px 0", lineHeight:1,
+          boxSizing:"border-box", padding:"5px 0 3px", lineHeight:1,
           borderTop:`${RULE}px solid ${BL}`,
           borderBottom:`${RULE}px solid ${BL}`,
           borderLeft: i===0 ? `${RULE}px solid ${BL}` : "none",
@@ -177,16 +196,18 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
       ))}
       {weeks.map((week, wi) => {
         const gridRow = wi + 2;
-        const activeBanners = banners.filter((banner) =>
-          week.some((cell) => cell.month * 100 + cell.day === bVal(banner.startDate))
-        );
+        const activeBanners = banners
+          .map((banner, index) => ({ banner, index }))
+          .filter(({ banner }) =>
+            week.some((cell) => cell.month * 100 + cell.day === bVal(banner.startDate))
+          );
         return (
           <Fragment key={`${week[0].month}-${week[0].day}`}>
             {week.map((cell, di) => {
               const key = `${cell.month}/${cell.day}`;
               const evts = events[key] ?? [];
               // shrink font as events accumulate: 10px for ≤3, down to 7px minimum
-              const evtFs = Math.max(7, 10 - Math.max(0, evts.length - 3) * 1);
+              const evtFs = Math.max(7, calendarFontSize - Math.max(0, evts.length - 3) * 0.5);
               return (
                 <div key={di}
                   onClick={(e) => {
@@ -198,14 +219,14 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
                   }}
                   style={{
                     gridRow, gridColumn: di + 1,
-                    height:93, background:"#fff",
-                    padding:"1px 2px", overflow:"hidden",
+                    minWidth:0, minHeight:0, boxSizing:"border-box", background:"#fff",
+                    padding:"2px", overflow:"hidden",
                     borderBottom:`${RULE}px solid ${BL}`,
                     borderLeft: di===0 ? `${RULE}px solid ${BL}` : "none",
                     borderRight:`${RULE}px solid ${BL}`,
                     cursor: onUpdate ? "text" : "default",
                   }}>
-                  <div style={{ fontWeight:700, fontSize:11, lineHeight:1.2, color:"#222" }}>
+                  <div style={{ fontWeight:700, fontSize:9, lineHeight:1.15, color:"#222" }}>
                     {cell.day === 1 ? `${cell.month}/1` : cell.day}
                   </div>
                   {evts.map((e,ei) => {
@@ -215,7 +236,13 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
                       <E key={ei} block
                         value={"•" + e}
                         autoFocus={isNew}
-                        style={{ fontSize:evtFs, color:GR, lineHeight:1.2 }}
+                        style={{
+                          fontSize:evtFs,
+                          color:GR,
+                          lineHeight:1.18,
+                          overflowWrap:"break-word",
+                          wordBreak:"normal",
+                        }}
                         onSave={onUpdate ? (v) => {
                           if (isNew) setFocusKey(null);
                           const clean = v.replace(/^•\s*/, "").trim();
@@ -230,27 +257,54 @@ function CalGrid({ month, year, events, banners, onUpdate }: {
                 </div>
               );
             })}
-            {activeBanners.map((banner, bi) => {
+            {activeBanners.map(({ banner, index: bannerIndex }) => {
               let startCol = week.findIndex((cell) => inBanner(banner, cell));
               let count = week.filter((cell) => inBanner(banner, cell)).length;
               if (count === 1 && banner.label.length > 12 && startCol > 0) {
                 startCol -= 1; count = 2;
               }
               return (
-                <div key={bi} style={{
+                <div key={`${bannerIndex}-${banner.startDate}`} title="Clear the label and click away to remove this banner" style={{
                   gridRow, gridColumn: `${startCol + 1} / span ${count}`,
-                  alignSelf:"end", zIndex:1,
-                  height:16, overflow:"hidden",
+                  position:"relative", alignSelf:"end", zIndex:1,
+                  height:17, boxSizing:"border-box", overflow:"hidden",
                   display:"flex", alignItems:"center", justifyContent:"center",
                   background:"#D6E8F7",
                   border:`${RULE}px solid ${BL}`,
                 }}>
-                  <span style={{ fontSize:11, color:BL, fontWeight:700, whiteSpace:"nowrap" }}>
+                  <span style={{ fontSize:10, color:BL, fontWeight:700, whiteSpace:"nowrap" }}>
                     <E
                       value={banner.label}
-                      onSave={onUpdate ? (v) => onUpdate({ calendarBanners: banners.map((b,j) => j===bi ? {...b, label:v} : b) }) : undefined}
+                      onSave={onUpdate ? (v) => {
+                        const label = v.trim();
+                        onUpdate({
+                          calendarBanners: label
+                            ? banners.map((b,j) => j === bannerIndex ? { ...b, label } : b)
+                            : banners.filter((_,j) => j !== bannerIndex),
+                        });
+                      } : undefined}
                     />
                   </span>
+                  {onUpdate && (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${banner.label}`}
+                      title="Remove banner"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onUpdate({
+                          calendarBanners: banners.filter((_,j) => j !== bannerIndex),
+                        });
+                      }}
+                      style={{
+                        position:"absolute", right:2, top:"50%", transform:"translateY(-50%)",
+                        width:13, height:13, padding:0, border:0, background:"rgba(255,255,255,0.72)",
+                        color:BL, borderRadius:2, cursor:"pointer", fontSize:10, fontWeight:700,
+                        lineHeight:"13px", textAlign:"center",
+                      }}
+                    >×</button>
+                  )}
                 </div>
               );
             })}
@@ -274,7 +328,15 @@ function E({
   autoFocus?: boolean;
   style?: React.CSSProperties;
 }) {
-  if (!onSave) return <>{value}</>;
+  if (!onSave) {
+    const readOnlyStyle: React.CSSProperties = {
+      whiteSpace: multi ? "pre-wrap" : undefined,
+      ...extraStyle,
+    };
+    return block
+      ? <div style={readOnlyStyle}>{value}</div>
+      : <span style={readOnlyStyle}>{value}</span>;
+  }
   const html = value
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const onFocus = (e: React.FocusEvent<HTMLElement>) => {
@@ -312,6 +374,32 @@ export default function BulletinPreview({
   onUpdate?: (patch: Partial<BulletinData>) => void;
 }) {
   const [mm, yyyy] = data.calendarMonth.split("/").map(Number);
+  const readingLines = [...data.bibleReading1, ...data.bibleReading2]
+    .flatMap((value) => value.split("\n"));
+  const longestReadingLine = Math.max(1, ...readingLines.map((line) => line.length));
+  const readingFontSize = Math.max(10, Math.min(11, 14.8 - longestReadingLine * 0.24));
+  const formatPrimaryReading = (value: string) => {
+    const clean = value.replace(/\s+/g, " ").trim();
+    const splitAt = clean.lastIndexOf(" ");
+    return splitAt > 0
+      ? `${clean.slice(0, splitAt)}\n${clean.slice(splitAt + 1)}`
+      : clean;
+  };
+  const formatSecondaryReading = (value: string) => {
+    const sourceLines = value.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (sourceLines.length === 1 && /^(Rev|Gen)\s+/.test(sourceLines[0])) {
+      return sourceLines[0].replace(/\s+/, "\n");
+    }
+    return sourceLines.flatMap((line) => {
+      if (line.length <= 13) return [line];
+      const spaces = [...line.matchAll(/\s+/g)].map((match) => match.index ?? 0);
+      const eligibleSpaces = spaces.filter((index) => index <= 10);
+      const splitAt = eligibleSpaces[eligibleSpaces.length - 1];
+      return splitAt
+        ? [line.slice(0, splitAt), line.slice(splitAt).trim()]
+        : [line];
+    }).join("\n");
+  };
 
   const page: React.CSSProperties = {
     ...BASE_STYLE,
@@ -378,17 +466,42 @@ export default function BulletinPreview({
         <div style={col(0)}>
 
           {/* Bible Reading */}
-          <div data-fit-section="bible-reading" style={{ height:176, overflow:"hidden" }}>
-            <SecHead title="Bible Reading" />
+          <div data-fit-section="bible-reading" style={{ height:176, paddingTop:1, boxSizing:"border-box", overflow:"visible" }}>
+            <SecHead title="Bible Reading" gap={16} />
             <div data-fit-body>
-            <table style={{ ...tbl, marginBottom:0 }}>
+            <table style={{
+              ...tbl,
+              width:"100%",
+              marginLeft:0,
+              marginTop:14,
+              marginBottom:0,
+              tableLayout:"fixed",
+            }}>
+              <colgroup>
+                <col style={{ width:39 }} />
+                {data.bibleReadingDates.map((_, i) => <col key={i} />)}
+              </colgroup>
               <thead>
                 <tr>
-                  <TH w={28}>Date</TH>
+                  <th style={{
+                    color:BL, fontWeight:700, fontSize:11,
+                    position:"relative", overflow:"visible",
+                    textAlign:"left", padding:"3px 2px 12px 0",
+                    borderBottom:`${RULE}px solid ${BL}`,
+                    lineHeight:1.1,
+                  }}>
+                    Date
+                    <span aria-hidden style={{ position:"absolute", left:-14, bottom:-RULE, width:14, height:RULE, background:BL }} />
+                  </th>
                   {data.bibleReadingDates.map((d,i) => (
-                    <TH key={i} center>
+                    <th key={i} style={{
+                      color:GR, fontWeight:700, fontSize:11,
+                      textAlign:"center", padding:"3px 1px 12px",
+                      borderBottom:`${RULE}px solid ${BL}`,
+                      lineHeight:1.1, whiteSpace:"nowrap",
+                    }}>
                       <E value={d} onSave={onUpdate ? (v) => onUpdate({ bibleReadingDates: data.bibleReadingDates.map((x,j) => j===i ? v : x) }) : undefined} />
-                    </TH>
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -396,21 +509,46 @@ export default function BulletinPreview({
                 {([
                   ["1\nReading",  data.bibleReading1,  "bibleReading1"  ],
                   ["2\nReadings", data.bibleReading2,  "bibleReading2"  ],
-                ] as [string, string[], "bibleReading1"|"bibleReading2"][]).map(([lbl, vals, key]) => (
+                ] as [string, string[], "bibleReading1"|"bibleReading2"][]).map(([lbl, vals, key], rowIndex) => (
                   <tr key={lbl}>
                     <td style={{
-                      color:BL, fontWeight:700, fontSize:F.small,
-                      padding:"2px 3px 2px 0", whiteSpace:"pre-line",
-                      verticalAlign:"top", lineHeight:1.2,
-                      borderBottom:`0.5px solid ${LG}`, width:28,
-                    }}>{lbl}</td>
+                      color:BL, fontWeight:400, fontSize:11,
+                      position:"relative", overflow:"visible",
+                      padding:rowIndex === 0 ? "5px 2px 2.2px" : "0 2px 3px",
+                      whiteSpace:"pre-line", textAlign:"center",
+                      verticalAlign:rowIndex === 0 ? "middle" : "top", lineHeight:1.15,
+                      borderBottom:rowIndex === 0 ? `${RULE}px solid ${LG}` : undefined,
+                    }}>
+                      <span style={{
+                        position:"relative",
+                        left:-8,
+                        lineHeight:rowIndex === 0 ? 1.35 : 1.7,
+                      }}>{lbl}</span>
+                      {rowIndex === 0 && (
+                        <span aria-hidden style={{ position:"absolute", left:-14, bottom:-RULE, width:14, height:RULE, background:LG }} />
+                      )}
+                    </td>
                     {vals.map((v,i) => (
                       <td key={i} style={{
-                        fontSize:F.small, textAlign:"center", verticalAlign:"bottom",
-                        padding:"2px 2px 2px 0", whiteSpace:"pre-line",
-                        borderBottom:`0.5px solid ${LG}`, color:GR, lineHeight:1.25,
+                        fontSize:readingFontSize, textAlign:"center",
+                        padding:rowIndex === 0 ? "5px 2px 2.2px" : "3px 2px",
+                        whiteSpace:"pre-line",
+                        overflowWrap:"normal", wordBreak:"normal",
+                        borderBottom:rowIndex === 0 ? `${RULE}px solid ${LG}` : undefined,
+                        color:GR,
+                        lineHeight:rowIndex === 0 ? 1.4 : 1.2,
+                        verticalAlign:rowIndex === 0 ? "bottom" : "middle",
                       }}>
-                        <E value={v} onSave={onUpdate ? (nv) => onUpdate({ [key]: vals.map((x,j) => j===i ? nv : x) }) : undefined} />
+                        <E
+                          value={key === "bibleReading1"
+                            ? formatPrimaryReading(v)
+                            : formatSecondaryReading(v)}
+                          onSave={onUpdate ? (nv) => onUpdate({
+                            [key]: vals.map((x,j) => j===i
+                              ? (key === "bibleReading1" ? nv.replace(/\s+/g, " ").trim() : nv)
+                              : x),
+                          }) : undefined}
+                        />
                       </td>
                     ))}
                   </tr>

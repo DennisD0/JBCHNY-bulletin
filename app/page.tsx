@@ -1072,152 +1072,6 @@ function CleaningTab({
 }
 
 // ---------------------------------------------------------------------------
-// Date Check Modal
-// ---------------------------------------------------------------------------
-
-function getNextSunday(): { formatted: string; display: string } {
-  const today = new Date();
-  const dow = today.getDay(); // 0=Sun
-  const daysAhead = dow === 0 ? 0 : 7 - dow;
-  const sun = new Date(today);
-  sun.setDate(today.getDate() + daysAhead);
-  const mm = String(sun.getMonth() + 1).padStart(2, "0");
-  const dd = String(sun.getDate()).padStart(2, "0");
-  return {
-    formatted: `${mm}/${dd}/${sun.getFullYear()}`,
-    display: sun.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-  };
-}
-
-function DateCheckModal({
-  bulletinDate,
-  onKeep,
-  onUpdate,
-}: {
-  bulletinDate: string;
-  onKeep: () => void;
-  onUpdate: (date: string) => void;
-}) {
-  const today = new Date();
-  const todayDisplay = today.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-  });
-  const { formatted: sundayFormatted, display: sundayDisplay } = getNextSunday();
-  const isAlreadyCorrect = bulletinDate === sundayFormatted;
-  const [customDate, setCustomDate] = useState("");
-  const [showCustom, setShowCustom] = useState(false);
-
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 200,
-        background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff", borderRadius: 24, padding: "32px 28px",
-          maxWidth: 420, width: "100%",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
-          fontFamily: "'Segoe UI', system-ui, sans-serif",
-        }}
-      >
-        {/* Icon + title */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: "#EEF3FB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-            📅
-          </div>
-          <div>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.02em" }}>
-              Check bulletin date
-            </div>
-            <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>
-              {todayDisplay}
-            </div>
-          </div>
-        </div>
-
-        {/* Status */}
-        <div style={{ background: "#F8FAFD", borderRadius: 14, padding: "14px 16px", marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: "#64748B", marginBottom: 6 }}>Current bulletin date</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.02em" }}>
-            {bulletinDate || "Not set"}
-          </div>
-          {isAlreadyCorrect ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-              <span style={{ fontSize: 14 }}>✅</span>
-              <span style={{ fontSize: 13, color: "#16A34A", fontWeight: 700 }}>
-                Matches this Sunday — looks good!
-              </span>
-            </div>
-          ) : (
-            <div style={{ marginTop: 8 }}>
-              <span style={{ fontSize: 12, color: "#94A3B8" }}>
-                This Sunday is <strong style={{ color: "#1E3A8A" }}>{sundayDisplay}</strong>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {!isAlreadyCorrect && (
-            <button
-              onClick={() => onUpdate(sundayFormatted)}
-              style={{
-                background: "#1E3A8A", color: "#fff", border: "none",
-                borderRadius: 14, padding: "13px 20px",
-                fontSize: 14, fontWeight: 800, cursor: "pointer",
-                textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}
-            >
-              <span>Update to {sundayDisplay}</span>
-              <span style={{ fontSize: 18, opacity: 0.7 }}>→</span>
-            </button>
-          )}
-          <button
-            onClick={onKeep}
-            style={{
-              background: "#F1F5F9", color: "#475569", border: "1.5px solid #E2E8F0",
-              borderRadius: 14, padding: "12px 20px",
-              fontSize: 14, fontWeight: 700, cursor: "pointer",
-            }}
-          >
-            {isAlreadyCorrect ? "Looks good, continue" : `Keep ${bulletinDate}`}
-          </button>
-
-          {/* Custom date */}
-          <button
-            onClick={() => setShowCustom((v) => !v)}
-            style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 12, cursor: "pointer", padding: "2px 0", textDecoration: "underline", textAlign: "left" }}
-          >
-            {showCustom ? "Cancel custom date" : "Pick a different date"}
-          </button>
-          {showCustom && (
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                type="text"
-                placeholder="MM/DD/YYYY"
-                value={customDate}
-                onChange={(e) => setCustomDate(e.target.value)}
-                style={{ flex: 1, borderRadius: 10, border: "1.5px solid #CBD5E1", padding: "9px 12px", fontSize: 14, outline: "none", color: "#1E3A8A", fontWeight: 700 }}
-              />
-              <button
-                onClick={() => { if (customDate.trim()) onUpdate(customDate.trim()); }}
-                style={{ background: "#1E3A8A", color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-              >
-                Set
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Automation Panel (right column)
 // ---------------------------------------------------------------------------
 
@@ -1225,17 +1079,24 @@ type ManageData = {
   readingSources?: Array<{
     name: string;
     planFile: string | null;
+    startDate: string | null;
+    endDate: string | null;
     totalDays: number;
     coveredDays: number;
     daysRemaining: number;
     percentUsed: number;
     status: string;
+    autoEnabled: boolean;
   }>;
   scheduleSrc?: {
     name: string;
     quarter: string | null;
     status: string;
     planFile: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    daysRemaining: number;
+    percentUsed: number;
     events: Array<{ label: string; startDate: string; endDate: string; type: string }>;
   } | null;
   today?: string;
@@ -1462,6 +1323,105 @@ const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   prayer:   { cx: 1120, cy: 967,  h: 299 }, // col 3 p2, top half
 };
 
+type BulletinWeek = {
+  start: Date;
+  end: Date;
+  startIso: string;
+  endIso: string;
+  label: string;
+};
+
+function localIso(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addLocalDays(date: Date, amount: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function displayShortDate(date: Date) {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function displayCoverageDate(iso: string | null | undefined) {
+  if (!iso) return "Not available";
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+function getBulletinWeeks(monthValue: string): BulletinWeek[] {
+  const [year, month] = monthValue.split("-").map(Number);
+  if (!year || !month) return [];
+  const first = new Date(year, month - 1, 1);
+  const last = new Date(year, month, 0);
+  let cursor = addLocalDays(first, -first.getDay());
+  const weeks: BulletinWeek[] = [];
+  while (cursor <= last) {
+    const start = new Date(cursor);
+    const end = addLocalDays(start, 6);
+    weeks.push({
+      start,
+      end,
+      startIso: localIso(start),
+      endIso: localIso(end),
+      label: `Week ${weeks.length + 1} · ${displayShortDate(start)}–${displayShortDate(end)}`,
+    });
+    cursor = addLocalDays(cursor, 7);
+  }
+  return weeks;
+}
+
+function monthFromBulletinDate(value: string) {
+  const [month, , year] = value.split("/").map(Number);
+  return month && year ? `${year}-${String(month).padStart(2, "0")}` : "";
+}
+
+function usageColor(percentUsed: number, status?: string) {
+  if (status === "missing" || status === "expired" || percentUsed >= 90) return "#DC2626";
+  if (percentUsed >= 75) return "#EA580C";
+  if (percentUsed >= 50) return "#D6A400";
+  return "#16A34A";
+}
+
+function SidebarSourceProgress({
+  icon, label, detail, percentUsed, status, daysRemaining, onClick,
+}: {
+  icon: string;
+  label: string;
+  detail: string;
+  percentUsed: number;
+  status?: string;
+  daysRemaining: number;
+  onClick: () => void;
+}) {
+  const color = usageColor(percentUsed, status);
+  const missing = status === "missing";
+  return (
+    <button onClick={onClick} style={{
+      display:"block", width:"calc(100% - 20px)", margin:"0 10px 7px", padding:"8px 10px",
+      background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:8,
+      cursor:"pointer", textAlign:"left", color:"#475569",
+    }}>
+      <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+        <span style={{ fontSize:13 }}>{icon}</span>
+        <span style={{ fontSize:12, fontWeight:700, color:"#1E3A8A", flex:1 }}>{label}</span>
+        <span style={{ fontSize:10, fontWeight:800, color }}>{missing ? "Missing" : `${percentUsed}%`}</span>
+      </div>
+      <div style={{ height:5, background:"#E2E8F0", borderRadius:99, overflow:"hidden", margin:"6px 0 4px" }}>
+        <div style={{ height:"100%", width:`${missing ? 100 : Math.min(100, percentUsed)}%`, background:color, borderRadius:99 }} />
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", gap:6, fontSize:9.5, color:"#94A3B8" }}>
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{detail}</span>
+        {!missing && <span style={{ flexShrink:0 }}>{daysRemaining}d left</span>}
+      </div>
+    </button>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main page
 // Layout: [framer sidebar hover-expand] [slide-in form panel] [Miro canvas]
@@ -1472,7 +1432,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
-  const [showDateCheck, setShowDateCheck] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [generatingWeek, setGeneratingWeek] = useState(false);
+  const [generationNotice, setGenerationNotice] = useState("");
 
   const [mgmt, setMgmt]           = useState<ManageData | null>(null);
   const [uploadTarget, setUploadTarget] = useState<null | "reading" | "schedule">(null);
@@ -1521,7 +1484,19 @@ export default function Home() {
           } catch {}
         }
         setData(bulletin);
-        setShowDateCheck(true);
+        const [calendarMonth, calendarYear] = String(bulletin.calendarMonth ?? "").split("/").map(Number);
+        const initialMonth = calendarMonth && calendarYear
+          ? `${calendarYear}-${String(calendarMonth).padStart(2, "0")}`
+          : monthFromBulletinDate(bulletin.date ?? "");
+        if (initialMonth) {
+          setSelectedMonth(initialMonth);
+          const [month, day, year] = String(bulletin.date).split("/").map(Number);
+          const selectedDate = new Date(year, month - 1, day);
+          const sunday = addLocalDays(selectedDate, -selectedDate.getDay());
+          const weekIndex = getBulletinWeeks(initialMonth)
+            .findIndex((week) => week.startIso === localIso(sunday));
+          setSelectedWeekIndex(Math.max(0, weekIndex));
+        }
       });
   }, []);
 
@@ -1598,16 +1573,52 @@ export default function Home() {
     setTimeout(() => setSavedMsg(""), 2500);
   };
 
-  const handleDateUpdate = async (newDate: string) => {
-    patch({ date: newDate });
-    setShowDateCheck(false);
+  const handleGenerateWeek = async () => {
+    const week = getBulletinWeeks(selectedMonth)[selectedWeekIndex];
+    if (!week) return;
+
+    setGeneratingWeek(true);
+    setGenerationNotice("");
+    const [year, month] = selectedMonth.split("-").map(Number);
+    const date = `${String(week.start.getMonth() + 1).padStart(2, "0")}/${String(week.start.getDate()).padStart(2, "0")}/${week.start.getFullYear()}`;
+    const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+    const monthEnd = localIso(new Date(year, month, 0));
+    const calendarBanners = (schedule?.events ?? [])
+      .filter((event) => event.endDate >= monthStart && event.startDate <= monthEnd)
+      .map((event) => {
+        const [, startMonth, startDay] = event.startDate.split("-").map(Number);
+        const [, endMonth, endDay] = event.endDate.split("-").map(Number);
+        return {
+          label: event.label,
+          startDate: `${startMonth}/${startDay}`,
+          endDate: `${endMonth}/${endDay}`,
+        };
+      });
+
+    const nextPatch: Partial<BulletinData> = {
+      date,
+      calendarMonth: `${String(month).padStart(2, "0")}/${year}`,
+      calendarBanners,
+    };
+
     try {
-      const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(newDate)}`);
+      const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(date)}`);
       if (res.ok) {
-        const { dates, reading1 } = await res.json();
-        patch({ bibleReadingDates: dates, bibleReading1: reading1 });
+        const result = await res.json();
+        nextPatch.bibleReadingDates = result.dates;
+        nextPatch.bibleReading1 = result.reading1;
+        setGenerationNotice(result.complete === false
+          ? "Week generated, but some Bible-reading dates are outside the loaded plan."
+          : "Bulletin week generated from the available auto-fill data.");
+      } else {
+        setGenerationNotice("Date generated. Bible-reading data is unavailable for this week.");
       }
-    } catch {}
+    } catch {
+      setGenerationNotice("Date generated. Bible-reading data could not be loaded.");
+    } finally {
+      patch(nextPatch);
+      setGeneratingWeek(false);
+    }
   };
 
   async function exportPDF() {
@@ -1674,18 +1685,38 @@ export default function Home() {
 
   const reading  = mgmt?.readingSources?.[0];
   const schedule = mgmt?.scheduleSrc;
+  const bulletinWeeks = getBulletinWeeks(selectedMonth);
+  const selectedWeek = bulletinWeeks[selectedWeekIndex] ?? bulletinWeeks[0];
+  const coverageEnds = [
+    reading?.autoEnabled && reading.endDate ? reading.endDate : null,
+    schedule?.planFile && schedule.endDate ? schedule.endDate : null,
+  ].filter((value): value is string => Boolean(value)).sort();
+  const fullAutoFillEnd = coverageEnds[0] ?? null;
+  const [selectedYear, selectedMonthNumber] = selectedMonth.split("-").map(Number);
+  const selectedMonthStart = selectedYear && selectedMonthNumber
+    ? `${selectedYear}-${String(selectedMonthNumber).padStart(2, "0")}-01`
+    : "";
+  const selectedMonthEnd = selectedYear && selectedMonthNumber
+    ? localIso(new Date(selectedYear, selectedMonthNumber, 0))
+    : "";
+  const readingReady = Boolean(
+    selectedWeek && reading?.startDate && reading.endDate &&
+    selectedWeek.startIso >= reading.startDate && selectedWeek.endIso <= reading.endDate
+  );
+  const scheduleReady = Boolean(
+    selectedMonthStart && selectedMonthEnd && schedule?.startDate && schedule.endDate &&
+    selectedMonthStart >= schedule.startDate && selectedMonthEnd <= schedule.endDate
+  );
+  const lowSources = [
+    reading && (reading.percentUsed >= 75 || reading.status === "warning" || reading.status === "expired")
+      ? `Reading plan: ${reading.daysRemaining} days left` : null,
+    schedule && (schedule.percentUsed >= 75 || schedule.status === "warning" || schedule.status === "expired")
+      ? `Schedule: ${schedule.daysRemaining} days left` : null,
+  ].filter((value): value is string => Boolean(value));
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
-      {/* Modals */}
-      {showDateCheck && data && (
-        <DateCheckModal
-          bulletinDate={data.date}
-          onKeep={() => setShowDateCheck(false)}
-          onUpdate={handleDateUpdate}
-        />
-      )}
       {uploadTarget && (
         <UploadModal
           name={uploadTarget === "reading" ? "Year Reading Plan" : "Monthly Schedule"}
@@ -1715,6 +1746,95 @@ export default function Home() {
 
         {/* Layers nav */}
         <nav style={{ flex: 1, overflowY: "auto", padding: "8px 0", scrollbarWidth: "none" }}>
+
+          {/* Bulletin date generator */}
+          <div style={{ padding:"4px 10px 10px", borderBottom:"1px solid #F1F5F9", marginBottom:5 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:7 }}>
+              <span style={{ fontSize:10, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                Bulletin date
+              </span>
+              <span style={{ fontSize:10, fontWeight:700, color:"#1E3A8A" }}>{data?.date ?? "—"}</span>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:6 }}>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(event) => {
+                  setSelectedMonth(event.target.value);
+                  setSelectedWeekIndex(0);
+                  setGenerationNotice("");
+                }}
+                style={{
+                  width:"100%", minWidth:0, padding:"6px 8px", borderRadius:7,
+                  border:"1px solid #CBD5E1", background:"#fff", color:"#1E3A8A",
+                  fontSize:11, fontWeight:700, outline:"none",
+                }}
+              />
+              <select
+                value={selectedWeekIndex}
+                onChange={(event) => {
+                  setSelectedWeekIndex(Number(event.target.value));
+                  setGenerationNotice("");
+                }}
+                disabled={!bulletinWeeks.length}
+                style={{
+                  width:"100%", minWidth:0, padding:"6px 8px", borderRadius:7,
+                  border:"1px solid #CBD5E1", background:"#fff", color:"#1E3A8A",
+                  fontSize:11, fontWeight:700, outline:"none",
+                }}
+              >
+                {bulletinWeeks.map((week, index) => (
+                  <option key={week.startIso} value={index}>{week.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginTop:7, padding:"7px 8px", borderRadius:7, background:"#F8FAFC", border:"1px solid #E2E8F0" }}>
+              <div style={{ fontSize:9.5, color:"#64748B", lineHeight:1.35 }}>
+                Full auto-fill through{" "}
+                <strong style={{ color:fullAutoFillEnd ? "#1E3A8A" : "#DC2626" }}>
+                  {displayCoverageDate(fullAutoFillEnd)}
+                </strong>
+              </div>
+              {selectedWeek && (
+                <div style={{ display:"flex", gap:5, marginTop:5, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:9, fontWeight:700, color:readingReady ? "#15803D" : "#C2410C" }}>
+                    {readingReady ? "Reading ready" : "Reading partial"}
+                  </span>
+                  <span style={{ fontSize:9, fontWeight:700, color:scheduleReady ? "#15803D" : "#C2410C" }}>
+                    {scheduleReady ? "Schedule ready" : "Schedule partial"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {lowSources.length > 0 && (
+              <div style={{ marginTop:6, padding:"6px 8px", borderRadius:7, background:"#FFF7ED", border:"1px solid #FED7AA" }}>
+                <div style={{ fontSize:9.5, fontWeight:800, color:"#C2410C", marginBottom:2 }}>Data running low</div>
+                {lowSources.map((message) => (
+                  <div key={message} style={{ fontSize:9, color:"#9A3412", lineHeight:1.35 }}>{message}</div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={handleGenerateWeek}
+              disabled={!selectedWeek || generatingWeek}
+              style={{
+                width:"100%", marginTop:7, padding:"7px 10px", borderRadius:7,
+                background:"#1E3A8A", color:"#fff", border:0,
+                fontSize:11, fontWeight:800, cursor:selectedWeek && !generatingWeek ? "pointer" : "not-allowed",
+                opacity:selectedWeek && !generatingWeek ? 1 : 0.5,
+              }}
+            >
+              {generatingWeek ? "Generating…" : "Generate selected week"}
+            </button>
+            {generationNotice && (
+              <div style={{ marginTop:5, fontSize:9.5, lineHeight:1.35, color:generationNotice.includes("unavailable") || generationNotice.includes("outside") ? "#C2410C" : "#15803D" }}>
+                {generationNotice}
+              </div>
+            )}
+          </div>
 
           {/* ── Page 1 group ── */}
           <div style={{ padding: "6px 14px 3px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 5 }}>
@@ -1779,34 +1899,31 @@ export default function Home() {
           <div style={{ padding: "0 14px 5px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Auto-fill
           </div>
-          <button onClick={() => setUploadTarget("reading")} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 14px 6px 26px", background: "transparent", border: "none", borderLeft: "3px solid transparent", cursor: "pointer", color: "#475569", textAlign: "left" }}>
-            <span style={{ position: "relative", fontSize: 13, flexShrink: 0 }}>
-              📚
-              <span style={{ position: "absolute", top: -1, right: -5, width: 7, height: 7, borderRadius: "50%", background: reading?.status === "active" || reading?.status === "warning" ? "#22C55E" : "#EF4444", border: "1.5px solid #fff" }} />
-            </span>
-            <span style={{ fontSize: 13 }}>Reading Plan</span>
-            {reading?.planFile && reading.totalDays > 0 && (
-              <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: "auto" }}>{reading.daysRemaining}d</span>
-            )}
-          </button>
-          <button onClick={() => setUploadTarget("schedule")} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 14px 6px 26px", background: "transparent", border: "none", borderLeft: "3px solid transparent", cursor: "pointer", color: "#475569", textAlign: "left" }}>
-            <span style={{ position: "relative", fontSize: 13, flexShrink: 0 }}>
-              🗓️
-              <span style={{ position: "absolute", top: -1, right: -5, width: 7, height: 7, borderRadius: "50%", background: schedule?.planFile ? "#22C55E" : "#EF4444", border: "1.5px solid #fff" }} />
-            </span>
-            <span style={{ fontSize: 13 }}>{schedule?.quarter ?? "Schedule"}</span>
-            {schedule && (
-              <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: "auto" }}>{schedule.events.length}</span>
-            )}
-          </button>
+          <SidebarSourceProgress
+            icon="📚"
+            label="Reading Plan"
+            detail={reading?.endDate ? `Through ${displayCoverageDate(reading.endDate)}` : "Upload a reading plan"}
+            percentUsed={reading?.percentUsed ?? 100}
+            status={reading?.status ?? "missing"}
+            daysRemaining={reading?.daysRemaining ?? 0}
+            onClick={() => setUploadTarget("reading")}
+          />
+          <SidebarSourceProgress
+            icon="🗓️"
+            label={schedule?.quarter ?? "Schedule"}
+            detail={schedule?.endDate ? `Through ${displayCoverageDate(schedule.endDate)}` : "Upload a schedule"}
+            percentUsed={schedule?.percentUsed ?? 100}
+            status={schedule?.status ?? "missing"}
+            daysRemaining={schedule?.daysRemaining ?? 0}
+            onClick={() => setUploadTarget("schedule")}
+          />
+          <div style={{ padding:"0 12px 4px", fontSize:8.5, color:"#94A3B8", lineHeight:1.3 }}>
+            Usage: <span style={{ color:"#16A34A" }}>green</span> → <span style={{ color:"#D6A400" }}>yellow</span> → <span style={{ color:"#EA580C" }}>orange</span> → <span style={{ color:"#DC2626" }}>red</span>
+          </div>
         </nav>
 
-        {/* Footer: date + save */}
+        {/* Footer: save */}
         <div style={{ flexShrink: 0, borderTop: "1px solid #F1F5F9", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
-          <button onClick={() => setShowDateCheck(true)} disabled={!data} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 10px", borderRadius: 7, background: "#F8FAFC", border: "1px solid #E2E8F0", cursor: "pointer", color: "#64748B" }}>
-            <span style={{ fontSize: 13 }}>📅</span>
-            <span style={{ fontSize: 12, fontWeight: 600 }}>{data?.date ?? "…"}</span>
-          </button>
           <button onClick={save} disabled={saving || !data} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "9px 10px", borderRadius: 7, background: "#1E3A8A", color: "#fff", border: "none", cursor: "pointer", opacity: saving || !data ? 0.5 : 1 }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
