@@ -622,25 +622,6 @@ function ReadingSection({ src, onRefresh }: { src: DataSource; onRefresh: () => 
           </div>
         </div>
 
-        {/* Format guide */}
-        <div style={{ background:"#F8FAFC", border:`1px solid ${BL_M}`, borderRadius:14,
-          padding:"16px 20px", marginTop:16 }}>
-          <div style={{ fontWeight:800, fontSize:13, color:"#1E3A8A", marginBottom:8 }}>📋 Expected file format</div>
-          <pre style={{ fontSize:12, color:"#374151", margin:0, background:"#F1F5F9",
-            borderRadius:8, padding:"10px 14px", overflowX:"auto",
-            fontFamily:"'Cascadia Code', 'Fira Code', monospace, sans-serif" }}>
-{`{
-  "2026-01-01": "Genesis 1-3",
-  "2026-01-02": "Genesis 4-6",
-  ...
-  "2026-12-31": "Revelation 22"
-}`}
-          </pre>
-          <p style={{ fontSize:12, color:"#64748B", margin:"8px 0 0", lineHeight:1.6 }}>
-            One entry per day. The key is the date in <code>YYYY-MM-DD</code> format, the value is the reading passage.
-            Null values skip that day.
-          </p>
-        </div>
       </div>
     </>
   );
