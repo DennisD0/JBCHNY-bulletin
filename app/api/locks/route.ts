@@ -38,10 +38,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json() as {
-    action?: "acquire" | "release" | "heartbeat" | "takeover";
+    action?: "acquire" | "release" | "heartbeat" | "takeover" | "add-collaborator";
     lang?: string;
     sessionId?: string;
     userName?: string;
+    targetSessionId?: string;
   };
 
   if (!body.action || !body.lang || !isBulletinLanguage(body.lang) || !body.sessionId) {
@@ -57,6 +58,9 @@ export async function POST(request: Request) {
   };
 
   if (body.action === "acquire") {
+    if (current?.collaborators?.includes(body.sessionId)) {
+      return NextResponse.json({ ok: true, lock: current, collaborator: true });
+    }
     if (current && current.sessionId !== body.sessionId) {
       return NextResponse.json({ ok: false, lock: current });
     }
@@ -68,6 +72,12 @@ export async function POST(request: Request) {
   if (body.action === "release") {
     if (current?.sessionId === body.sessionId) {
       locks[body.lang] = null;
+      writeLocks(locks);
+    } else if (current?.collaborators?.includes(body.sessionId)) {
+      locks[body.lang] = {
+        ...current,
+        collaborators: current.collaborators.filter((id) => id !== body.sessionId),
+      };
       writeLocks(locks);
     }
     return NextResponse.json({ ok: true });
@@ -82,8 +92,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, lock: locks[body.lang] });
   }
 
+  if (body.action === "add-collaborator") {
+    if (!current) return NextResponse.json({ error: "No active lock" }, { status: 404 });
+    const collabId = body.targetSessionId ?? body.sessionId;
+    const existing = current.collaborators ?? [];
+    if (!existing.includes(collabId!)) {
+      locks[body.lang] = { ...current, collaborators: [...existing, collabId!] };
+      writeLocks(locks);
+    }
+    return NextResponse.json({ ok: true, lock: locks[body.lang] });
+  }
+
   locks[body.lang] = nextLock;
   writeLocks(locks);
   return NextResponse.json({ ok: true, lock: nextLock });
 }
-

@@ -8,7 +8,7 @@ const MAX_AGE_MS = 60 * 60 * 1000; // prune notifications older than 1 hour
 
 export type AppNotification = {
   id: string;
-  type: "takeover_request";
+  type: "takeover_request" | "join_request";
   lang: BulletinLanguage;
   fromSessionId: string;
   fromUserName: string;

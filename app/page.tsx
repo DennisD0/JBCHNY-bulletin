@@ -10,9 +10,11 @@ import {
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
   Bell, CheckCircle, XCircle, UserCheck,
+  MessageCircle, Check, Send,
   type LucideIcon,
 } from "lucide-react";
 import type { AppNotification } from "@/app/api/notifications/route";
+import type { BulletinComment } from "@/app/api/comments/route";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
@@ -1927,11 +1929,12 @@ function AutomationPanel({ onDataRefreshed }: { onDataRefreshed?: () => void }) 
 // Canvas mode toolbar
 // ---------------------------------------------------------------------------
 
-type CanvasMode = "grab" | "select";
+type CanvasMode = "grab" | "select" | "comment";
 
 const CANVAS_TOOLS: { id: CanvasMode; label: string; shortcut: string; Icon: LucideIcon }[] = [
-  { id: "select", label: "Select & Edit", shortcut: "V", Icon: TextCursor },
-  { id: "grab",   label: "Grab & Pan",   shortcut: "H", Icon: Hand },
+  { id: "select",  label: "Select & Edit", shortcut: "V", Icon: TextCursor },
+  { id: "grab",    label: "Grab & Pan",   shortcut: "H", Icon: Hand },
+  { id: "comment", label: "Comment",      shortcut: "C", Icon: MessageCircle },
 ];
 
 function ToolbarTooltip({ text, children }: { text: string; children: React.ReactNode }) {
@@ -2490,30 +2493,81 @@ function LockModal({
   lock,
   onViewOnly,
   onRequestTakeover,
+  onRequestJoin,
 }: {
   language: BulletinLanguage;
   lock: LanguageLock;
   onViewOnly: () => void;
   onRequestTakeover: () => void;
+  onRequestJoin: () => void;
 }) {
   const minutes = Math.max(0, Math.floor((Date.now() - lock.acquiredAt) / 60000));
   return (
     <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label="Language bulletin locked">
-      <div className="multilang-modal-card" style={{ width:"min(440px, calc(100vw - 32px))" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:42, height:42, display:"grid", placeItems:"center", borderRadius:12, background:"rgba(239,68,68,0.14)", color:"#FCA5A5" }}><Lock size={20} /></div>
-          <div>
-            <div style={{ fontSize:16, fontWeight:900, color:"#fff" }}>{LANGUAGE_CONFIG[language].name} bulletin is in use</div>
-            <div style={{ marginTop:3, fontSize:11, color:"rgba(255,255,255,0.55)" }}>Editing: {lock.userName} · {minutes} min ago</div>
-          </div>
+      <div className="multilang-modal-card" style={{ width:"min(360px, calc(100vw - 32px))", padding:"22px 24px 18px" }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+          <Lock size={15} color="#F59E0B" />
+          <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"-0.01em" }}>Currently being edited</span>
         </div>
-        <p style={{ margin:"18px 0", color:"rgba(255,255,255,0.72)", fontSize:13, lineHeight:1.55 }}>
-          {lock.userName} is currently editing. You can view the bulletin without making changes, or send a request to take over editing access.
+        <p style={{ margin:"0 0 18px", color:"rgba(255,255,255,0.6)", fontSize:12.5, lineHeight:1.6 }}>
+          Someone is editing the {LANGUAGE_CONFIG[language].name} bulletin
+          {minutes > 0 ? ` (${minutes}m ago)` : " right now"}. Choose how you&apos;d like to proceed:
         </p>
-        <div style={{ display:"flex", justifyContent:"flex-end", gap:9 }}>
-          <button type="button" className="glass-secondary-button" onClick={onViewOnly}><Eye size={14} /> View Only</button>
-          <button type="button" className="glass-primary-button" onClick={onRequestTakeover}><UserCheck size={14} /> Request to Take Over</button>
-        </div>
+        {/* Request to Take Over */}
+        <button
+          type="button"
+          onClick={onRequestTakeover}
+          style={{
+            display:"block", width:"100%", textAlign:"left",
+            background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.28)",
+            borderRadius:10, padding:"11px 14px", marginBottom:8, cursor:"pointer", color:"#fff",
+          }}
+        >
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+            <UserCheck size={14} color="#FCA5A5" />
+            <span style={{ fontSize:13, fontWeight:700 }}>Request to Take Over</span>
+          </div>
+          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.45)", paddingLeft:22 }}>
+            Ask them to hand over full editing access
+          </div>
+        </button>
+        {/* Request to Collaborate */}
+        <button
+          type="button"
+          onClick={onRequestJoin}
+          style={{
+            display:"block", width:"100%", textAlign:"left",
+            background:"rgba(68,114,196,0.12)", border:"1px solid rgba(68,114,196,0.3)",
+            borderRadius:10, padding:"11px 14px", marginBottom:16, cursor:"pointer", color:"#fff",
+          }}
+        >
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+            <Users size={14} color="#93B4F0" />
+            <span style={{ fontSize:13, fontWeight:700 }}>Request to Collaborate</span>
+          </div>
+          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.45)", paddingLeft:22 }}>
+            Ask to edit alongside them simultaneously
+          </div>
+        </button>
+        {/* View Only */}
+        <button
+          type="button"
+          onClick={onViewOnly}
+          style={{
+            display:"block", width:"100%", textAlign:"left",
+            background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
+            borderRadius:10, padding:"11px 14px", cursor:"pointer", color:"#fff",
+          }}
+        >
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+            <Eye size={14} color="rgba(255,255,255,0.5)" />
+            <span style={{ fontSize:13, fontWeight:700 }}>View Only</span>
+          </div>
+          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.38)", paddingLeft:22 }}>
+            Browse without making changes
+          </div>
+        </button>
       </div>
     </div>
   );
@@ -2664,7 +2718,7 @@ function NotificationPanel({
           </div>
         )}
 
-        {/* Incoming takeover requests (someone wants your lock) */}
+        {/* Incoming takeover / join requests */}
         {incomingRequests.length > 0 && (
           <section>
             <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>Incoming Requests</div>
@@ -2673,12 +2727,12 @@ function NotificationPanel({
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                   <UserCheck size={15} color="#FCA5A5" />
                   <span style={{ color:"#fff", fontSize:13, fontWeight:700 }}>
-                    {n.fromUserName} wants to edit {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
+                    {n.fromUserName} {n.type === "join_request" ? "wants to join as collaborator" : "wants to edit"} {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
                   </span>
                 </div>
                 <div style={{ display:"flex", gap:7 }}>
                   <button type="button" onClick={() => onGrant(n)} style={{ flex:1, padding:"7px 0", borderRadius:8, border:"none", background:"rgba(34,197,94,0.85)", color:"#fff", fontWeight:800, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
-                    <CheckCircle size={13} /> Grant Access
+                    <CheckCircle size={13} /> {n.type === "join_request" ? "Allow" : "Grant Access"}
                   </button>
                   <button type="button" onClick={() => onDecline(n)} style={{ padding:"7px 12px", borderRadius:8, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontWeight:700, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
                     <XCircle size={13} /> Decline
@@ -2910,6 +2964,96 @@ function SectionEditorPanel({
 }
 
 // ---------------------------------------------------------------------------
+// Comment thread panel component
+// ---------------------------------------------------------------------------
+
+function CommentThreadPanel({ comment, style, onReply, onResolve, onClose }: {
+  comment: BulletinComment;
+  style: React.CSSProperties;
+  onReply: (text: string) => void;
+  onResolve: () => void;
+  onClose: () => void;
+}) {
+  const [replyText, setReplyText] = useState("");
+  const submit = () => {
+    if (!replyText.trim()) return;
+    onReply(replyText);
+    setReplyText("");
+  };
+  const fmt = (ts: number) => new Date(ts).toLocaleDateString("en-US", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+
+  return (
+    <div style={{
+      width: 260,
+      background: "rgba(10,15,30,0.92)",
+      backdropFilter: "blur(16px)",
+      border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: 12,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      overflow: "hidden",
+      ...style,
+    }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px 8px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:10.5 }}>{fmt(comment.createdAt)}</span>
+        <div style={{ display:"flex", gap:6 }}>
+          {!comment.resolved && (
+            <button type="button" onClick={onResolve} title="Resolve" style={{ background:"none", border:"1px solid rgba(255,255,255,0.15)", borderRadius:6, color:"rgba(255,255,255,0.6)", cursor:"pointer", padding:"2px 7px", fontSize:10.5, display:"flex", alignItems:"center", gap:4 }}>
+              <Check size={11} /> Resolve
+            </button>
+          )}
+          <button type="button" onClick={onClose} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:18, lineHeight:1, padding:"0 2px" }}>×</button>
+        </div>
+      </div>
+      {/* Thread */}
+      <div style={{ maxHeight: 240, overflowY:"auto", padding:"10px 14px" }}>
+        <div style={{ marginBottom:10 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:4 }}>
+            <div style={{ width:22, height:22, borderRadius:"50%", background:"#4472C4", display:"grid", placeItems:"center", fontSize:10, fontWeight:900, color:"#fff", flexShrink:0 }}>
+              {comment.author.charAt(0).toUpperCase()}
+            </div>
+            <span style={{ color:"#fff", fontSize:12, fontWeight:700 }}>{comment.author}</span>
+          </div>
+          <p style={{ color:"rgba(255,255,255,0.82)", fontSize:12.5, margin:"0 0 0 29px", lineHeight:1.5 }}>{comment.text}</p>
+        </div>
+        {comment.replies.map(r => (
+          <div key={r.id} style={{ marginBottom:8, paddingLeft:29 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
+              <div style={{ width:18, height:18, borderRadius:"50%", background:"rgba(68,114,196,0.5)", display:"grid", placeItems:"center", fontSize:9, fontWeight:900, color:"#fff", flexShrink:0 }}>
+                {r.author.charAt(0).toUpperCase()}
+              </div>
+              <span style={{ color:"rgba(255,255,255,0.7)", fontSize:11, fontWeight:700 }}>{r.author}</span>
+            </div>
+            <p style={{ color:"rgba(255,255,255,0.72)", fontSize:12, margin:0, lineHeight:1.5 }}>{r.text}</p>
+          </div>
+        ))}
+      </div>
+      {/* Reply input */}
+      {!comment.resolved && (
+        <div style={{ padding:"8px 14px 12px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ display:"flex", gap:7, alignItems:"flex-end" }}>
+            <input
+              type="text"
+              value={replyText}
+              onChange={e => setReplyText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") submit(); }}
+              placeholder="Reply…"
+              style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:7, color:"#fff", fontSize:12, padding:"6px 9px", outline:"none", fontFamily:"inherit" }}
+            />
+            <button type="button" onClick={submit} disabled={!replyText.trim()} style={{ padding:"6px 8px", borderRadius:7, border:"none", background:"#4472C4", color:"#fff", cursor:"pointer", opacity:replyText.trim()?1:0.5, display:"flex", alignItems:"center" }}>
+              <Send size={12} />
+            </button>
+          </div>
+        </div>
+      )}
+      {comment.resolved && (
+        <div style={{ padding:"8px 14px 10px", textAlign:"center", color:"rgba(255,255,255,0.35)", fontSize:11 }}>Resolved</div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // Layout: [framer sidebar hover-expand] [slide-in form panel] [Miro canvas]
 // ---------------------------------------------------------------------------
@@ -2953,6 +3097,13 @@ export default function Home() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
+  const [isCollaborator, setIsCollaborator] = useState(false);
+
+  // Comment system state
+  const [comments, setComments] = useState<BulletinComment[]>([]);
+  const [draftPin, setDraftPin] = useState<{ rx: number; ry: number } | null>(null);
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [commentDraftText, setCommentDraftText] = useState("");
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -3090,17 +3241,31 @@ export default function Home() {
     const fresh = await res.json() as AppNotification[];
     setNotifications(fresh);
 
-    // Auto-acquire lock when a request we sent gets accepted
-    const accepted = fresh.find(
+    // Auto-acquire lock when a takeover request we sent gets accepted
+    const takeoverAccepted = fresh.find(
       (n) => n.type === "takeover_request" && n.fromSessionId === sessionId.current && n.status === "accepted",
     );
-    if (accepted && readOnly && activeLangRef.current === accepted.lang) {
-      const acquisition = await postLockAction("acquire", accepted.lang);
+    if (takeoverAccepted && readOnly && activeLangRef.current === takeoverAccepted.lang) {
+      const acquisition = await postLockAction("acquire", takeoverAccepted.lang);
       if (acquisition.ok) {
         setReadOnly(false);
-        await loadLanguage(accepted.lang);
+        await loadLanguage(takeoverAccepted.lang);
         await refreshLanguageStatus();
       }
+    }
+
+    // When a join_request we sent gets accepted, become a collaborator
+    const joinAccepted = fresh.find(
+      (n) => n.type === "join_request" && n.fromSessionId === sessionId.current && n.status === "accepted",
+    );
+    if (joinAccepted && activeLangRef.current === joinAccepted.lang) {
+      await fetch("/api/locks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add-collaborator", lang: joinAccepted.lang, sessionId: sessionId.current }),
+      });
+      setIsCollaborator(true);
+      setReadOnly(false);
     }
   }, [loadLanguage, postLockAction, readOnly, refreshLanguageStatus]);
 
@@ -3110,13 +3275,24 @@ export default function Home() {
     return () => window.clearInterval(interval);
   }, [pollNotifications]);
 
+  const pollComments = useCallback(async () => {
+    const res = await fetch("/api/comments", { cache: "no-store" });
+    if (res.ok) setComments(await res.json());
+  }, []);
+
   useEffect(() => {
-    if (readOnly) return;
+    pollComments();
+    const interval = window.setInterval(pollComments, 10_000);
+    return () => window.clearInterval(interval);
+  }, [pollComments]);
+
+  useEffect(() => {
+    if (readOnly || isCollaborator) return;
     const interval = window.setInterval(() => {
       postLockAction("heartbeat", activeLang).catch(() => undefined);
     }, 45_000);
     return () => window.clearInterval(interval);
-  }, [activeLang, postLockAction, readOnly]);
+  }, [activeLang, isCollaborator, postLockAction, readOnly]);
 
   useEffect(() => {
     const release = () => {
@@ -3191,7 +3367,7 @@ export default function Home() {
     canvasModeRef.current = canvasMode;
     const el = canvasRef.current;
     if (el && !dragging.current) {
-      el.style.cursor = canvasMode === "grab" ? "grab" : "default";
+      el.style.cursor = canvasMode === "grab" ? "grab" : canvasMode === "comment" ? "crosshair" : "default";
     }
   }, [canvasMode]);
 
@@ -3236,6 +3412,7 @@ export default function Home() {
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         if (e.key === "v" || e.key === "V") setCanvasMode("select");
         if (e.key === "h" || e.key === "H") setCanvasMode("grab");
+        if (e.key === "c" || e.key === "C") setCanvasMode("comment");
       }
     };
     const upHandler = (e: KeyboardEvent) => {
@@ -3272,6 +3449,59 @@ export default function Home() {
     setHistoryStamp(s => s + 1);
   }, [readOnly]);
 
+  const submitComment = async () => {
+    if (!draftPin || !commentDraftText.trim()) return;
+    const res = await fetch("/api/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rx: draftPin.rx, ry: draftPin.ry, author: "Editor", text: commentDraftText }),
+    });
+    if (res.ok) {
+      const created = await res.json() as BulletinComment;
+      setComments(prev => [...prev, created]);
+      setActiveCommentId(created.id);
+      setDraftPin(null);
+      setCommentDraftText("");
+    }
+  };
+
+  const submitReply = async (commentId: string, text: string) => {
+    const res = await fetch("/api/comments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: commentId, reply: { author: "Editor", text } }),
+    });
+    if (res.ok) {
+      const updated = await res.json() as BulletinComment;
+      setComments(prev => prev.map(c => c.id === updated.id ? updated : c));
+    }
+  };
+
+  const resolveComment = async (commentId: string) => {
+    const res = await fetch("/api/comments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: commentId, resolved: true }),
+    });
+    if (res.ok) {
+      const updated = await res.json() as BulletinComment;
+      setComments(prev => prev.map(c => c.id === updated.id ? updated : c));
+      if (activeCommentId === commentId) setActiveCommentId(null);
+    }
+  };
+
+  const dismissPendingSection = async (sectionKey: string) => {
+    setMeta(m => ({
+      ...m,
+      sections: { ...m.sections, [sectionKey]: { ...m.sections[sectionKey], status: "dismissed" as const } },
+    }));
+    await fetch(`/api/bulletin/${activeLang}/apply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sectionKey, action: "dismiss" }),
+    });
+  };
+
   const undo = useCallback(() => {
     if (historyPos.current <= 0) return;
     historyPos.current--;
@@ -3295,6 +3525,7 @@ export default function Home() {
     setActiveTab(null);
     setSyncPreviewSection(null);
     setReadOnly(false);
+    setIsCollaborator(false);
 
     const acquisition = await postLockAction("acquire", language);
     const loadedMeta = await loadLanguage(language);
@@ -3344,8 +3575,41 @@ export default function Home() {
     await pollNotifications();
   };
 
+  const requestJoin = async (language: BulletinLanguage, lock: LanguageLock) => {
+    setLockConflict(null);
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "join_request",
+        lang: language,
+        fromSessionId: sessionId.current,
+        fromUserName: "Editor",
+        targetSessionId: lock.sessionId,
+      }),
+    });
+    setReadOnly(true);
+    setNotifPanelOpen(true);
+    await pollNotifications();
+  };
+
   const grantLockAccess = async (notif: AppNotification) => {
-    await postLockAction("release", notif.lang);
+    if (notif.type === "join_request") {
+      // Add requester as collaborator — don't release own lock
+      await fetch("/api/locks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add-collaborator",
+          lang: notif.lang,
+          sessionId: sessionId.current,
+          targetSessionId: notif.fromSessionId,
+        }),
+      });
+    } else {
+      // takeover_request — release own lock
+      await postLockAction("release", notif.lang);
+    }
     await fetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -3595,6 +3859,7 @@ export default function Home() {
           lock={lockConflict.lock}
           onViewOnly={() => { setReadOnly(true); setLockConflict(null); }}
           onRequestTakeover={() => requestTakeover(lockConflict.language, lockConflict.lock)}
+          onRequestJoin={() => requestJoin(lockConflict.language, lockConflict.lock)}
         />
       )}
 
@@ -3903,19 +4168,162 @@ export default function Home() {
       <div
         className="editor-canvas"
         ref={canvasRef}
-        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : canvasMode === "comment" ? "crosshair" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
+        onClick={() => { /* comment clicks handled by overlay inside pdfZoomRef */ }}
       >
         {data ? (
           /* Pan layer — translate only */
           <div ref={pdfPanRef} style={{ position: "absolute", left: 0, top: 0, willChange: "transform" }}>
             {/* Zoom layer — CSS zoom for crisp text re-rasterize */}
-            <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: canvasMode === "grab" ? "none" : "auto" }}>
-              <BulletinPreview data={data} onUpdate={canvasMode === "grab" || readOnly ? undefined : patch} />
+            <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: canvasMode === "grab" ? "none" : "auto", position: "relative" }}>
+              <BulletinPreview
+                data={data}
+                onUpdate={canvasMode === "grab" || readOnly ? undefined : patch}
+                pendingDiffs={
+                  activeLang !== "en" && activeLang !== "ko"
+                    ? Object.fromEntries(
+                        Object.entries(meta.sections)
+                          .filter(([, s]) => s.status === "pending" && s.pendingEnContent)
+                          .map(([k, s]) => [k, s.pendingEnContent!])
+                      )
+                    : undefined
+                }
+                onDismissPending={activeLang !== "en" && activeLang !== "ko" ? dismissPendingSection : undefined}
+              />
               <BulletinFitController fitKey={JSON.stringify(data)} />
+
+              {/* Comment mode click-capture overlay — must be inside zoom layer for correct coordinates */}
+              {canvasMode === "comment" && (
+                <div
+                  style={{ position: "absolute", top: 0, left: 0, width: PAGE_W, height: PAGE_H * 2 + 4, zIndex: 19, cursor: "crosshair" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const zoomEl = pdfZoomRef.current;
+                    if (!zoomEl) return;
+                    const rect = zoomEl.getBoundingClientRect();
+                    const cssZoom = parseFloat(zoomEl.style.zoom || "1");
+                    const localX = (e.clientX - rect.left) / cssZoom;
+                    const localY = (e.clientY - rect.top) / cssZoom;
+                    const TOTAL_H = PAGE_H * 2 + 4;
+                    setDraftPin({ rx: Math.max(0, Math.min(1, localX / PAGE_W)), ry: Math.max(0, Math.min(1, localY / TOTAL_H)) });
+                    setActiveCommentId(null);
+                    setCommentDraftText("");
+                  }}
+                />
+              )}
+
+              {/* Comment pins overlay — lives inside zoom layer so pins scale with content */}
+              <div style={{
+                position: "absolute", top: 0, left: 0,
+                width: PAGE_W, height: PAGE_H * 2 + 4,
+                pointerEvents: "none", zIndex: 20,
+              }}>
+                {/* Draft pin being placed */}
+                {draftPin && (
+                  <div style={{
+                    position: "absolute",
+                    left: draftPin.rx * PAGE_W - 14,
+                    top: draftPin.ry * (PAGE_H * 2 + 4) - 14,
+                    width: 28, height: 28,
+                    borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)",
+                    background: "#4472C4", border: "2px solid #fff",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                    pointerEvents: "none",
+                  }} />
+                )}
+                {/* Existing pins — resolved ones are hidden */}
+                {comments.filter(c => !c.resolved).map(c => (
+                  <div
+                    key={c.id}
+                    style={{
+                      position: "absolute",
+                      left: c.rx * PAGE_W - 14,
+                      top: c.ry * (PAGE_H * 2 + 4) - 14,
+                      width: 28, height: 28,
+                      borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)",
+                      background: "#4472C4",
+                      border: "2px solid #fff",
+                      boxShadow: activeCommentId === c.id ? "0 0 0 3px rgba(68,114,196,0.5)" : "0 2px 8px rgba(0,0,0,0.4)",
+                      cursor: "pointer",
+                      pointerEvents: "all",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 900, color: "#fff",
+                      zIndex: activeCommentId === c.id ? 2 : 1,
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveCommentId(c.id === activeCommentId ? null : c.id);
+                      setDraftPin(null);
+                    }}
+                  >
+                    <span style={{ transform: "rotate(45deg)" }}>
+                      {c.author.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Active comment thread panel */}
+              {activeCommentId && (() => {
+                const c = comments.find(x => x.id === activeCommentId);
+                if (!c) return null;
+                const TOTAL_H = PAGE_H * 2 + 4;
+                const pinX = c.rx * PAGE_W;
+                const pinY = c.ry * TOTAL_H;
+                const panelLeft = Math.min(pinX + 20, PAGE_W - 270);
+                const panelTop = Math.min(pinY - 10, TOTAL_H - 200);
+                return (
+                  <CommentThreadPanel
+                    comment={c}
+                    style={{ position: "absolute", left: panelLeft, top: panelTop, zIndex: 30, pointerEvents: "all" }}
+                    onReply={(text) => submitReply(c.id, text)}
+                    onResolve={() => resolveComment(c.id)}
+                    onClose={() => setActiveCommentId(null)}
+                  />
+                );
+              })()}
+
+              {/* Draft comment input box */}
+              {draftPin && (
+                <div style={{
+                  position: "absolute",
+                  left: Math.min(draftPin.rx * PAGE_W + 20, PAGE_W - 270),
+                  top: Math.min(draftPin.ry * (PAGE_H * 2 + 4) - 10, (PAGE_H * 2 + 4) - 140),
+                  zIndex: 30, pointerEvents: "all",
+                  width: 240,
+                  background: "rgba(10,15,30,0.92)",
+                  backdropFilter: "blur(16px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                }}>
+                  <textarea
+                    autoFocus
+                    value={commentDraftText}
+                    onChange={e => setCommentDraftText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void submitComment();
+                      if (e.key === "Escape") { setDraftPin(null); setCommentDraftText(""); }
+                    }}
+                    placeholder="Leave a comment…"
+                    rows={3}
+                    style={{
+                      width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: 8, color: "#fff", fontSize: 12.5, padding: "8px 10px",
+                      resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+                    }}
+                  />
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 7, marginTop: 8 }}>
+                    <button type="button" onClick={() => { setDraftPin(null); setCommentDraftText(""); }} style={{ padding: "5px 10px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "rgba(255,255,255,0.6)", fontSize: 11.5, cursor: "pointer" }}>Cancel</button>
+                    <button type="button" onClick={() => void submitComment()} disabled={!commentDraftText.trim()} style={{ padding: "5px 12px", borderRadius: 7, border: "none", background: "#4472C4", color: "#fff", fontSize: 11.5, fontWeight: 700, cursor: "pointer", opacity: commentDraftText.trim() ? 1 : 0.5 }}>Post</button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

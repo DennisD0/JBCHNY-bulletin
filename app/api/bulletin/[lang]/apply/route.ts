@@ -13,13 +13,20 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: "Sync apply is not available for this language" }, { status: 400 });
   }
 
-  const { sectionKey } = await request.json() as { sectionKey?: string };
+  const { sectionKey, action } = await request.json() as { sectionKey?: string; action?: string };
   if (!sectionKey || !SECTION_FIELD_MAP[sectionKey]) {
     return NextResponse.json({ error: "Unknown section" }, { status: 400 });
   }
 
   const bulletin = readBulletin(lang);
   const sync = bulletin.meta.sections[sectionKey];
+
+  if (action === "dismiss") {
+    bulletin.meta.sections[sectionKey] = { ...sync, status: "dismissed" };
+    writeBulletin(lang, bulletin.data, bulletin.meta);
+    return NextResponse.json({ meta: bulletin.meta });
+  }
+
   if (!sync?.pendingEnContent) {
     return NextResponse.json({ error: "No pending English content" }, { status: 409 });
   }

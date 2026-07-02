@@ -28,6 +28,7 @@ export interface LanguageLock {
   sessionId: string;
   userName: string;
   acquiredAt: number;
+  collaborators?: string[]; // sessionIds of accepted collaborators
 }
 
 export type LanguageLocks = Record<BulletinLanguage, LanguageLock | null>;
