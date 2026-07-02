@@ -8,7 +8,7 @@ import {
   BookMarked, CalendarRange, Save as SaveIcon,
   TextCursor, Hand, Maximize2, Download,
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
-  Undo2, Redo2,
+  Undo2, Redo2, GripVertical,
   type LucideIcon,
 } from "lucide-react";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
@@ -1280,18 +1280,14 @@ function NewsTab({
   set: (patch: Partial<BulletinData>) => void;
 }) {
   const MAX_NEWS = 5;
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragIdx = useRef<number | null>(null);
+
   const updateNews = (i: number, patch: Partial<NewsItem>) => {
     set({ news: data.news.map((n, idx) => (idx === i ? { ...n, ...patch } : n)) });
   };
   const deleteNews = (i: number) =>
     set({ news: data.news.filter((_, idx) => idx !== i) });
-  const moveNews = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= data.news.length) return;
-    const next = [...data.news];
-    [next[i], next[j]] = [next[j], next[i]];
-    set({ news: next });
-  };
   const addNews = () => {
     if (data.news.length < MAX_NEWS)
       set({ news: [...data.news, { title: "", body: "" }] });
@@ -1311,14 +1307,38 @@ function NewsTab({
         {Array.from({ length: MAX_NEWS }, (_, i) => {
           const item = data.news[i];
           if (item) {
+            const isOver = dragOverIdx === i;
             return (
-              <div key={i} className="flex gap-2 items-start rounded-xl border border-stone-100 p-3">
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#4472C4", width: 16, textAlign: "center" }}>{i + 1}</div>
-                  <button onClick={() => moveNews(i, -1)} disabled={i === 0} style={{ background: "none", border: "none", cursor: i === 0 ? "default" : "pointer", padding: "1px 2px", color: i === 0 ? "#CBD5E1" : "#64748B", lineHeight: 1 }} title="Move up">▲</button>
-                  <button onClick={() => moveNews(i, 1)} disabled={i === data.news.length - 1} style={{ background: "none", border: "none", cursor: i === data.news.length - 1 ? "default" : "pointer", padding: "1px 2px", color: i === data.news.length - 1 ? "#CBD5E1" : "#64748B", lineHeight: 1 }} title="Move down">▼</button>
+              <div
+                key={i}
+                draggable
+                onDragStart={() => { dragIdx.current = i; }}
+                onDragOver={(e) => { e.preventDefault(); setDragOverIdx(i); }}
+                onDragLeave={() => setDragOverIdx(null)}
+                onDrop={() => {
+                  const from = dragIdx.current;
+                  if (from === null || from === i) { setDragOverIdx(null); return; }
+                  const next = [...data.news];
+                  const [moved] = next.splice(from, 1);
+                  next.splice(i, 0, moved);
+                  set({ news: next });
+                  dragIdx.current = null;
+                  setDragOverIdx(null);
+                }}
+                onDragEnd={() => { dragIdx.current = null; setDragOverIdx(null); }}
+                style={{
+                  display: "flex", gap: 8, alignItems: "flex-start",
+                  borderRadius: 12, border: isOver ? "2px solid #4472C4" : "1px solid #F1F5F9",
+                  padding: isOver ? 11 : 12,
+                  background: isOver ? "#EFF6FF" : "#fff",
+                  cursor: "grab", transition: "border-color 0.1s, background 0.1s",
+                }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, flexShrink: 0, paddingTop: 4 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#4472C4", lineHeight: 1 }}>{i + 1}</span>
+                  <GripVertical size={14} color="#CBD5E1" style={{ marginTop: 2 }} />
                 </div>
-                <div className="flex-1 flex flex-col gap-3">
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
                   <Field label="Title" value={item.title} onChange={(v) => updateNews(i, { title: v })} />
                   <Field label="Body" value={item.body} onChange={(v) => updateNews(i, { body: v })} multiline rows={3} />
                 </div>
