@@ -1,499 +1,498 @@
 {
-    "_meta":  {
-                  "language":  "es",
-                  "isolated":  false,
-                  "initializedFromEn":  false,
-                  "sections":  {
-
-                               }
-              },
-    "number":  "2026-25",
-    "date":  "06/28/2026",
-    "quote":  "I shall not die, but live,\nAnd declare the works of the LORD.",
-    "quoteRef":  "Psalms 118:17",
-    "pastor":  "Chong Kyung Park",
-    "sermonTitle":  "The love which I have so abundantly for you",
-    "sermonVerse":  "2 Corinthians 2:4",
-    "sermonSpeaker":  "p.Chongkyung Park (New York Church)",
-    "sermonEndingPraise":  "Hymnal 274 \"I Love to Tell the Story\"",
-    "services":  [
-                     {
-                         "date":  "6/28",
-                         "usherSun":  "Andrew Kim",
-                         "lunchDuty":  "Yufen Jiang\nHua Za Jin",
-                         "childCare":  "Jean Seo",
-                         "usherWed":  "John Park"
-                     },
-                     {
-                         "date":  "7/5",
-                         "usherSun":  "Jose H.",
-                         "lunchDuty":  "Jinxian Liu\nConnie Liu",
-                         "childCare":  "Minkyung Jung",
-                         "usherWed":  "Jiwook Jang"
-                     }
-                 ],
-    "eastCoastSeminar":  [
-                             {
-                                 "date":  "7/6-12",
-                                 "church":  "Michigan",
-                                 "speaker":  "p.John Kweon",
-                                 "language":  "Korean"
-                             },
-                             {
-                                 "date":  "7/6-12",
-                                 "church":  "s.Illinois",
-                                 "speaker":  "p.Joshua Lee",
-                                 "language":  "Korean"
-                             },
-                             {
-                                 "date":  "7/13-19",
-                                 "church":  "s.Virginia",
-                                 "speaker":  "p.Jacob Jeong",
-                                 "language":  "English"
-                             }
-                         ],
-    "fellowship":  [
-                       {
-                           "name":  "Sunday Service",
-                           "day":  "Sunday",
-                           "time":  "11 AM",
-                           "location":  "Main Hall"
-                       },
-                       {
-                           "name":  "Church School",
-                           "day":  "Sunday",
-                           "time":  "9 AM",
-                           "location":  "Secondary Hall"
-                       },
-                       {
-                           "name":  "Wed Sermon",
-                           "day":  "Wednesday",
-                           "time":  "8 PM",
-                           "location":  "Main Hall"
-                       },
-                       {
-                           "name":  "YA Fellowship",
-                           "day":  "Saturday",
-                           "time":  "7 PM",
-                           "location":  "Fellowship Hall"
-                       },
-                       {
-                           "name":  "Altogether Fellowship",
-                           "day":  "Last Sunday",
-                           "time":  "2 PM",
-                           "location":  "Main Hall"
-                       }
-                   ],
-    "phone":  "917-783-5970",
-    "email":  "prayer910124@gmail.com",
-    "address":  "167 Willis Ave, Mineola, NY 11501",
-    "bibleReadingDates":  [
-                              "6/28",
-                              "6/29",
-                              "6/30",
-                              "7/1",
-                              "7/2",
-                              "7/3",
-                              "7/4"
-                          ],
-    "bibleReading1":  [
-                          "Psalms 73-77",
-                          "Psalms 78-83",
-                          "Psalms 84-89",
-                          "Psalms 90-99",
-                          "Psalms 100-105",
-                          "Psalms 106-110",
-                          "Psalms 111-118"
-                      ],
-    "bibleReading2":  [
-                          "1 Pet1-5\n2 Pet1-3",
-                          "1 John 1-5\n2 John,3 John,Jude",
-                          "Rev 1-9",
-                          "Rev 10-18",
-                          "Rev 19-22\nGen 1-3",
-                          "Gen 4-11",
-                          "Gen 12-19"
-                      ],
-    "memoryVerses":  [
-                         {
-                             "label":  "Last week",
-                             "date":  "6/21",
-                             "reference":  "2 Corinthians 4:17-18",
-                             "theme":  "Hope",
-                             "text":  "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
-                         },
-                         {
-                             "label":  "This week",
-                             "date":  "6/28",
-                             "reference":  "1 Peter 1:3-4",
-                             "theme":  "Hope",
-                             "text":  "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
-                         },
-                         {
-                             "label":  "Next week",
-                             "date":  "7/5",
-                             "reference":  "1 Peter 3:15-16",
-                             "theme":  "Hope",
-                             "text":  "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
-                         }
-                     ],
-    "cleaningAreas":  [
-                          {
-                              "location":  "Main Hall",
-                              "group":  "Father\u0027s Group, YA Group"
-                          },
-                          {
-                              "location":  "2nd Floor",
-                              "group":  "YA Group"
-                          },
-                          {
-                              "location":  "Whole Staircases",
-                              "group":  "Father\u0027s Group"
-                          },
-                          {
-                              "location":  "Outside",
-                              "group":  "Father\u0027s Group"
-                          },
-                          {
-                              "location":  "1st Floor Lobby (En Hakkore)",
-                              "group":  "Mother\u0027s Group"
-                          },
-                          {
-                              "location":  "Basement Floor",
-                              "group":  "Mother\u0027s Group"
-                          }
-                      ],
-    "calendarMonth":  "07/2026",
-    "calendarEvents":  {
-                           "6/28":  [
-                                        "Graduation",
-                                        "Sermon",
-                                        "Altogether"
-                                    ],
-                           "6/29":  [
-                                        "Region 2"
-                                    ],
-                           "7/1":  [
-                                       "Wed sermon"
-                                   ],
-                           "7/4":  [
-                                       "Translators\u0027",
-                                       "YA\u0027"
-                                   ],
-                           "7/5":  [
-                                       "Sermon",
-                                       "Officers\u0027",
-                                       "Mothers Officers\u0027"
-                                   ],
-                           "7/6":  [
-                                       "Mother Group"
-                                   ],
-                           "7/8":  [
-                                       "Wed sermon"
-                                   ],
-                           "7/9":  [
-                                       "Teachers\u0027"
-                                   ],
-                           "7/10":  [
-                                        "YA Officers\u0027"
-                                    ],
-                           "7/11":  [
-                                        "Translators\u0027",
-                                        "YA\u0027"
-                                    ],
-                           "7/12":  [
-                                        "Sermon",
-                                        "Region 3",
-                                        "Fel. by Lang"
-                                    ],
-                           "7/15":  [
-                                        "Wed sermon"
-                                    ],
-                           "7/16":  [
-                                        "Teachers\u0027"
-                                    ],
-                           "7/19":  [
-                                        "Sermon",
-                                        "New believers\u0027",
-                                        "Choirs\u0027"
-                                    ],
-                           "7/20":  [
-                                        "Region 2"
-                                    ],
-                           "7/21":  [
-                                        "Region 1"
-                                    ],
-                           "7/22":  [
-                                        "Wed sermon"
-                                    ],
-                           "7/23":  [
-                                        "Teachers\u0027"
-                                    ],
-                           "7/25":  [
-                                        "Translators\u0027",
-                                        "YA\u0027"
-                                    ],
-                           "7/26":  [
-                                        "Sermon"
-                                    ],
-                           "7/29":  [
-                                        "Wed sermon"
-                                    ],
-                           "7/30":  [
-                                        "Teachers\u0027"
-                                    ],
-                           "8/1":  [
-                                       "Translators\u0027",
-                                       "YA\u0027"
-                                   ]
-                       },
-    "weeklyRecurring":  [
-                            {
-                                "dayOfWeek":  0,
-                                "label":  "Sermon"
-                            },
-                            {
-                                "dayOfWeek":  3,
-                                "label":  "Wed sermon"
-                            },
-                            {
-                                "dayOfWeek":  4,
-                                "label":  "Teachers\u0027"
-                            },
-                            {
-                                "dayOfWeek":  6,
-                                "label":  "Translators\u0027"
-                            },
-                            {
-                                "dayOfWeek":  6,
-                                "label":  "YA\u0027"
-                            }
-                        ],
-    "calendarBanners":  [
-                            {
-                                "label":  "EC Youth Camp",
-                                "startDate":  "7/1",
-                                "endDate":  "7/4"
-                            },
-                            {
-                                "label":  "Grand Bible Seminar (p.Park)",
-                                "startDate":  "7/13",
-                                "endDate":  "7/19"
-                            },
-                            {
-                                "label":  "YA Officer Retreat",
-                                "startDate":  "7/24",
-                                "endDate":  "7/25"
-                            }
-                        ],
-    "weekSchedule":  [
-                         {
-                             "date":  "6/28(Sun)",
-                             "items":  [
-                                           {
-                                               "name":  "Church School Graduation",
-                                               "location":  "Main Hall",
-                                               "time":  "9 AM"
-                                           },
-                                           {
-                                               "name":  "Sunday Sermon",
-                                               "location":  "Main Hall",
-                                               "time":  "11 AM"
-                                           },
-                                           {
-                                               "name":  "Altogether Fellowship",
-                                               "location":  "Main Hall",
-                                               "time":  "2 PM"
-                                           }
-                                       ]
-                         },
-                         {
-                             "date":  "6/29(Mon)",
-                             "items":  [
-                                           {
-                                               "name":  "Region 2 fellowship",
-                                               "location":  "s.Jinxian Liu",
-                                               "time":  "8 PM"
-                                           }
-                                       ]
-                         },
-                         {
-                             "date":  "7/1(Wed)",
-                             "items":  [
-                                           {
-                                               "name":  "Wednesday Sermon",
-                                               "location":  "Main Hall",
-                                               "time":  "8 PM"
-                                           }
-                                       ]
-                         },
-                         {
-                             "date":  "7/4(Sat)",
-                             "items":  [
-                                           {
-                                               "name":  "Translator Meeting",
-                                               "location":  "Counseling 2",
-                                               "time":  "5 PM"
-                                           },
-                                           {
-                                               "name":  "Young Adult Fellowship",
-                                               "location":  "Fellowship Hall",
-                                               "time":  "7 PM"
-                                           }
-                                       ]
-                         },
-                         {
-                             "date":  "7/5(Sun)",
-                             "items":  [
-                                           {
-                                               "name":  "Church School Graduation",
-                                               "location":  "Secondary Hall",
-                                               "time":  "9 AM"
-                                           },
-                                           {
-                                               "name":  "Sunday Sermon",
-                                               "location":  "Main Hall",
-                                               "time":  "11 AM"
-                                           },
-                                           {
-                                               "name":  "Altogether Fellowship",
-                                               "location":  "Main Hall",
-                                               "time":  "2 PM"
-                                           }
-                                       ]
-                         }
-                     ],
-    "news":  [
-                 {
-                     "title":  "East Coast Youth Camp (July 1-4th)",
-                     "body":  "The East Coast Youth Camp will be held at the Kentucky Retreat Center for four days, starting this Wednesday. Please pray for all the teachers, students, and volunteers attending."
-                 },
-                 {
-                     "title":  "July New Believer Training: Holy (July 19th)",
-                     "body":  "It is a time to learn and fellowship together about what is essential for Christian life. We look forward to your involvement. (inquiry: b.Andrew)"
-                 },
-                 {
-                     "title":  "Service in church",
-                     "body":  "If you have been saved for over a year and would like to participate in service work at the church, please contact our pastor."
-                 },
-                 {
-                     "title":  "Consultation and Visitation",
-                     "body":  "If you need evangelism counseling, Christian life counseling, or visitation, please contact the pastor."
-                 },
-                 {
-                     "title":  "Church Clean Management: Beverage and Food Waste Disposal",
-                     "body":  "Please pay attention to the disposal of beverage and food waste for a pleasant environment in the church.\n- Please dispose of remaining beverages and ice separately before throwing away the cups in the trash can. Also, please be mindful to minimize food waste. If you need to dispose of food waste, please seal it tightly to prevent exposure."
-                 }
-             ],
-    "prayerRequests":  [
-                           {
-                               "who":  "Juan Subieta",
-                               "whom":  "Nicolas",
-                               "relation":  "Son"
-                           },
-                           {
-                               "who":  "Juan Subieta",
-                               "whom":  "Maximus",
-                               "relation":  "Son"
-                           },
-                           {
-                               "who":  "Cathy Kwon",
-                               "whom":  "Brianna",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Cathy Kwon",
-                               "whom":  "Yubin Won",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "John Park",
-                               "whom":  "Suzan",
-                               "relation":  "Friend"
-                           },
-                           {
-                               "who":  "Rong Xue",
-                               "whom":  "Maggy",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Rong Xue",
-                               "whom":  "Zhengjian Cai",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Rong Xue",
-                               "whom":  "Lin Qicao",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Rong Xue",
-                               "whom":  "Li Shuzhen",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Joseph Lee",
-                               "whom":  "Jongtae Lee",
-                               "relation":  "Father"
-                           },
-                           {
-                               "who":  "Sookhee Kim",
-                               "whom":  "Carol",
-                               "relation":  "Acqu."
-                           },
-                           {
-                               "who":  "Sue Kim",
-                               "whom":  "Nayoun Kim",
-                               "relation":  "Family"
-                           },
-                           {
-                               "who":  "Joseph Lee",
-                               "whom":  "Guyyeon Lee",
-                               "relation":  "Mother"
-                           },
-                           {
-                               "who":  "Sue Kim",
-                               "whom":  "Donha Jeon",
-                               "relation":  "Father"
-                           }
-                       ],
-    "jointPrayer":  [
-                        {
-                            "title":  "New York Church Language-based Evangelism",
-                            "body":  "There are various language groups in the church. Please pray for active evangelism by language group."
-                        },
-                        {
-                            "title":  "Kentucky Retreat Center",
-                            "body":  "The accommodation facilities at the retreat center are being expanded and repaired. Please pray especially for the construction of the YA Center (Unity Hall)."
-                        }
-                    ],
-    "seminarInfo":  {
-                        "title":  "July Grand Bible Seminar",
-                        "date":  "July 13-18: 8PM / July19: 11AM",
-                        "speaker":  "p.Chongkyung Park"
-                    },
-    "retreatInfo":  {
-                        "enabled":  false,
-                        "title":  "",
-                        "date":  "",
-                        "location":  "",
-                        "fees":  [
-                                     {
-                                         "label":  "Adult (13+)",
-                                         "amount":  "$200"
-                                     },
-                                     {
-                                         "label":  "Senior (70+)",
-                                         "amount":  "$100"
-                                     },
-                                     {
-                                         "label":  "Ages 7-12",
-                                         "amount":  "$100"
-                                     },
-                                     {
-                                         "label":  "Under 6 / Prospect",
-                                         "amount":  "FREE"
-                                     }
-                                 ]
-                    }
+  "_meta": {
+    "language": "es",
+    "isolated": false,
+    "initializedFromEn": true,
+    "sections": {}
+  },
+  "number": "2026-25",
+  "date": "06/28/2026",
+  "quote": "No moriré, sino viviré,\nY contar las obras de Jehová.",
+  "quoteRef": "Psalms 118:17",
+  "pastor": "Chong Kyung Park",
+  "sermonTitle": "El amor que tengo tan abundantemente por ti.",
+  "sermonVerse": "2 Corinthians 2:4",
+  "sermonSpeaker": "p.Chongkyung Park (New York Church)",
+  "sermonEndingPraise": "Himnario 274 \"Me encanta contar la historia\"",
+  "services": [
+    {
+      "date": "6/28",
+      "usherSun": "Andrew Kim",
+      "lunchDuty": "Yufen Jiang\nHua Za Jin",
+      "childCare": "Jean Seo",
+      "usherWed": "John Park"
+    },
+    {
+      "date": "7/5",
+      "usherSun": "Jose H.",
+      "lunchDuty": "Jinxian Liu\nConnie Liu",
+      "childCare": "Minkyung Jung",
+      "usherWed": "Jiwook Jang"
+    }
+  ],
+  "eastCoastSeminar": [
+    {
+      "date": "7/6-12",
+      "church": "Michigan",
+      "speaker": "p.John Kweon",
+      "language": "coreano"
+    },
+    {
+      "date": "7/6-12",
+      "church": "s.Illinois",
+      "speaker": "p.Joshua Lee",
+      "language": "coreano"
+    },
+    {
+      "date": "7/13-19",
+      "church": "s.Virginia",
+      "speaker": "p.Jacob Jeong",
+      "language": "Inglés"
+    }
+  ],
+  "fellowship": [
+    {
+      "name": "Servicio dominical",
+      "day": "Domingo",
+      "time": "11 a.m.",
+      "location": "Salón principal"
+    },
+    {
+      "name": "escuela de la iglesia",
+      "day": "Domingo",
+      "time": "9 a.m.",
+      "location": "Salón Secundario"
+    },
+    {
+      "name": "sermón del miércoles",
+      "day": "Miércoles",
+      "time": "8 p.m.",
+      "location": "Salón principal"
+    },
+    {
+      "name": "Beca juvenil",
+      "day": "Sábado",
+      "time": "7 p.m.",
+      "location": "Salón de becas"
+    },
+    {
+      "name": "Totalmente compañerismo",
+      "day": "Domingo pasado",
+      "time": "2 p.m.",
+      "location": "Salón principal"
+    }
+  ],
+  "phone": "917-783-5970",
+  "email": "prayer910124@gmail.com",
+  "address": "167 Willis Ave, Mineola, NY 11501",
+  "bibleReadingDates": [
+    "6/28",
+    "6/29",
+    "6/30",
+    "7/1",
+    "7/2",
+    "7/3",
+    "7/4"
+  ],
+  "bibleReading1": [
+    "Salmos 73-77",
+    "Salmos 78-83",
+    "Salmos 84-89",
+    "Salmos 90-99",
+    "Salmos 100-105",
+    "Salmos 106-110",
+    "Salmos 111-118"
+  ],
+  "bibleReading2": [
+    "1 mascota 1-5\n2 mascotas1-3",
+    "1 Juan 1-5\n2 Juan, 3 Juan, Judas",
+    "Apocalipsis 1-9",
+    "Apocalipsis 10-18",
+    "Apocalipsis 19-22\nGeneración 1-3",
+    "Génesis 4-11",
+    "Génesis 12-19"
+  ],
+  "memoryVerses": [
+    {
+      "label": "La semana pasada",
+      "date": "6/21",
+      "reference": "2 Corinthians 4:17-18",
+      "theme": "Esperanza",
+      "text": "Porque nuestra leve tribulación, que es momentánea, produce en nosotros un peso de gloria mucho más excelente y eterno, mientras no miramos las cosas que se ven, sino las que no se ven. Porque las cosas que se ven son temporales, pero las que no se ven son eternas."
+    },
+    {
+      "label": "Esta semana",
+      "date": "6/28",
+      "reference": "1 Peter 1:3-4",
+      "theme": "Esperanza",
+      "text": "Bendito sea el Dios y Padre de nuestro Señor Jesucristo, que según su gran misericordia nos hizo renacer para una esperanza viva, por la resurrección de Jesucristo de entre los muertos, para una herencia incorruptible, incontaminada e inmarcesible, reservada en los cielos para vosotros,"
+    },
+    {
+      "label": "La próxima semana",
+      "date": "7/5",
+      "reference": "1 Peter 3:15-16",
+      "theme": "Esperanza",
+      "text": "Pero santificad a Jehová Dios en vuestros corazones, y estad siempre preparados para dar defensa a todo el que os pida razón de la esperanza que hay en vosotros, con mansedumbre y temor; teniendo buena conciencia, para que cuando os califiquen de malhechores, queden avergonzados los que vilipendian vuestra buena conducta en Cristo."
+    }
+  ],
+  "cleaningAreas": [
+    {
+      "location": "Salón principal",
+      "group": "Grupo de padres, Grupo YA"
+    },
+    {
+      "location": "2do piso",
+      "group": "Grupo YA"
+    },
+    {
+      "location": "Escaleras enteras",
+      "group": "grupo del padre"
+    },
+    {
+      "location": "Afuera",
+      "group": "grupo del padre"
+    },
+    {
+      "location": "Vestíbulo del primer piso (En Hakkore)",
+      "group": "grupo de madres"
+    },
+    {
+      "location": "Planta Sótano",
+      "group": "grupo de madres"
+    }
+  ],
+  "calendarMonth": "07/2026",
+  "calendarEvents": {
+    "6/28": [
+      "Graduación",
+      "Sermón",
+      "En total"
+    ],
+    "6/29": [
+      "Región 2"
+    ],
+    "7/1": [
+      "sermón del miércoles"
+    ],
+    "7/4": [
+      "Traductores",
+      "ya'"
+    ],
+    "7/5": [
+      "Sermón",
+      "Oficiales",
+      "Oficiales de madres"
+    ],
+    "7/6": [
+      "grupo madre"
+    ],
+    "7/8": [
+      "sermón del miércoles"
+    ],
+    "7/9": [
+      "profesores"
+    ],
+    "7/10": [
+      "Oficiales de YA"
+    ],
+    "7/11": [
+      "Traductores",
+      "ya'"
+    ],
+    "7/12": [
+      "Sermón",
+      "Región 3",
+      "Fel. por Lang"
+    ],
+    "7/15": [
+      "sermón del miércoles"
+    ],
+    "7/16": [
+      "profesores"
+    ],
+    "7/19": [
+      "Sermón",
+      "Nuevos creyentes",
+      "Coros"
+    ],
+    "7/20": [
+      "Región 2"
+    ],
+    "7/21": [
+      "Región 1"
+    ],
+    "7/22": [
+      "sermón del miércoles"
+    ],
+    "7/23": [
+      "profesores"
+    ],
+    "7/25": [
+      "Traductores",
+      "ya'"
+    ],
+    "7/26": [
+      "Sermón"
+    ],
+    "7/29": [
+      "sermón del miércoles"
+    ],
+    "7/30": [
+      "profesores"
+    ],
+    "8/1": [
+      "Traductores",
+      "ya'"
+    ]
+  },
+  "weeklyRecurring": [
+    {
+      "dayOfWeek": 0,
+      "label": "Sermón"
+    },
+    {
+      "dayOfWeek": 3,
+      "label": "sermón del miércoles"
+    },
+    {
+      "dayOfWeek": 4,
+      "label": "profesores"
+    },
+    {
+      "dayOfWeek": 6,
+      "label": "Traductores"
+    },
+    {
+      "dayOfWeek": 6,
+      "label": "ya'"
+    }
+  ],
+  "calendarBanners": [
+    {
+      "label": "Campamento juvenil EC",
+      "startDate": "7/1",
+      "endDate": "7/4"
+    },
+    {
+      "label": "Gran Seminario Bíblico (p.Park)",
+      "startDate": "7/13",
+      "endDate": "7/19"
+    },
+    {
+      "label": "Retiro de oficiales juveniles",
+      "startDate": "7/24",
+      "endDate": "7/25"
+    }
+  ],
+  "weekSchedule": [
+    {
+      "date": "6/28(Sun)",
+      "items": [
+        {
+          "name": "Graduación de la escuela de la iglesia",
+          "location": "Salón principal",
+          "time": "9 a.m."
+        },
+        {
+          "name": "Sermón dominical",
+          "location": "Salón principal",
+          "time": "11 a.m."
+        },
+        {
+          "name": "Totalmente compañerismo",
+          "location": "Salón principal",
+          "time": "2 p.m."
+        }
+      ]
+    },
+    {
+      "date": "6/29(Mon)",
+      "items": [
+        {
+          "name": "Beca Región 2",
+          "location": "s.Jinxian Liu",
+          "time": "8 p.m."
+        }
+      ]
+    },
+    {
+      "date": "7/1(Wed)",
+      "items": [
+        {
+          "name": "Sermón del miércoles",
+          "location": "Salón principal",
+          "time": "8 p.m."
+        }
+      ]
+    },
+    {
+      "date": "7/4(Sat)",
+      "items": [
+        {
+          "name": "Reunión de traductores",
+          "location": "Consejería 2",
+          "time": "5 p.m."
+        },
+        {
+          "name": "Beca para adultos jóvenes",
+          "location": "Salón de becas",
+          "time": "7 p.m."
+        }
+      ]
+    },
+    {
+      "date": "7/5(Sun)",
+      "items": [
+        {
+          "name": "Graduación de la escuela de la iglesia",
+          "location": "Salón Secundario",
+          "time": "9 a.m."
+        },
+        {
+          "name": "Sermón dominical",
+          "location": "Salón principal",
+          "time": "11 a.m."
+        },
+        {
+          "name": "Totalmente compañerismo",
+          "location": "Salón principal",
+          "time": "2 p.m."
+        }
+      ]
+    }
+  ],
+  "news": [
+    {
+      "title": "Campamento juvenil de la costa este (1 al 4 de julio)",
+      "body": "El Campamento Juvenil de la Costa Este se llevará a cabo en el Kentucky Retreat Center durante cuatro días, a partir de este miércoles. Ore por todos los maestros, estudiantes y voluntarios que asisten."
+    },
+    {
+      "title": "Entrenamiento para nuevos creyentes de julio: Santo (19 de julio)",
+      "body": "Es un tiempo para aprender y tener comunión juntos sobre lo que es esencial para la vida cristiana. Esperamos su participación. (consulta: b.Andrew)"
+    },
+    {
+      "title": "Servicio en la iglesia",
+      "body": "Si ha sido salvo por más de un año y le gustaría participar en el trabajo de servicio en la iglesia, comuníquese con nuestro pastor."
+    },
+    {
+      "title": "Consulta y Visita",
+      "body": "Si necesita consejería de evangelización, consejería de vida cristiana o visitas, comuníquese con el pastor."
+    },
+    {
+      "title": "Gestión limpia de la iglesia: eliminación de residuos de alimentos y bebidas",
+      "body": "Preste atención a la eliminación de residuos de bebidas y alimentos para un ambiente agradable en la iglesia.\n- Deseche las bebidas y el hielo restantes por separado antes de tirar los vasos a la basura. Además, tenga en cuenta minimizar el desperdicio de alimentos. Si necesita deshacerse de los desechos de alimentos, séllelos herméticamente para evitar la exposición."
+    }
+  ],
+  "prayerRequests": [
+    {
+      "who": "Juan Subieta",
+      "whom": "Nicolas",
+      "relation": "Hijo"
+    },
+    {
+      "who": "Juan Subieta",
+      "whom": "Maximus",
+      "relation": "Hijo"
+    },
+    {
+      "who": "Cathy Kwon",
+      "whom": "Brianna",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Cathy Kwon",
+      "whom": "Yubin Won",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "John Park",
+      "whom": "Suzan",
+      "relation": "amigo"
+    },
+    {
+      "who": "Rong Xue",
+      "whom": "Maggy",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Rong Xue",
+      "whom": "Zhengjian Cai",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Rong Xue",
+      "whom": "Lin Qicao",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Rong Xue",
+      "whom": "Li Shuzhen",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Joseph Lee",
+      "whom": "Jongtae Lee",
+      "relation": "Padre"
+    },
+    {
+      "who": "Sookhee Kim",
+      "whom": "Carol",
+      "relation": "Adquisición"
+    },
+    {
+      "who": "Sue Kim",
+      "whom": "Nayoun Kim",
+      "relation": "Familia"
+    },
+    {
+      "who": "Joseph Lee",
+      "whom": "Guyyeon Lee",
+      "relation": "Madre"
+    },
+    {
+      "who": "Sue Kim",
+      "whom": "Donha Jeon",
+      "relation": "Padre"
+    }
+  ],
+  "jointPrayer": [
+    {
+      "title": "Evangelismo basado en el lenguaje de la Iglesia de Nueva York",
+      "body": "Hay varios grupos lingüísticos en la iglesia. Por favor oren por evangelismo activo por grupo lingüístico."
+    },
+    {
+      "title": "Centro de retiro de Kentucky",
+      "body": "Las instalaciones de alojamiento en el centro de retiros están siendo ampliadas y reparadas. Por favor oren especialmente por la construcción del Centro YA (Unity Hall)."
+    }
+  ],
+  "seminarInfo": {
+    "title": "Gran Seminario Bíblico de Julio",
+    "date": "July 13-18: 8PM / July19: 11AM",
+    "speaker": "p.Chongkyung Park"
+  },
+  "retreatInfo": {
+    "enabled": false,
+    "title": "",
+    "date": "",
+    "location": "",
+    "fees": [
+      {
+        "label": "Adulto (13+)",
+        "amount": "$200"
+      },
+      {
+        "label": "Mayores (70+)",
+        "amount": "$100"
+      },
+      {
+        "label": "Edades 7-12",
+        "amount": "$100"
+      },
+      {
+        "label": "Menores de 6 años / Prospecto",
+        "amount": "FREE"
+      }
+    ]
+  },
+  "bulletinTitle": "Boletín de la Iglesia"
 }

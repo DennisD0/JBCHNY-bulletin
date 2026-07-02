@@ -68,6 +68,7 @@ export interface PrayerRequest {
 }
 
 export interface BulletinData {
+  bulletinTitle?: string;
   number: string;
   date: string;
   quote: string;

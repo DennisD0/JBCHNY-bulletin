@@ -2761,7 +2761,7 @@ export default function Home() {
   const [lockConflict, setLockConflict] = useState<{ language: BulletinLanguage; lock: LanguageLock } | null>(null);
   const [readOnly, setReadOnly] = useState(false);
   const [syncPreviewSection, setSyncPreviewSection] = useState<string | null>(null);
-  const [initializingKorean, setInitializingKorean] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
@@ -2817,7 +2817,7 @@ export default function Home() {
     return response.json() as Promise<{ ok: boolean; lock?: LanguageLock }>;
   }, []);
 
-  const loadLanguage = useCallback(async (language: BulletinLanguage) => {
+  const loadLanguage = useCallback(async (language: BulletinLanguage): Promise<BulletinMeta> => {
     const response = await fetch(`/api/bulletin/${language}`, { cache:"no-store" });
     if (!response.ok) throw new Error(`Unable to load ${language} bulletin`);
     const payload = await response.json() as BulletinApiResponse;
@@ -2854,6 +2854,8 @@ export default function Home() {
       const weekIndex = getBulletinWeeks(initialMonth).findIndex((week) => week.startIso === localIso(sunday));
       setSelectedWeekIndex(Math.max(0, weekIndex));
     }
+
+    return payload.meta;
   }, []);
 
   const refreshLanguageStatus = useCallback(async () => {
@@ -3079,7 +3081,18 @@ export default function Home() {
     setReadOnly(false);
 
     const acquisition = await postLockAction("acquire", language);
-    await loadLanguage(language);
+    const loadedMeta = await loadLanguage(language);
+
+    if (language !== "en" && !loadedMeta.initializedFromEn) {
+      setTranslating(true);
+      try {
+        await fetch(`/api/bulletin/${language}/translate`, { method:"POST" });
+        await loadLanguage(language);
+      } finally {
+        setTranslating(false);
+      }
+    }
+
     if (!acquisition.ok && acquisition.lock) {
       setLockConflict({ language, lock:acquisition.lock });
     }
@@ -3095,19 +3108,6 @@ export default function Home() {
     setLockConflict(null);
     await loadLanguage(language);
     await refreshLanguageStatus();
-  };
-
-  const initializeLanguage = async () => {
-    if (activeLang === "en") return;
-    setInitializingKorean(true);
-    try {
-      const response = await fetch(`/api/bulletin/${activeLang}/translate`, { method:"POST" });
-      if (!response.ok) throw new Error(`Unable to translate ${LANGUAGE_CONFIG[activeLang].name} bulletin`);
-      await loadLanguage(activeLang);
-      await refreshLanguageStatus();
-    } finally {
-      setInitializingKorean(false);
-    }
   };
 
   const applyEnglishSection = async (sectionKey: string) => {
@@ -3344,8 +3344,16 @@ export default function Home() {
         />
       )}
 
-      {activeLang !== "en" && !meta.initializedFromEn && (
-        <TranslationInitOverlay language={activeLang} onInitialize={initializeLanguage} loading={initializingKorean} />
+      {translating && (
+        <div className="multilang-modal-backdrop" role="status" aria-live="polite">
+          <div className="multilang-modal-card" style={{ width:"min(380px, calc(100vw - 32px))", textAlign:"center" }}>
+            <div style={{ fontSize:34, marginBottom:12 }} aria-hidden>{LANGUAGE_CONFIG[activeLang]?.flag}</div>
+            <div style={{ color:"#fff", fontSize:16, fontWeight:700, marginBottom:8 }}>
+              {LANGUAGE_CONFIG[activeLang]?.name} Bulletin
+            </div>
+            <div style={{ color:"rgba(255,255,255,0.72)", fontSize:13 }}>Translating…</div>
+          </div>
+        </div>
       )}
 
       {syncPreviewSection && data && (

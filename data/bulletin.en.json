@@ -470,10 +470,23 @@
     "date": "",
     "location": "",
     "fees": [
-      { "label": "Adult (13+)", "amount": "$200" },
-      { "label": "Senior (70+)", "amount": "$100" },
-      { "label": "Ages 7-12", "amount": "$100" },
-      { "label": "Under 6 / Prospect", "amount": "FREE" }
+      {
+        "label": "Adult (13+)",
+        "amount": "$200"
+      },
+      {
+        "label": "Senior (70+)",
+        "amount": "$100"
+      },
+      {
+        "label": "Ages 7-12",
+        "amount": "$100"
+      },
+      {
+        "label": "Under 6 / Prospect",
+        "amount": "FREE"
+      }
     ]
-  }
+  },
+  "bulletinTitle": "Church Bulletin"
 }

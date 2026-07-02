@@ -2,18 +2,18 @@
   "_meta": {
     "language": "ru",
     "isolated": false,
-    "initializedFromEn": false,
+    "initializedFromEn": true,
     "sections": {}
   },
   "number": "2026-25",
   "date": "06/28/2026",
-  "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
+  "quote": "Я не умру, но буду жить,\nИ возвещайте дела Господни.",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
-  "sermonTitle": "The love which I have so abundantly for you",
+  "sermonTitle": "Любовь, которую я так сильно испытываю к тебе",
   "sermonVerse": "2 Corinthians 2:4",
   "sermonSpeaker": "p.Chongkyung Park (New York Church)",
-  "sermonEndingPraise": "Hymnal 274 \"I Love to Tell the Story\"",
+  "sermonEndingPraise": "Гимн 274 «Я люблю рассказывать истории»",
   "services": [
     {
       "date": "6/28",
@@ -35,51 +35,51 @@
       "date": "7/6-12",
       "church": "Michigan",
       "speaker": "p.John Kweon",
-      "language": "Korean"
+      "language": "корейский"
     },
     {
       "date": "7/6-12",
       "church": "s.Illinois",
       "speaker": "p.Joshua Lee",
-      "language": "Korean"
+      "language": "корейский"
     },
     {
       "date": "7/13-19",
       "church": "s.Virginia",
       "speaker": "p.Jacob Jeong",
-      "language": "English"
+      "language": "Английский"
     }
   ],
   "fellowship": [
     {
-      "name": "Sunday Service",
-      "day": "Sunday",
-      "time": "11 AM",
-      "location": "Main Hall"
+      "name": "Воскресная служба",
+      "day": "Воскресенье",
+      "time": "11 утра",
+      "location": "Главный зал"
     },
     {
-      "name": "Church School",
-      "day": "Sunday",
-      "time": "9 AM",
-      "location": "Secondary Hall"
+      "name": "Церковная школа",
+      "day": "Воскресенье",
+      "time": "9 утра",
+      "location": "Вторичный зал"
     },
     {
-      "name": "Wed Sermon",
-      "day": "Wednesday",
-      "time": "8 PM",
-      "location": "Main Hall"
+      "name": "Ср. проповедь",
+      "day": "Среда",
+      "time": "20:00",
+      "location": "Главный зал"
     },
     {
-      "name": "YA Fellowship",
-      "day": "Saturday",
-      "time": "7 PM",
-      "location": "Fellowship Hall"
+      "name": "Молодёжное Содружество",
+      "day": "Суббота",
+      "time": "19:00",
+      "location": "Зал Братства"
     },
     {
-      "name": "Altogether Fellowship",
-      "day": "Last Sunday",
-      "time": "2 PM",
-      "location": "Main Hall"
+      "name": "Общее общение",
+      "day": "в прошлое воскресенье",
+      "time": "14:00",
+      "location": "Главный зал"
     }
   ],
   "phone": "917-783-5970",
@@ -95,191 +95,191 @@
     "7/4"
   ],
   "bibleReading1": [
-    "Psalms 73-77",
-    "Psalms 78-83",
-    "Psalms 84-89",
-    "Psalms 90-99",
-    "Psalms 100-105",
-    "Psalms 106-110",
-    "Psalms 111-118"
+    "Псалмы 73-77",
+    "Псалмы 78-83",
+    "Псалмы 84-89",
+    "Псалмы 90-99",
+    "Псалмы 100-105",
+    "Псалмы 106-110",
+    "Псалмы 111-118"
   ],
   "bibleReading2": [
-    "1 Pet1-5\n2 Pet1-3",
-    "1 John 1-5\n2 John,3 John,Jude",
-    "Rev 1-9",
-    "Rev 10-18",
-    "Rev 19-22\nGen 1-3",
-    "Gen 4-11",
-    "Gen 12-19"
+    "1 питомец1-5\n2 Пет1-3",
+    "1 Иоанна 1-5\n2 Иоанна, 3 Иоанна, Джуд",
+    "Ред. 1–9",
+    "Откр. 10–18",
+    "Откр. 19–22\nГен 1–3",
+    "Ген 4–11",
+    "Ген. 12–19"
   ],
   "memoryVerses": [
     {
-      "label": "Last week",
+      "label": "На прошлой неделе",
       "date": "6/21",
       "reference": "2 Corinthians 4:17-18",
-      "theme": "Hope",
-      "text": "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
+      "theme": "Надеяться",
+      "text": "Ибо легкое страдание наше, хотя и кратковременное, производит для нас гораздо более великую и вечную славу, тогда как мы смотрим не на видимое, но на невидимое. Ибо видимое временно, а невидимое вечно."
     },
     {
-      "label": "This week",
+      "label": "На этой неделе",
       "date": "6/28",
       "reference": "1 Peter 1:3-4",
-      "theme": "Hope",
-      "text": "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
+      "theme": "Надеяться",
+      "text": "Благословен Бог и Отец Господа нашего Иисуса Христа, по великой милости Своей вновь родивший нас к живой надежде через воскресение Иисуса Христа из мертвых, к наследию нетленному и чистому и неувядаемому, сохранённому на небесах для вас,"
     },
     {
-      "label": "Next week",
+      "label": "На следующей неделе",
       "date": "7/5",
       "reference": "1 Peter 3:15-16",
-      "theme": "Hope",
-      "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
+      "theme": "Надеяться",
+      "text": "Но святите Господа Бога в сердцах ваших и будьте всегда готовы дать защиту всякому, кто спросит у вас причины для упования, которое в вас, с кротостью и страхом; Имейте добрую совесть, чтобы, когда поносят вас, как злодеев, постыдились бы злословящие ваше доброе поведение во Христе."
     }
   ],
   "cleaningAreas": [
     {
-      "location": "Main Hall",
-      "group": "Father's Group, YA Group"
+      "location": "Главный зал",
+      "group": "Отцовская группа, Я Групп"
     },
     {
-      "location": "2nd Floor",
-      "group": "YA Group"
+      "location": "2-й этаж",
+      "group": "Я Групп"
     },
     {
-      "location": "Whole Staircases",
-      "group": "Father's Group"
+      "location": "Целые Лестницы",
+      "group": "Группа отца"
     },
     {
-      "location": "Outside",
-      "group": "Father's Group"
+      "location": "Снаружи",
+      "group": "Группа отца"
     },
     {
-      "location": "1st Floor Lobby (En Hakkore)",
-      "group": "Mother's Group"
+      "location": "Вестибюль 1-го этажа (Эн Хаккоре)",
+      "group": "Группа матери"
     },
     {
-      "location": "Basement Floor",
-      "group": "Mother's Group"
+      "location": "Подвальный этаж",
+      "group": "Группа матери"
     }
   ],
   "calendarMonth": "07/2026",
   "calendarEvents": {
     "6/28": [
-      "Graduation",
-      "Sermon",
-      "Altogether"
+      "выпускной",
+      "Проповедь",
+      "Всего"
     ],
     "6/29": [
-      "Region 2"
+      "Регион 2"
     ],
     "7/1": [
-      "Wed sermon"
+      "Ср. проповедь"
     ],
     "7/4": [
-      "Translators'",
-      "YA'"
+      "Переводчики",
+      "ДА'"
     ],
     "7/5": [
-      "Sermon",
-      "Officers'",
-      "Mothers Officers'"
+      "Проповедь",
+      "Офицерский",
+      "Матери-офицеры"
     ],
     "7/6": [
-      "Mother Group"
+      "Материнская группа"
     ],
     "7/8": [
-      "Wed sermon"
+      "Ср. проповедь"
     ],
     "7/9": [
-      "Teachers'"
+      "Учителей"
     ],
     "7/10": [
-      "YA Officers'"
+      "Ю. Офицеры"
     ],
     "7/11": [
-      "Translators'",
-      "YA'"
+      "Переводчики",
+      "ДА'"
     ],
     "7/12": [
-      "Sermon",
-      "Region 3",
-      "Fel. by Lang"
+      "Проповедь",
+      "Регион 3",
+      "Фел. от Ланга"
     ],
     "7/15": [
-      "Wed sermon"
+      "Ср. проповедь"
     ],
     "7/16": [
-      "Teachers'"
+      "Учителей"
     ],
     "7/19": [
-      "Sermon",
-      "New believers'",
-      "Choirs'"
+      "Проповедь",
+      "Новые верующие",
+      "Хоры"
     ],
     "7/20": [
-      "Region 2"
+      "Регион 2"
     ],
     "7/21": [
-      "Region 1"
+      "Регион 1"
     ],
     "7/22": [
-      "Wed sermon"
+      "Ср. проповедь"
     ],
     "7/23": [
-      "Teachers'"
+      "Учителей"
     ],
     "7/25": [
-      "Translators'",
-      "YA'"
+      "Переводчики",
+      "ДА'"
     ],
     "7/26": [
-      "Sermon"
+      "Проповедь"
     ],
     "7/29": [
-      "Wed sermon"
+      "Ср. проповедь"
     ],
     "7/30": [
-      "Teachers'"
+      "Учителей"
     ],
     "8/1": [
-      "Translators'",
-      "YA'"
+      "Переводчики",
+      "ДА'"
     ]
   },
   "weeklyRecurring": [
     {
       "dayOfWeek": 0,
-      "label": "Sermon"
+      "label": "Проповедь"
     },
     {
       "dayOfWeek": 3,
-      "label": "Wed sermon"
+      "label": "Ср. проповедь"
     },
     {
       "dayOfWeek": 4,
-      "label": "Teachers'"
+      "label": "Учителей"
     },
     {
       "dayOfWeek": 6,
-      "label": "Translators'"
+      "label": "Переводчики"
     },
     {
       "dayOfWeek": 6,
-      "label": "YA'"
+      "label": "ДА'"
     }
   ],
   "calendarBanners": [
     {
-      "label": "EC Youth Camp",
+      "label": "Молодежный лагерь ЕС",
       "startDate": "7/1",
       "endDate": "7/4"
     },
     {
-      "label": "Grand Bible Seminar (p.Park)",
+      "label": "Большой библейский семинар (п.Парк)",
       "startDate": "7/13",
       "endDate": "7/19"
     },
     {
-      "label": "YA Officer Retreat",
+      "label": "Отступление офицера-подростка",
       "startDate": "7/24",
       "endDate": "7/25"
     }
@@ -289,19 +289,19 @@
       "date": "6/28(Sun)",
       "items": [
         {
-          "name": "Church School Graduation",
-          "location": "Main Hall",
-          "time": "9 AM"
+          "name": "Выпуск церковной школы",
+          "location": "Главный зал",
+          "time": "9 утра"
         },
         {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
+          "name": "Воскресная проповедь",
+          "location": "Главный зал",
+          "time": "11 утра"
         },
         {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
-          "time": "2 PM"
+          "name": "Общее общение",
+          "location": "Главный зал",
+          "time": "14:00"
         }
       ]
     },
@@ -309,9 +309,9 @@
       "date": "6/29(Mon)",
       "items": [
         {
-          "name": "Region 2 fellowship",
-          "location": "s.Jinxian Liu",
-          "time": "8 PM"
+          "name": "Стипендия региона 2",
+          "location": "с.Цзинсянь Лю",
+          "time": "20:00"
         }
       ]
     },
@@ -319,9 +319,9 @@
       "date": "7/1(Wed)",
       "items": [
         {
-          "name": "Wednesday Sermon",
-          "location": "Main Hall",
-          "time": "8 PM"
+          "name": "Проповедь по средам",
+          "location": "Главный зал",
+          "time": "20:00"
         }
       ]
     },
@@ -329,14 +329,14 @@
       "date": "7/4(Sat)",
       "items": [
         {
-          "name": "Translator Meeting",
-          "location": "Counseling 2",
-          "time": "5 PM"
+          "name": "Встреча переводчиков",
+          "location": "Консультирование 2",
+          "time": "17:00"
         },
         {
-          "name": "Young Adult Fellowship",
-          "location": "Fellowship Hall",
-          "time": "7 PM"
+          "name": "Стипендия для молодых взрослых",
+          "location": "Зал Братства",
+          "time": "19:00"
         }
       ]
     },
@@ -344,129 +344,129 @@
       "date": "7/5(Sun)",
       "items": [
         {
-          "name": "Church School Graduation",
-          "location": "Secondary Hall",
-          "time": "9 AM"
+          "name": "Выпуск церковной школы",
+          "location": "Вторичный зал",
+          "time": "9 утра"
         },
         {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
+          "name": "Воскресная проповедь",
+          "location": "Главный зал",
+          "time": "11 утра"
         },
         {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
-          "time": "2 PM"
+          "name": "Общее общение",
+          "location": "Главный зал",
+          "time": "14:00"
         }
       ]
     }
   ],
   "news": [
     {
-      "title": "East Coast Youth Camp (July 1-4th)",
-      "body": "The East Coast Youth Camp will be held at the Kentucky Retreat Center for four days, starting this Wednesday. Please pray for all the teachers, students, and volunteers attending."
+      "title": "Молодежный лагерь Восточного побережья (1-4 июля)",
+      "body": "Молодежный лагерь Восточного побережья будет проходить в ретритном центре Кентукки в течение четырех дней, начиная с этой среды. Пожалуйста, помолитесь за всех учителей, студентов и волонтеров, присутствовавших на мероприятии."
     },
     {
-      "title": "July New Believer Training: Holy (July 19th)",
-      "body": "It is a time to learn and fellowship together about what is essential for Christian life. We look forward to your involvement. (inquiry: b.Andrew)"
+      "title": "Июль Обучение новообращенных: Святой (19 июля)",
+      "body": "Это время, чтобы вместе учиться и общаться о том, что важно для христианской жизни. Мы с нетерпением ждем вашего участия. (справка: б.Андрей)"
     },
     {
-      "title": "Service in church",
-      "body": "If you have been saved for over a year and would like to participate in service work at the church, please contact our pastor."
+      "title": "Служба в церкви",
+      "body": "Если вы спасены более года и хотели бы участвовать в служении в церкви, свяжитесь с нашим пастором."
     },
     {
-      "title": "Consultation and Visitation",
-      "body": "If you need evangelism counseling, Christian life counseling, or visitation, please contact the pastor."
+      "title": "Консультация и посещение",
+      "body": "Если вам нужна консультация по евангелизации, консультация по христианской жизни или посещение, пожалуйста, свяжитесь с пастором."
     },
     {
-      "title": "Church Clean Management: Beverage and Food Waste Disposal",
-      "body": "Please pay attention to the disposal of beverage and food waste for a pleasant environment in the church.\n- Please dispose of remaining beverages and ice separately before throwing away the cups in the trash can. Also, please be mindful to minimize food waste. If you need to dispose of food waste, please seal it tightly to prevent exposure."
+      "title": "Управление чистотой в церкви: утилизация напитков и пищевых отходов",
+      "body": "Пожалуйста, обратите внимание на утилизацию пищевых и напитков, чтобы создать приятную атмосферу в церкви.\n- Пожалуйста, выбрасывайте оставшиеся напитки и лед отдельно, прежде чем выбрасывать чашки в мусорное ведро. Также не забывайте минимизировать пищевые отходы. Если вам необходимо выбросить пищевые отходы, плотно запечатайте их, чтобы предотвратить попадание в них вредных веществ."
     }
   ],
   "prayerRequests": [
     {
       "who": "Juan Subieta",
       "whom": "Nicolas",
-      "relation": "Son"
+      "relation": "Сын"
     },
     {
       "who": "Juan Subieta",
       "whom": "Maximus",
-      "relation": "Son"
+      "relation": "Сын"
     },
     {
       "who": "Cathy Kwon",
       "whom": "Brianna",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Cathy Kwon",
       "whom": "Yubin Won",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "John Park",
       "whom": "Suzan",
-      "relation": "Friend"
+      "relation": "Друг"
     },
     {
       "who": "Rong Xue",
       "whom": "Maggy",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Rong Xue",
       "whom": "Zhengjian Cai",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Rong Xue",
       "whom": "Lin Qicao",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Rong Xue",
       "whom": "Li Shuzhen",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Joseph Lee",
       "whom": "Jongtae Lee",
-      "relation": "Father"
+      "relation": "Отец"
     },
     {
       "who": "Sookhee Kim",
       "whom": "Carol",
-      "relation": "Acqu."
+      "relation": "Акв."
     },
     {
       "who": "Sue Kim",
       "whom": "Nayoun Kim",
-      "relation": "Family"
+      "relation": "Семья"
     },
     {
       "who": "Joseph Lee",
       "whom": "Guyyeon Lee",
-      "relation": "Mother"
+      "relation": "Мать"
     },
     {
       "who": "Sue Kim",
       "whom": "Donha Jeon",
-      "relation": "Father"
+      "relation": "Отец"
     }
   ],
   "jointPrayer": [
     {
-      "title": "New York Church Language-based Evangelism",
-      "body": "There are various language groups in the church. Please pray for active evangelism by language group."
+      "title": "Евангелизация на церковном языке Нью-Йорка",
+      "body": "В церкви существуют различные языковые группы. Пожалуйста, молитесь за активную евангелизацию по языковым группам."
     },
     {
-      "title": "Kentucky Retreat Center",
-      "body": "The accommodation facilities at the retreat center are being expanded and repaired. Please pray especially for the construction of the YA Center (Unity Hall)."
+      "title": "Ретритный центр Кентукки",
+      "body": "Жилые помещения ретритного центра расширяются и ремонтируются. Пожалуйста, особенно молитесь за строительство Молодёжного Центра (Зала Единства)."
     }
   ],
   "seminarInfo": {
-    "title": "July Grand Bible Seminar",
+    "title": "Июльский большой библейский семинар",
     "date": "July 13-18: 8PM / July19: 11AM",
     "speaker": "p.Chongkyung Park"
   },
@@ -477,21 +477,22 @@
     "location": "",
     "fees": [
       {
-        "label": "Adult (13+)",
+        "label": "Взрослый (13+)",
         "amount": "$200"
       },
       {
-        "label": "Senior (70+)",
+        "label": "Старший (70+)",
         "amount": "$100"
       },
       {
-        "label": "Ages 7-12",
+        "label": "Возраст 7–12 лет",
         "amount": "$100"
       },
       {
-        "label": "Under 6 / Prospect",
+        "label": "До 6 лет / Проспект",
         "amount": "FREE"
       }
     ]
-  }
+  },
+  "bulletinTitle": "Церковный бюллетень"
 }

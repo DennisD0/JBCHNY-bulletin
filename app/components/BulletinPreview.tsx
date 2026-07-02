@@ -794,7 +794,7 @@ export default function BulletinPreview({
             textAlign:"center", letterSpacing:0, lineHeight:1,
             color:"#000", margin:0, whiteSpace:"nowrap",
           }}>
-            Church Bulletin
+            {data.bulletinTitle ?? "Church Bulletin"}
           </h1>
 
           {/* Quote */}

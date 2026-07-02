@@ -2,18 +2,18 @@
   "_meta": {
     "language": "zh",
     "isolated": false,
-    "initializedFromEn": false,
+    "initializedFromEn": true,
     "sections": {}
   },
   "number": "2026-25",
   "date": "06/28/2026",
-  "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
+  "quote": "我不会死，但会活着，\n并述说耶和华的作为。",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
-  "sermonTitle": "The love which I have so abundantly for you",
+  "sermonTitle": "我对你的爱如此丰富",
   "sermonVerse": "2 Corinthians 2:4",
   "sermonSpeaker": "p.Chongkyung Park (New York Church)",
-  "sermonEndingPraise": "Hymnal 274 \"I Love to Tell the Story\"",
+  "sermonEndingPraise": "赞美诗 274 “我喜欢讲故事”",
   "services": [
     {
       "date": "6/28",
@@ -35,51 +35,51 @@
       "date": "7/6-12",
       "church": "Michigan",
       "speaker": "p.John Kweon",
-      "language": "Korean"
+      "language": "韩国人"
     },
     {
       "date": "7/6-12",
       "church": "s.Illinois",
       "speaker": "p.Joshua Lee",
-      "language": "Korean"
+      "language": "韩国人"
     },
     {
       "date": "7/13-19",
       "church": "s.Virginia",
       "speaker": "p.Jacob Jeong",
-      "language": "English"
+      "language": "英语"
     }
   ],
   "fellowship": [
     {
-      "name": "Sunday Service",
-      "day": "Sunday",
-      "time": "11 AM",
-      "location": "Main Hall"
+      "name": "周日服务",
+      "day": "星期日",
+      "time": "上午 11 点",
+      "location": "正殿"
     },
     {
-      "name": "Church School",
-      "day": "Sunday",
-      "time": "9 AM",
-      "location": "Secondary Hall"
+      "name": "教会学校",
+      "day": "星期日",
+      "time": "上午 9 点",
+      "location": "副厅"
     },
     {
-      "name": "Wed Sermon",
-      "day": "Wednesday",
-      "time": "8 PM",
-      "location": "Main Hall"
+      "name": "周三讲道",
+      "day": "周三",
+      "time": "晚上 8 点",
+      "location": "正殿"
     },
     {
-      "name": "YA Fellowship",
-      "day": "Saturday",
-      "time": "7 PM",
-      "location": "Fellowship Hall"
+      "name": "青少年奖学金",
+      "day": "周六",
+      "time": "晚上 7 点",
+      "location": "联谊会堂"
     },
     {
-      "name": "Altogether Fellowship",
-      "day": "Last Sunday",
-      "time": "2 PM",
-      "location": "Main Hall"
+      "name": "共团契",
+      "day": "上周日",
+      "time": "下午 2 点",
+      "location": "正殿"
     }
   ],
   "phone": "917-783-5970",
@@ -95,191 +95,191 @@
     "7/4"
   ],
   "bibleReading1": [
-    "Psalms 73-77",
-    "Psalms 78-83",
-    "Psalms 84-89",
-    "Psalms 90-99",
-    "Psalms 100-105",
-    "Psalms 106-110",
-    "Psalms 111-118"
+    "诗篇 73-77",
+    "诗篇 78-83",
+    "诗篇 84-89",
+    "诗篇 90-99",
+    "诗篇 100-105",
+    "诗篇 106-110",
+    "诗篇 111-118"
   ],
   "bibleReading2": [
-    "1 Pet1-5\n2 Pet1-3",
-    "1 John 1-5\n2 John,3 John,Jude",
-    "Rev 1-9",
-    "Rev 10-18",
-    "Rev 19-22\nGen 1-3",
-    "Gen 4-11",
-    "Gen 12-19"
+    "1 宠物1-5\n2 宠物1-3",
+    "约翰一书 1-5\n约翰二书、约翰三书、犹大书",
+    "修订版 1-9",
+    "修订版 10-18",
+    "修订版 19-22\n第1-3代",
+    "4-11代",
+    "12-19代"
   ],
   "memoryVerses": [
     {
-      "label": "Last week",
+      "label": "上星期",
       "date": "6/21",
       "reference": "2 Corinthians 4:17-18",
-      "theme": "Hope",
-      "text": "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
+      "theme": "希望",
+      "text": "因为我们这至暂至轻的苦楚，要为我们成就极重无比、永远的荣耀；我们不是顾念所见的事，而是顾念所不见的事。因为所见的都是暂时的，所不见的才是永远的。"
     },
     {
-      "label": "This week",
+      "label": "本星期",
       "date": "6/28",
       "reference": "1 Peter 1:3-4",
-      "theme": "Hope",
-      "text": "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
+      "theme": "希望",
+      "text": "愿颂赞归于我们主耶稣基督的父上帝，他按照他丰盛的怜悯，借着耶稣基督从死里复活，使我们重生了活泼的盼望，并得着不能朽坏、不能玷污、不能衰残的基业，为你们保留在天上，"
     },
     {
-      "label": "Next week",
+      "label": "下周",
       "date": "7/5",
       "reference": "1 Peter 3:15-16",
-      "theme": "Hope",
-      "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
+      "theme": "希望",
+      "text": "但要在你们心中尊主为圣，并时刻准备好以温柔和敬畏的态度，为每一个向你们询问心中希望的原因的人进行辩护；良心无亏，这样，当他们诽谤你们为作恶的人时，那些辱骂你们在基督里的善行的人就会感到羞耻。"
     }
   ],
   "cleaningAreas": [
     {
-      "location": "Main Hall",
-      "group": "Father's Group, YA Group"
+      "location": "正殿",
+      "group": "父亲组、YA组"
     },
     {
-      "location": "2nd Floor",
-      "group": "YA Group"
+      "location": "二楼",
+      "group": "亚亚集团"
     },
     {
-      "location": "Whole Staircases",
-      "group": "Father's Group"
+      "location": "整个楼梯",
+      "group": "父亲组"
     },
     {
-      "location": "Outside",
-      "group": "Father's Group"
+      "location": "外部",
+      "group": "父亲组"
     },
     {
-      "location": "1st Floor Lobby (En Hakkore)",
-      "group": "Mother's Group"
+      "location": "1楼大厅（园八古）",
+      "group": "妈妈组"
     },
     {
-      "location": "Basement Floor",
-      "group": "Mother's Group"
+      "location": "地下室层",
+      "group": "妈妈组"
     }
   ],
   "calendarMonth": "07/2026",
   "calendarEvents": {
     "6/28": [
-      "Graduation",
-      "Sermon",
-      "Altogether"
+      "毕业",
+      "讲道",
+      "共"
     ],
     "6/29": [
-      "Region 2"
+      "区域2"
     ],
     "7/1": [
-      "Wed sermon"
+      "周三讲道"
     ],
     "7/4": [
-      "Translators'",
-      "YA'"
+      "译者的",
+      "呀'"
     ],
     "7/5": [
-      "Sermon",
-      "Officers'",
-      "Mothers Officers'"
+      "讲道",
+      "军官的",
+      "母亲军官"
     ],
     "7/6": [
-      "Mother Group"
+      "母组"
     ],
     "7/8": [
-      "Wed sermon"
+      "周三讲道"
     ],
     "7/9": [
-      "Teachers'"
+      "教师的"
     ],
     "7/10": [
-      "YA Officers'"
+      "青年官员"
     ],
     "7/11": [
-      "Translators'",
-      "YA'"
+      "译者的",
+      "呀'"
     ],
     "7/12": [
-      "Sermon",
-      "Region 3",
-      "Fel. by Lang"
+      "讲道",
+      "区域3",
+      "菲尔。通过郎"
     ],
     "7/15": [
-      "Wed sermon"
+      "周三讲道"
     ],
     "7/16": [
-      "Teachers'"
+      "教师的"
     ],
     "7/19": [
-      "Sermon",
-      "New believers'",
-      "Choirs'"
+      "讲道",
+      "新信徒的",
+      "合唱团的"
     ],
     "7/20": [
-      "Region 2"
+      "区域2"
     ],
     "7/21": [
-      "Region 1"
+      "区域1"
     ],
     "7/22": [
-      "Wed sermon"
+      "周三讲道"
     ],
     "7/23": [
-      "Teachers'"
+      "教师的"
     ],
     "7/25": [
-      "Translators'",
-      "YA'"
+      "译者的",
+      "呀'"
     ],
     "7/26": [
-      "Sermon"
+      "讲道"
     ],
     "7/29": [
-      "Wed sermon"
+      "周三讲道"
     ],
     "7/30": [
-      "Teachers'"
+      "教师的"
     ],
     "8/1": [
-      "Translators'",
-      "YA'"
+      "译者的",
+      "呀'"
     ]
   },
   "weeklyRecurring": [
     {
       "dayOfWeek": 0,
-      "label": "Sermon"
+      "label": "讲道"
     },
     {
       "dayOfWeek": 3,
-      "label": "Wed sermon"
+      "label": "周三讲道"
     },
     {
       "dayOfWeek": 4,
-      "label": "Teachers'"
+      "label": "教师的"
     },
     {
       "dayOfWeek": 6,
-      "label": "Translators'"
+      "label": "译者的"
     },
     {
       "dayOfWeek": 6,
-      "label": "YA'"
+      "label": "呀'"
     }
   ],
   "calendarBanners": [
     {
-      "label": "EC Youth Camp",
+      "label": "EC青少年营",
       "startDate": "7/1",
       "endDate": "7/4"
     },
     {
-      "label": "Grand Bible Seminar (p.Park)",
+      "label": "圣经大研讨会（p.Park）",
       "startDate": "7/13",
       "endDate": "7/19"
     },
     {
-      "label": "YA Officer Retreat",
+      "label": "青年官员撤退",
       "startDate": "7/24",
       "endDate": "7/25"
     }
@@ -289,19 +289,19 @@
       "date": "6/28(Sun)",
       "items": [
         {
-          "name": "Church School Graduation",
-          "location": "Main Hall",
-          "time": "9 AM"
+          "name": "教会学校毕业",
+          "location": "正殿",
+          "time": "上午 9 点"
         },
         {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
+          "name": "主日讲道",
+          "location": "正殿",
+          "time": "上午 11 点"
         },
         {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
-          "time": "2 PM"
+          "name": "共团契",
+          "location": "正殿",
+          "time": "下午 2 点"
         }
       ]
     },
@@ -309,9 +309,9 @@
       "date": "6/29(Mon)",
       "items": [
         {
-          "name": "Region 2 fellowship",
-          "location": "s.Jinxian Liu",
-          "time": "8 PM"
+          "name": "2区奖学金",
+          "location": "刘进贤",
+          "time": "晚上 8 点"
         }
       ]
     },
@@ -319,9 +319,9 @@
       "date": "7/1(Wed)",
       "items": [
         {
-          "name": "Wednesday Sermon",
-          "location": "Main Hall",
-          "time": "8 PM"
+          "name": "周三讲道",
+          "location": "正殿",
+          "time": "晚上 8 点"
         }
       ]
     },
@@ -329,14 +329,14 @@
       "date": "7/4(Sat)",
       "items": [
         {
-          "name": "Translator Meeting",
-          "location": "Counseling 2",
-          "time": "5 PM"
+          "name": "翻译会议",
+          "location": "辅导2",
+          "time": "下午 5 点"
         },
         {
-          "name": "Young Adult Fellowship",
-          "location": "Fellowship Hall",
-          "time": "7 PM"
+          "name": "青年团契",
+          "location": "联谊会堂",
+          "time": "晚上 7 点"
         }
       ]
     },
@@ -344,129 +344,129 @@
       "date": "7/5(Sun)",
       "items": [
         {
-          "name": "Church School Graduation",
-          "location": "Secondary Hall",
-          "time": "9 AM"
+          "name": "教会学校毕业",
+          "location": "副厅",
+          "time": "上午 9 点"
         },
         {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
+          "name": "主日讲道",
+          "location": "正殿",
+          "time": "上午 11 点"
         },
         {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
-          "time": "2 PM"
+          "name": "共团契",
+          "location": "正殿",
+          "time": "下午 2 点"
         }
       ]
     }
   ],
   "news": [
     {
-      "title": "East Coast Youth Camp (July 1-4th)",
-      "body": "The East Coast Youth Camp will be held at the Kentucky Retreat Center for four days, starting this Wednesday. Please pray for all the teachers, students, and volunteers attending."
+      "title": "东海岸青少年营（7月1日至4日）",
+      "body": "东海岸青年营将于本周三开始在肯塔基州静修中心举行，为期四天。请为所有出席的老师、学生和志愿者祈祷。"
     },
     {
-      "title": "July New Believer Training: Holy (July 19th)",
-      "body": "It is a time to learn and fellowship together about what is essential for Christian life. We look forward to your involvement. (inquiry: b.Andrew)"
+      "title": "七月新信徒训练：圣日（7月19日）",
+      "body": "这是一个共同学习和交流基督徒生活的基本要素的时刻。我们期待您的参与。 （询问：b.Andrew）"
     },
     {
-      "title": "Service in church",
-      "body": "If you have been saved for over a year and would like to participate in service work at the church, please contact our pastor."
+      "title": "教堂服务",
+      "body": "如果您已经得救一年多了，想参与教会的事奉工作，请联系我们的牧师。"
     },
     {
-      "title": "Consultation and Visitation",
-      "body": "If you need evangelism counseling, Christian life counseling, or visitation, please contact the pastor."
+      "title": "咨询拜访",
+      "body": "如果您需要传福音辅导、基督徒生活辅导或探访，请联系牧师。"
     },
     {
-      "title": "Church Clean Management: Beverage and Food Waste Disposal",
-      "body": "Please pay attention to the disposal of beverage and food waste for a pleasant environment in the church.\n- Please dispose of remaining beverages and ice separately before throwing away the cups in the trash can. Also, please be mindful to minimize food waste. If you need to dispose of food waste, please seal it tightly to prevent exposure."
+      "title": "教堂清洁管理：饮料和食物垃圾处理",
+      "body": "请注意饮料、食物垃圾的处理，营造宜人的教堂环境。\n- 请先单独处理剩余的饮料和冰块，然后再将杯子扔进垃圾桶。另外，请注意减少食物浪费。如果需要处理食物垃圾，请密封好，防止暴露。"
     }
   ],
   "prayerRequests": [
     {
       "who": "Juan Subieta",
       "whom": "Nicolas",
-      "relation": "Son"
+      "relation": "儿子"
     },
     {
       "who": "Juan Subieta",
       "whom": "Maximus",
-      "relation": "Son"
+      "relation": "儿子"
     },
     {
       "who": "Cathy Kwon",
       "whom": "Brianna",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Cathy Kwon",
       "whom": "Yubin Won",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "John Park",
       "whom": "Suzan",
-      "relation": "Friend"
+      "relation": "朋友"
     },
     {
       "who": "Rong Xue",
       "whom": "Maggy",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Rong Xue",
       "whom": "Zhengjian Cai",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Rong Xue",
       "whom": "Lin Qicao",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Rong Xue",
       "whom": "Li Shuzhen",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Joseph Lee",
       "whom": "Jongtae Lee",
-      "relation": "Father"
+      "relation": "父亲"
     },
     {
       "who": "Sookhee Kim",
       "whom": "Carol",
-      "relation": "Acqu."
+      "relation": "获得。"
     },
     {
       "who": "Sue Kim",
       "whom": "Nayoun Kim",
-      "relation": "Family"
+      "relation": "家庭"
     },
     {
       "who": "Joseph Lee",
       "whom": "Guyyeon Lee",
-      "relation": "Mother"
+      "relation": "母亲"
     },
     {
       "who": "Sue Kim",
       "whom": "Donha Jeon",
-      "relation": "Father"
+      "relation": "父亲"
     }
   ],
   "jointPrayer": [
     {
-      "title": "New York Church Language-based Evangelism",
-      "body": "There are various language groups in the church. Please pray for active evangelism by language group."
+      "title": "纽约教会以语言为基础的布道",
+      "body": "教堂里有不同语言的团体。请为不同语言群体的积极传福音祷告。"
     },
     {
-      "title": "Kentucky Retreat Center",
-      "body": "The accommodation facilities at the retreat center are being expanded and repaired. Please pray especially for the construction of the YA Center (Unity Hall)."
+      "title": "肯塔基静修中心",
+      "body": "禅修中心的住宿设施正在扩建和修缮中。请特别为YA中心（团结堂）的建设祷告。"
     }
   ],
   "seminarInfo": {
-    "title": "July Grand Bible Seminar",
+    "title": "七月圣经研讨会",
     "date": "July 13-18: 8PM / July19: 11AM",
     "speaker": "p.Chongkyung Park"
   },
@@ -477,21 +477,22 @@
     "location": "",
     "fees": [
       {
-        "label": "Adult (13+)",
+        "label": "成人（13 岁以上）",
         "amount": "$200"
       },
       {
-        "label": "Senior (70+)",
+        "label": "高级（70+）",
         "amount": "$100"
       },
       {
-        "label": "Ages 7-12",
+        "label": "7-12岁",
         "amount": "$100"
       },
       {
-        "label": "Under 6 / Prospect",
+        "label": "6岁以下/潜在客户",
         "amount": "FREE"
       }
     ]
-  }
+  },
+  "bulletinTitle": "教会周报"
 }
