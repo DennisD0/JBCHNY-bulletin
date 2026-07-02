@@ -2218,6 +2218,13 @@ const LANGUAGE_CONFIG: Record<BulletinLanguage, { code: string; flag: string; na
 
 // Section centers in full-PDF coordinate space (1344 × 1634 stacked)
 // h = approximate section height — used to compute zoom level
+const ACCESS_REQUEST_TYPES = ["takeover_request", "join_request"] as const;
+type AccessRequestType = (typeof ACCESS_REQUEST_TYPES)[number];
+
+function isAccessRequestNotification(notification: AppNotification): notification is AppNotification & { type: AccessRequestType } {
+  return ACCESS_REQUEST_TYPES.includes(notification.type as AccessRequestType);
+}
+
 const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   // Page 1 (y: 0–816), col widths ≈ [449, 448, 447]
   header:   { cx: 1120, cy: 320,  h: 380 }, // col 3 – cover panel
@@ -2657,6 +2664,7 @@ function NotificationPanel({
   metaByLanguage,
   activeLang,
   sessionId,
+  seenSectionNotifications,
   onGrant,
   onDecline,
   onSwitchToSection,
@@ -2666,27 +2674,31 @@ function NotificationPanel({
   metaByLanguage: Record<BulletinLanguage, BulletinMeta>;
   activeLang: BulletinLanguage;
   sessionId: string;
+  seenSectionNotifications: Set<string>;
   onGrant: (notif: AppNotification) => void;
   onDecline: (notif: AppNotification) => void;
-  onSwitchToSection: (lang: BulletinLanguage, sectionKey: string) => void;
+  onSwitchToSection: (lang: BulletinLanguage, sectionKey: string, notificationId: string) => void;
   onClose: () => void;
 }) {
   const incomingRequests = notifications.filter(
-    (n) => n.type === "takeover_request" && n.targetSessionId === sessionId && n.status === "pending",
+    (n) => isAccessRequestNotification(n) && n.targetSessionId === sessionId && n.status === "pending",
   );
   const myPendingRequests = notifications.filter(
-    (n) => n.type === "takeover_request" && n.fromSessionId === sessionId && n.status === "pending",
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.status === "pending",
   );
   const myAccepted = notifications.filter(
-    (n) => n.type === "takeover_request" && n.fromSessionId === sessionId && n.status === "accepted",
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.status === "accepted",
   );
 
   // Only show section sync alerts for the currently active language
-  const sectionUpdates: { lang: BulletinLanguage; sectionKey: string }[] = [];
+  const sectionUpdates: { lang: BulletinLanguage; sectionKey: string; notificationId: string }[] = [];
   if (activeLang !== "en" && activeLang !== "ko") {
     const sections = metaByLanguage[activeLang]?.sections ?? {};
     for (const [sectionKey, state] of Object.entries(sections)) {
-      if (state.status === "pending") sectionUpdates.push({ lang: activeLang, sectionKey });
+      if (state.status !== "pending") continue;
+      const notificationId = `${activeLang}:${sectionKey}:${state.enContentHash}`;
+      if (seenSectionNotifications.has(notificationId)) continue;
+      sectionUpdates.push({ lang: activeLang, sectionKey, notificationId });
     }
   }
 
@@ -2781,11 +2793,11 @@ function NotificationPanel({
         {sectionUpdates.length > 0 && (
           <section>
             <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>English Updates Pending</div>
-            {sectionUpdates.map(({ lang, sectionKey }) => (
+            {sectionUpdates.map(({ lang, sectionKey, notificationId }) => (
               <button
                 type="button"
-                key={`${lang}-${sectionKey}`}
-                onClick={() => onSwitchToSection(lang, sectionKey)}
+                key={notificationId}
+                onClick={() => onSwitchToSection(lang, sectionKey, notificationId)}
                 style={{ width:"100%", textAlign:"left", padding:"11px 14px", borderRadius:12, background:"rgba(245,158,11,0.10)", border:"1px solid rgba(245,158,11,0.22)", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}
               >
                 <AlertTriangle size={14} color="#FCD34D" style={{ flexShrink:0 }} />
@@ -3159,6 +3171,7 @@ export default function Home() {
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [isCollaborator, setIsCollaborator] = useState(false);
+  const [seenSectionNotifications, setSeenSectionNotifications] = useState<string[]>([]);
 
   // Comment system state
   const [comments, setComments] = useState<BulletinComment[]>([]);
@@ -3218,6 +3231,10 @@ export default function Home() {
     });
     return response.json() as Promise<{ ok: boolean; lock?: LanguageLock }>;
   }, []);
+
+  const releaseActiveAccess = useCallback(() => {
+    void postLockAction("release", activeLangRef.current).catch(() => undefined);
+  }, [postLockAction]);
 
   const loadLanguage = useCallback(async (language: BulletinLanguage): Promise<BulletinMeta> => {
     const response = await fetch(`/api/bulletin/${language}`, { cache:"no-store" });
@@ -3279,6 +3296,15 @@ export default function Home() {
     } catch {}
   }, []);
 
+  const buildSectionNotificationId = useCallback((language: BulletinLanguage, sectionKey: string) => {
+    const hash = metaByLanguage[language]?.sections?.[sectionKey]?.enContentHash ?? "pending";
+    return `${language}:${sectionKey}:${hash}`;
+  }, [metaByLanguage]);
+
+  const markSectionNotificationSeen = useCallback((notificationId: string) => {
+    setSeenSectionNotifications((current) => (current.includes(notificationId) ? current : [...current, notificationId]));
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -3295,6 +3321,20 @@ export default function Home() {
     const interval = window.setInterval(refreshLanguageStatus, 30_000);
     return () => window.clearInterval(interval);
   }, [refreshLanguageStatus]);
+
+  useEffect(() => {
+    const pendingIds = new Set<string>();
+    for (const language of BULLETIN_LANGUAGES) {
+      const sections = metaByLanguage[language]?.sections ?? {};
+      for (const [sectionKey, state] of Object.entries(sections)) {
+        if (state.status === "pending") pendingIds.add(`${language}:${sectionKey}:${state.enContentHash}`);
+      }
+    }
+    setSeenSectionNotifications((current) => {
+      const next = current.filter((id) => pendingIds.has(id));
+      return next.length === current.length ? current : next;
+    });
+  }, [metaByLanguage]);
 
   const pollNotifications = useCallback(async () => {
     const res = await fetch(`/api/notifications?sessionId=${sessionId.current}`, { cache:"no-store" });
@@ -3356,17 +3396,16 @@ export default function Home() {
   }, [activeLang, isCollaborator, postLockAction, readOnly]);
 
   useEffect(() => {
-    const release = () => {
-      fetch("/api/locks", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ action:"release", lang:activeLangRef.current, sessionId:sessionId.current, userName:"Editor" }),
-        keepalive:true,
-      }).catch(() => undefined);
+    const handlePageExit = () => {
+      releaseActiveAccess();
     };
-    window.addEventListener("beforeunload", release);
-    return () => window.removeEventListener("beforeunload", release);
-  }, []);
+    window.addEventListener("beforeunload", handlePageExit);
+    window.addEventListener("pagehide", handlePageExit);
+    return () => {
+      window.removeEventListener("beforeunload", handlePageExit);
+      window.removeEventListener("pagehide", handlePageExit);
+    };
+  }, [releaseActiveAccess]);
 
   // Load auto-fill management data
   const loadMgmt = useCallback(async () => {
@@ -3587,8 +3626,6 @@ export default function Home() {
     setSyncPreviewSection(null);
     setReadOnly(false);
     setIsCollaborator(false);
-
-    const acquisition = await postLockAction("acquire", language);
     const loadedMeta = await loadLanguage(language);
 
     if (language !== "en" && !loadedMeta.initializedFromEn) {
@@ -3601,6 +3638,7 @@ export default function Home() {
       }
     }
 
+    const acquisition = await postLockAction("acquire", language);
     if (!acquisition.ok && acquisition.lock) {
       setLockConflict({ language, lock:acquisition.lock });
     }
@@ -3814,6 +3852,12 @@ export default function Home() {
     setMobileSetupOpen(false);
     if (isClosing) return;
 
+    const sectionKey = TAB_SECTION_KEY[id];
+    const sectionMeta = metaByLanguage[activeLang]?.sections?.[sectionKey];
+    if (sectionMeta?.status === "pending") {
+      markSectionNotificationSeen(buildSectionNotificationId(activeLang, sectionKey));
+    }
+
     // Wait for the editor panel to take up its final width before centering the
     // selected bulletin section in the remaining canvas.
     window.requestAnimationFrame(() => {
@@ -3930,9 +3974,11 @@ export default function Home() {
           metaByLanguage={metaByLanguage}
           activeLang={activeLang}
           sessionId={sessionId.current}
+          seenSectionNotifications={new Set(seenSectionNotifications)}
           onGrant={grantLockAccess}
           onDecline={declineTakeover}
-          onSwitchToSection={(lang, sectionKey) => {
+          onSwitchToSection={(lang, sectionKey, notificationId) => {
+            markSectionNotificationSeen(notificationId);
             void switchLanguage(lang);
             setActiveTab(Object.entries(TAB_SECTION_KEY).find(([, k]) => k === sectionKey)?.[0] as TabId ?? null);
             setNotifPanelOpen(false);
@@ -4017,10 +4063,10 @@ export default function Home() {
 
           {/* Bulletin date generator */}
           <div style={{ padding:"4px 12px 12px", borderBottom:"1px solid #F1F5F9", marginBottom:7 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-              <span style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>
-                Bulletin date
-              </span>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+            <span style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+              Bulletin date
+            </span>
               <span style={{ fontSize:11, fontWeight:700, color:"#1E3A8A" }}>{data?.date ?? "—"}</span>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:7 }}>
@@ -4377,7 +4423,11 @@ export default function Home() {
 
         <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={
   notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted")).length +
-  (activeLang !== "en" && activeLang !== "ko" ? Object.values(metaByLanguage[activeLang]?.sections ?? {}).filter(s => s.status === "pending").length : 0)
+  (activeLang !== "en" && activeLang !== "ko"
+    ? Object.entries(metaByLanguage[activeLang]?.sections ?? {}).filter(([sectionKey, state]) =>
+        state.status === "pending" && !seenSectionNotifications.includes(buildSectionNotificationId(activeLang, sectionKey))
+      ).length
+    : 0)
 } onBell={() => setNotifPanelOpen((v) => !v)} />
         {exportError && (
           <div style={{ position: "absolute", bottom: 80, right: 16, fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>

@@ -5,7 +5,7 @@
     "initializedFromEn": true,
     "sections": {
       "bibleReading": {
-        "status": "pending",
+        "status": "dismissed",
         "enContentHash": "cc7d61b249851922536f3711272efc016aa22ee3e90dd59d9ab2048a8536bf48",
         "pendingEnContent": {
           "bibleReadingDates": [
@@ -38,7 +38,7 @@
         }
       },
       "memoryVerses": {
-        "status": "pending",
+        "status": "dismissed",
         "enContentHash": "e0925d4f6e122041ea5faa2d50449dcb82565ae56c15900808a621f87f927780",
         "pendingEnContent": {
           "memoryVerses": [

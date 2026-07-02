@@ -44,11 +44,11 @@ export async function GET(request: Request) {
   return NextResponse.json(relevant);
 }
 
-// POST /api/notifications — create a takeover request
+// POST /api/notifications — create an access request
 export async function POST(request: Request) {
   const body = await request.json() as Partial<AppNotification>;
   if (
-    body.type !== "takeover_request" ||
+    (body.type !== "takeover_request" && body.type !== "join_request") ||
     !body.lang || !isBulletinLanguage(body.lang) ||
     !body.fromSessionId || !body.targetSessionId
   ) {
@@ -59,13 +59,17 @@ export async function POST(request: Request) {
 
   // De-dup: only one pending request per (from, lang) pair
   const existing = notifications.find(
-    (n) => n.fromSessionId === body.fromSessionId && n.lang === body.lang && n.status === "pending",
+    (n) =>
+      n.type === body.type &&
+      n.fromSessionId === body.fromSessionId &&
+      n.lang === body.lang &&
+      n.status === "pending",
   );
   if (existing) return NextResponse.json(existing);
 
   const notification: AppNotification = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    type: "takeover_request",
+    type: body.type,
     lang: body.lang,
     fromSessionId: body.fromSessionId,
     fromUserName: body.fromUserName?.trim() || "Editor",
