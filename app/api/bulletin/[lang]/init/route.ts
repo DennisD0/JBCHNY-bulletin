@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readBulletin, writeBulletin } from "@/lib/bulletin-store";
+import { translateBulletinContent } from "@/lib/bulletin-translation";
 
 type Context = { params: Promise<{ lang: string }> };
 
@@ -22,7 +23,14 @@ export async function POST(_request: Request, { params }: Context) {
     initializedFromEn: true,
     sections: {},
   };
-  writeBulletin("ko", english.data, meta);
-  return NextResponse.json({ data: english.data, meta });
+  try {
+    const data = await translateBulletinContent(english.data, "ko");
+    writeBulletin("ko", data, meta);
+    return NextResponse.json({ data, meta });
+  } catch (error) {
+    return NextResponse.json(
+      { error:error instanceof Error ? error.message : "Translation failed" },
+      { status:502 },
+    );
+  }
 }
-

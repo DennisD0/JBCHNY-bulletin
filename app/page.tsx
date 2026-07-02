@@ -2428,13 +2428,13 @@ function LanguageTabBar({
               gap: 6,
               padding: "0 11px",
               borderRadius: 999,
-              border: active ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(148,163,184,0.25)",
-              background: active ? "rgba(18,20,36,0.52)" : "rgba(255,255,255,0.08)",
-              color: active ? "#fff" : "rgba(255,255,255,0.68)",
-              boxShadow: active ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22)" : "none",
-              backdropFilter: active ? "blur(28px) saturate(2) brightness(1.08)" : "blur(12px)",
-              WebkitBackdropFilter: active ? "blur(28px) saturate(2) brightness(1.08)" : "blur(12px)",
-              opacity: active ? 1 : 0.82,
+              border: active ? "1px solid rgba(147,197,253,0.45)" : "1px solid transparent",
+              background: active ? "rgba(68,114,196,0.85)" : "transparent",
+              color: active ? "#fff" : "rgba(255,255,255,0.55)",
+              boxShadow: active ? "0 2px 8px rgba(68,114,196,0.4)" : "none",
+              backdropFilter: "none",
+              WebkitBackdropFilter: "none",
+              opacity: 1,
               cursor: "pointer",
               fontSize: 11.5,
               fontWeight: 800,
@@ -2491,18 +2491,22 @@ function LockModal({
   );
 }
 
-function KoreanInitOverlay({ onInitialize, loading }: { onInitialize: () => void; loading: boolean }) {
+function TranslationInitOverlay({ language, onInitialize, loading }: { language: Exclude<BulletinLanguage, "en">; onInitialize: () => void; loading: boolean }) {
+  const config = LANGUAGE_CONFIG[language];
+  const korean = language === "ko";
   return (
-    <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label="Initialize Korean bulletin">
+    <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label={`Initialize ${config.name} bulletin`}>
       <div className="multilang-modal-card" style={{ width:"min(500px, calc(100vw - 32px))", textAlign:"center" }}>
-        <div style={{ fontSize:34 }} aria-hidden>🇰🇷</div>
-        <h2 style={{ margin:"8px 0 0", color:"#fff", fontSize:20 }}>Korean Bulletin</h2>
+        <div style={{ fontSize:34 }} aria-hidden>{config.flag}</div>
+        <h2 style={{ margin:"8px 0 0", color:"#fff", fontSize:20 }}>{config.name} Bulletin</h2>
         <p style={{ margin:"18px auto", maxWidth:390, color:"rgba(255,255,255,0.72)", fontSize:13, lineHeight:1.65 }}>
-          No Korean content yet. Start by copying the English bulletin as a base for translation.
-          After initialization, Korean is fully isolated—English changes will never affect it.
+          No translated {config.name} content yet. Translate the English bulletin now to create the first edition.
+          {korean
+            ? " After translation, Korean is fully isolated—future English changes will never affect it."
+            : " Future English updates will appear as section notifications and translate when applied."}
         </p>
         <button type="button" className="glass-primary-button" onClick={onInitialize} disabled={loading} style={{ margin:"0 auto" }}>
-          {loading ? "Initializing…" : "Initialize from English"}
+          {loading ? "Translating…" : `Translate into ${config.name}`}
         </button>
       </div>
     </div>
@@ -2559,7 +2563,7 @@ function SyncPreviewModal({
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", gap:10, marginTop:16 }}>
           <button type="button" className="glass-secondary-button" onClick={onKeepMine}>Keep mine</button>
-          <button type="button" className="glass-primary-button" onClick={onUseEnglish}>Use English as starting point</button>
+          <button type="button" className="glass-primary-button" onClick={onUseEnglish}>Translate &amp; Apply</button>
         </div>
       </div>
     </div>
@@ -3093,12 +3097,13 @@ export default function Home() {
     await refreshLanguageStatus();
   };
 
-  const initializeKorean = async () => {
+  const initializeLanguage = async () => {
+    if (activeLang === "en") return;
     setInitializingKorean(true);
     try {
-      const response = await fetch("/api/bulletin/ko/init", { method:"POST" });
-      if (!response.ok) throw new Error("Unable to initialize Korean bulletin");
-      await loadLanguage("ko");
+      const response = await fetch(`/api/bulletin/${activeLang}/translate`, { method:"POST" });
+      if (!response.ok) throw new Error(`Unable to translate ${LANGUAGE_CONFIG[activeLang].name} bulletin`);
+      await loadLanguage(activeLang);
       await refreshLanguageStatus();
     } finally {
       setInitializingKorean(false);
@@ -3339,8 +3344,8 @@ export default function Home() {
         />
       )}
 
-      {activeLang === "ko" && !meta.initializedFromEn && (
-        <KoreanInitOverlay onInitialize={initializeKorean} loading={initializingKorean} />
+      {activeLang !== "en" && !meta.initializedFromEn && (
+        <TranslationInitOverlay language={activeLang} onInitialize={initializeLanguage} loading={initializingKorean} />
       )}
 
       {syncPreviewSection && data && (
@@ -3663,14 +3668,14 @@ export default function Home() {
           z-index: 80;
           display: flex;
           align-items: center;
-          gap: 7px;
+          gap: 4px;
           padding: 5px;
-          border: 1px solid rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.18);
           border-radius: 999px;
-          background: rgba(10,10,18,0.42);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-          backdrop-filter: blur(24px) saturate(1.6);
-          -webkit-backdrop-filter: blur(24px) saturate(1.6);
+          background: rgba(18,20,36,0.52);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22);
+          backdrop-filter: blur(28px) saturate(2) brightness(1.08);
+          -webkit-backdrop-filter: blur(28px) saturate(2) brightness(1.08);
         }
 
         .multilang-modal-backdrop {
