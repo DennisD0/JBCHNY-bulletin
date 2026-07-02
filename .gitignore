@@ -54,6 +54,8 @@ server-*.log
 /server.err.log
 /tunnel.out.log
 /tunnel.err.log
+/.next-*.log
+/data/*.bak
 
 # typescript
 *.tsbuildinfo
