@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import {
   LayoutDashboard, Church, Users, BookOpen, Quote,
   CalendarDays, CalendarClock, Newspaper, HandHeart, Sparkles,
@@ -44,42 +44,62 @@ function Field({
   multiline?: boolean;
   rows?: number;
 }) {
-  const cls =
-    "w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:border-blue-400";
+  const [focused, setFocused] = useState(false);
+  const sharedStyle: React.CSSProperties = {
+    width: "100%", border: "none", outline: "none",
+    background: "transparent", fontSize: 13.5, color: "#0F172A",
+    padding: "9px 12px", fontFamily: "inherit", resize: "vertical",
+  };
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-        {label}
-      </label>
-      {multiline ? (
-        <textarea
-          rows={rows}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cls}
-        />
-      ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cls}
-        />
-      )}
+    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <div style={{
+        fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em",
+        textTransform: "uppercase", userSelect: "none",
+        color: focused ? "#4472C4" : "#94A3B8",
+        transition: "color 0.15s",
+      }}>{label}</div>
+      <div style={{
+        borderRadius: 10,
+        border: `1.5px solid ${focused ? "#4472C4" : "#E2E8F0"}`,
+        background: focused ? "#fff" : "#F8FAFC",
+        boxShadow: focused ? "0 0 0 3px rgba(68,114,196,0.13)" : "none",
+        transition: "all 0.18s ease",
+        overflow: "hidden",
+      }}>
+        {multiline ? (
+          <textarea rows={rows} value={value}
+            onChange={e => onChange(e.target.value)}
+            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+            style={{ ...sharedStyle, display: "block" }}
+          />
+        ) : (
+          <input value={value}
+            onChange={e => onChange(e.target.value)}
+            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+            style={sharedStyle}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-black uppercase tracking-widest text-blue-900 mb-4">
-      {children}
-    </h2>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+      <div style={{ width: 3, height: 15, borderRadius: 99, background: "linear-gradient(180deg,#4472C4,#1E3A8A)", flexShrink: 0 }} />
+      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1E3A8A" }}>{children}</span>
+    </div>
   );
 }
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-stone-100 bg-white p-5 shadow-sm flex flex-col gap-4">
+    <div style={{
+      borderRadius: 16, border: "1px solid #EEF2FF", background: "#fff",
+      boxShadow: "0 2px 16px rgba(68,114,196,0.08), 0 1px 3px rgba(15,23,42,0.04)",
+      padding: 20, display: "flex", flexDirection: "column", gap: 16,
+    }}>
       {children}
     </div>
   );
@@ -87,23 +107,34 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function AddBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      className="self-start rounded-full border border-blue-200 bg-white px-4 py-1.5 text-xs font-bold text-blue-900 transition-colors hover:bg-blue-50"
+    <motion.button onClick={onClick}
+      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+      style={{
+        alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6,
+        padding: "7px 14px", borderRadius: 99,
+        border: "1.5px dashed #93C5FD", background: "#EFF6FF",
+        fontSize: 12, fontWeight: 700, color: "#2563EB", cursor: "pointer",
+      }}
     >
-      + {label}
-    </button>
+      <span style={{ fontSize: 15, lineHeight: 1, marginTop: -1 }}>+</span>{label}
+    </motion.button>
   );
 }
 
 function RemoveBtn({ onClick }: { onClick: () => void }) {
+  const [hov, setHov] = useState(false);
   return (
-    <button
-      onClick={onClick}
-      className="shrink-0 rounded-full px-2 py-1 text-lg leading-none text-stone-300 hover:bg-stone-100 hover:text-stone-500 transition-colors"
-    >
-      ×
-    </button>
+    <button onClick={onClick}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        width: 28, height: 28, flexShrink: 0,
+        display: "grid", placeItems: "center", borderRadius: 8,
+        border: `1px solid ${hov ? "#FECACA" : "#F1F5F9"}`,
+        background: hov ? "#FEF2F2" : "#F8FAFC",
+        color: hov ? "#EF4444" : "#CBD5E1",
+        fontSize: 18, lineHeight: 1, cursor: "pointer", transition: "all 0.15s",
+      }}
+    >×</button>
   );
 }
 
@@ -1269,6 +1300,75 @@ function WeeklyScheduleTab({
 }
 
 // ---------------------------------------------------------------------------
+// Tab: News — drag card sub-component (needs useDragControls at top level)
+// ---------------------------------------------------------------------------
+
+function NewsDragCard({
+  item, index, onUpdate, onDelete,
+}: {
+  item: NewsItem;
+  index: number;
+  onUpdate: (patch: Partial<NewsItem>) => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={controls}
+      style={{ listStyle: "none" }}
+      whileDrag={{ scale: 1.025, zIndex: 50 }}
+      transition={{ layout: { type: "spring", stiffness: 500, damping: 38 } }}
+    >
+      <motion.div
+        layout
+        animate={{ boxShadow: "0 2px 12px rgba(68,114,196,0.07)" }}
+        whileDrag={{ boxShadow: "0 14px 44px rgba(68,114,196,0.22)" }}
+        style={{
+          borderRadius: 14, border: "1px solid #EEF2FF", background: "#fff",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "stretch" }}>
+          {/* Drag rail */}
+          <div
+            onPointerDown={e => controls.start(e)}
+            style={{
+              width: 38, flexShrink: 0,
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "flex-start", paddingTop: 13, gap: 5,
+              background: "linear-gradient(180deg,#EEF2FF 0%,#F8FAFC 100%)",
+              borderRight: "1px solid #EEF2FF",
+              cursor: "grab", userSelect: "none",
+            }}
+          >
+            <motion.span
+              key={index}
+              initial={{ scale: 1.4, color: "#4472C4" }}
+              animate={{ scale: 1, color: "#4472C4" }}
+              transition={{ type: "spring", stiffness: 600, damping: 30 }}
+              style={{ fontSize: 12, fontWeight: 900, lineHeight: 1 }}
+            >
+              {index + 1}
+            </motion.span>
+            <GripVertical size={13} color="#C7D2E8" />
+          </div>
+          {/* Content */}
+          <div style={{ flex: 1, padding: "13px 13px 13px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+              <Field label="Title" value={item.title} onChange={v => onUpdate({ title: v })} />
+              <Field label="Body" value={item.body} onChange={v => onUpdate({ body: v })} multiline rows={3} />
+            </div>
+            <RemoveBtn onClick={onDelete} />
+          </div>
+        </div>
+      </motion.div>
+    </Reorder.Item>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tab: News
 // ---------------------------------------------------------------------------
 
@@ -1280,8 +1380,11 @@ function NewsTab({
   set: (patch: Partial<BulletinData>) => void;
 }) {
   const MAX_NEWS = 5;
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  const dragIdx = useRef<number | null>(null);
+  const keyMap = useRef(new WeakMap<NewsItem, string>());
+  const getKey = (item: NewsItem) => {
+    if (!keyMap.current.has(item)) keyMap.current.set(item, Math.random().toString(36).slice(2));
+    return keyMap.current.get(item)!;
+  };
 
   const updateNews = (i: number, patch: Partial<NewsItem>) => {
     set({ news: data.news.map((n, idx) => (idx === i ? { ...n, ...patch } : n)) });
@@ -1304,55 +1407,41 @@ function NewsTab({
     <div className="flex flex-col gap-5">
       <Card>
         <SectionTitle>NY Church News</SectionTitle>
-        {Array.from({ length: MAX_NEWS }, (_, i) => {
-          const item = data.news[i];
-          if (item) {
-            const isOver = dragOverIdx === i;
-            return (
-              <div
-                key={i}
-                draggable
-                onDragStart={() => { dragIdx.current = i; }}
-                onDragOver={(e) => { e.preventDefault(); setDragOverIdx(i); }}
-                onDragLeave={() => setDragOverIdx(null)}
-                onDrop={() => {
-                  const from = dragIdx.current;
-                  if (from === null || from === i) { setDragOverIdx(null); return; }
-                  const next = [...data.news];
-                  const [moved] = next.splice(from, 1);
-                  next.splice(i, 0, moved);
-                  set({ news: next });
-                  dragIdx.current = null;
-                  setDragOverIdx(null);
-                }}
-                onDragEnd={() => { dragIdx.current = null; setDragOverIdx(null); }}
-                style={{
-                  display: "flex", gap: 8, alignItems: "flex-start",
-                  borderRadius: 12, border: isOver ? "2px solid #4472C4" : "1px solid #F1F5F9",
-                  padding: isOver ? 11 : 12,
-                  background: isOver ? "#EFF6FF" : "#fff",
-                  cursor: "grab", transition: "border-color 0.1s, background 0.1s",
-                }}
-              >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, flexShrink: 0, paddingTop: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "#4472C4", lineHeight: 1 }}>{i + 1}</span>
-                  <GripVertical size={14} color="#CBD5E1" style={{ marginTop: 2 }} />
-                </div>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-                  <Field label="Title" value={item.title} onChange={(v) => updateNews(i, { title: v })} />
-                  <Field label="Body" value={item.body} onChange={(v) => updateNews(i, { body: v })} multiline rows={3} />
-                </div>
-                <RemoveBtn onClick={() => deleteNews(i)} />
-              </div>
-            );
-          }
+        <Reorder.Group
+          axis="y"
+          values={data.news}
+          onReorder={newOrder => set({ news: newOrder })}
+          style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}
+        >
+          <AnimatePresence initial={false}>
+            {data.news.map((item, i) => (
+              <NewsDragCard
+                key={getKey(item)}
+                item={item}
+                index={i}
+                onUpdate={patch => updateNews(i, patch)}
+                onDelete={() => deleteNews(i)}
+              />
+            ))}
+          </AnimatePresence>
+        </Reorder.Group>
+        {Array.from({ length: MAX_NEWS - data.news.length }, (_, j) => {
+          const i = data.news.length + j;
           return (
-            <div key={i} className="flex gap-2 items-center rounded-xl border border-dashed border-stone-200 p-3" style={{ opacity: 0.5 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#94A3B8", width: 16, flexShrink: 0 }}>{i + 1}</div>
-              <button onClick={addNews} style={{ fontSize: 12, color: "#94A3B8", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <motion.div
+              key={`empty-${i}`}
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                borderRadius: 12, border: "1.5px dashed #E2E8F0",
+                padding: "11px 14px", opacity: 0.55,
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 900, color: "#CBD5E1", width: 20 }}>{i + 1}</span>
+              <button onClick={addNews} style={{ fontSize: 12, color: "#94A3B8", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>
                 + Add news item
               </button>
-            </div>
+            </motion.div>
           );
         })}
       </Card>
@@ -2291,48 +2380,46 @@ function SectionEditorPanel({
       }}
     >
       <div style={{
-        height: 60,
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        padding: "0 16px 0 20px",
-        background: "#fff",
-        borderBottom: "1px solid #E2E8F0",
+        flexShrink: 0, height: 68,
+        background: "linear-gradient(135deg,#1a3370 0%,#2d55aa 55%,#4472C4 100%)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, padding: "0 16px 0 18px",
       }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            Edit section
-          </div>
-          <div style={{ marginTop: 2, fontSize: 15, fontWeight: 800, color: "#1E3A8A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {section?.label}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          {section && (
+            <div style={{
+              width: 36, height: 36, flexShrink: 0, borderRadius: 10,
+              background: "rgba(255,255,255,0.15)",
+              display: "grid", placeItems: "center",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}>
+              <section.icon size={18} color="#fff" strokeWidth={2} />
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Editing
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {section?.label}
+            </div>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close section editor"
-          title="Close editor"
           style={{
-            width: 32,
-            height: 32,
-            flexShrink: 0,
-            display: "grid",
-            placeItems: "center",
-            border: "1px solid #E2E8F0",
-            borderRadius: 8,
-            background: "#fff",
-            color: "#64748B",
-            fontSize: 20,
-            lineHeight: 1,
-            cursor: "pointer",
+            width: 32, height: 32, flexShrink: 0,
+            display: "grid", placeItems: "center", borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.25)",
+            background: "rgba(255,255,255,0.12)",
+            color: "#fff", fontSize: 20, lineHeight: 1, cursor: "pointer",
+            transition: "background 0.15s",
           }}
-        >
-          ×
-        </button>
+        >×</button>
       </div>
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: 16 }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "20px 16px", background: "#F2F5FB" }}>
         {editor}
       </div>
     </aside>
