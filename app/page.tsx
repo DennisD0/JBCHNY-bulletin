@@ -9,8 +9,10 @@ import {
   TextCursor, Hand, Maximize2, Download,
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
+  Bell, CheckCircle, XCircle, UserCheck,
   type LucideIcon,
 } from "lucide-react";
+import type { AppNotification } from "@/app/api/notifications/route";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
@@ -1979,6 +1981,7 @@ function ToolbarTooltip({ text, children }: { text: string; children: React.Reac
 function FloatingToolbar({
   mode, onMode, onFit, onExport, exporting, disabled,
   canUndo, canRedo, onUndo, onRedo,
+  notifCount, onBell,
 }: {
   mode: CanvasMode;
   onMode: (m: CanvasMode) => void;
@@ -1990,6 +1993,8 @@ function FloatingToolbar({
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  notifCount: number;
+  onBell: () => void;
 }) {
   const pillStyle: React.CSSProperties = {
     position: "relative", zIndex: 1,
@@ -2112,6 +2117,29 @@ function FloatingToolbar({
             aria-label="Redo"
           >
             <Redo2 size={15} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
+          </button>
+        </ToolbarTooltip>
+        {/* Separator */}
+        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px", flexShrink: 0 }} />
+
+        {/* Notifications bell */}
+        <ToolbarTooltip text="Notifications">
+          <button
+            onClick={onBell}
+            style={{ ...btnBase, color: notifCount > 0 ? "#FCD34D" : "rgba(255,255,255,0.45)", width: 40, position: "relative" }}
+            aria-label="Notifications"
+          >
+            <Bell size={16} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
+            {notifCount > 0 && (
+              <span style={{
+                position: "absolute", top: 5, right: 5,
+                minWidth: 15, height: 15, padding: "0 3px",
+                borderRadius: 99, background: "#EF4444",
+                color: "#fff", fontSize: 9, fontWeight: 900,
+                display: "grid", placeItems: "center",
+                lineHeight: 1, zIndex: 2,
+              }}>{notifCount > 9 ? "9+" : notifCount}</span>
+            )}
           </button>
         </ToolbarTooltip>
         </div>{/* /floating-main-pill */}
@@ -2461,12 +2489,12 @@ function LockModal({
   language,
   lock,
   onViewOnly,
-  onTakeOver,
+  onRequestTakeover,
 }: {
   language: BulletinLanguage;
   lock: LanguageLock;
   onViewOnly: () => void;
-  onTakeOver: () => void;
+  onRequestTakeover: () => void;
 }) {
   const minutes = Math.max(0, Math.floor((Date.now() - lock.acquiredAt) / 60000));
   return (
@@ -2476,15 +2504,15 @@ function LockModal({
           <div style={{ width:42, height:42, display:"grid", placeItems:"center", borderRadius:12, background:"rgba(239,68,68,0.14)", color:"#FCA5A5" }}><Lock size={20} /></div>
           <div>
             <div style={{ fontSize:16, fontWeight:900, color:"#fff" }}>{LANGUAGE_CONFIG[language].name} bulletin is in use</div>
-            <div style={{ marginTop:3, fontSize:11, color:"rgba(255,255,255,0.55)" }}>Active since: {minutes} minute{minutes === 1 ? "" : "s"} ago</div>
+            <div style={{ marginTop:3, fontSize:11, color:"rgba(255,255,255,0.55)" }}>Editing: {lock.userName} · {minutes} min ago</div>
           </div>
         </div>
         <p style={{ margin:"18px 0", color:"rgba(255,255,255,0.72)", fontSize:13, lineHeight:1.55 }}>
-          {lock.userName} has this language open. You can view it without making changes or take over the editing lock.
+          {lock.userName} is currently editing. You can view the bulletin without making changes, or send a request to take over editing access.
         </p>
         <div style={{ display:"flex", justifyContent:"flex-end", gap:9 }}>
           <button type="button" className="glass-secondary-button" onClick={onViewOnly}><Eye size={14} /> View Only</button>
-          <button type="button" className="glass-primary-button" onClick={onTakeOver}>Take Over</button>
+          <button type="button" className="glass-primary-button" onClick={onRequestTakeover}><UserCheck size={14} /> Request to Take Over</button>
         </div>
       </div>
     </div>
@@ -2565,6 +2593,155 @@ function SyncPreviewModal({
           <button type="button" className="glass-secondary-button" onClick={onKeepMine}>Keep mine</button>
           <button type="button" className="glass-primary-button" onClick={onUseEnglish}>Translate &amp; Apply</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function NotificationPanel({
+  notifications,
+  metaByLanguage,
+  sessionId,
+  onGrant,
+  onDecline,
+  onSwitchToSection,
+  onClose,
+}: {
+  notifications: AppNotification[];
+  metaByLanguage: Record<BulletinLanguage, BulletinMeta>;
+  sessionId: string;
+  onGrant: (notif: AppNotification) => void;
+  onDecline: (notif: AppNotification) => void;
+  onSwitchToSection: (lang: BulletinLanguage, sectionKey: string) => void;
+  onClose: () => void;
+}) {
+  const incomingRequests = notifications.filter(
+    (n) => n.type === "takeover_request" && n.targetSessionId === sessionId && n.status === "pending",
+  );
+  const myPendingRequests = notifications.filter(
+    (n) => n.type === "takeover_request" && n.fromSessionId === sessionId && n.status === "pending",
+  );
+  const myAccepted = notifications.filter(
+    (n) => n.type === "takeover_request" && n.fromSessionId === sessionId && n.status === "accepted",
+  );
+
+  // Aggregate pending section syncs across all non-en, non-ko languages
+  const sectionUpdates: { lang: BulletinLanguage; sectionKey: string }[] = [];
+  for (const lang of (["es", "zh", "ru"] as BulletinLanguage[])) {
+    const sections = metaByLanguage[lang]?.sections ?? {};
+    for (const [sectionKey, state] of Object.entries(sections)) {
+      if (state.status === "pending") sectionUpdates.push({ lang, sectionKey });
+    }
+  }
+
+  const hasNothing = incomingRequests.length === 0 && myPendingRequests.length === 0 && myAccepted.length === 0 && sectionUpdates.length === 0;
+
+  return (
+    <div style={{
+      position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 60,
+      display: "flex", flexDirection: "column",
+      width: "min(360px, 100vw)",
+      background: "rgba(10,15,30,0.72)",
+      backdropFilter: "blur(24px) saturate(1.8)",
+      WebkitBackdropFilter: "blur(24px) saturate(1.8)",
+      borderLeft: "1px solid rgba(255,255,255,0.10)",
+      boxShadow: "-8px 0 32px rgba(0,0,0,0.45)",
+    }}>
+      {/* Header */}
+      <div style={{ flexShrink:0, height:60, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 18px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, color:"#fff", fontWeight:900, fontSize:15 }}>
+          <Bell size={17} /> Notifications
+        </div>
+        <button type="button" onClick={onClose} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:22, lineHeight:1, padding:"0 4px" }} aria-label="Close notifications">×</button>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:14 }}>
+        {hasNothing && (
+          <div style={{ textAlign:"center", color:"rgba(255,255,255,0.38)", fontSize:13, marginTop:40 }}>
+            No notifications
+          </div>
+        )}
+
+        {/* Incoming takeover requests (someone wants your lock) */}
+        {incomingRequests.length > 0 && (
+          <section>
+            <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>Incoming Requests</div>
+            {incomingRequests.map((n) => (
+              <div key={n.id} style={{ padding:"12px 14px", borderRadius:12, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.22)", marginBottom:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                  <UserCheck size={15} color="#FCA5A5" />
+                  <span style={{ color:"#fff", fontSize:13, fontWeight:700 }}>
+                    {n.fromUserName} wants to edit {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
+                  </span>
+                </div>
+                <div style={{ display:"flex", gap:7 }}>
+                  <button type="button" onClick={() => onGrant(n)} style={{ flex:1, padding:"7px 0", borderRadius:8, border:"none", background:"rgba(34,197,94,0.85)", color:"#fff", fontWeight:800, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+                    <CheckCircle size={13} /> Grant Access
+                  </button>
+                  <button type="button" onClick={() => onDecline(n)} style={{ padding:"7px 12px", borderRadius:8, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.6)", fontWeight:700, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                    <XCircle size={13} /> Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* My pending outgoing requests */}
+        {myPendingRequests.length > 0 && (
+          <section>
+            <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>Your Requests</div>
+            {myPendingRequests.map((n) => (
+              <div key={n.id} style={{ padding:"12px 14px", borderRadius:12, background:"rgba(68,114,196,0.12)", border:"1px solid rgba(68,114,196,0.25)", marginBottom:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ width:8, height:8, borderRadius:99, background:"#F59E0B", boxShadow:"0 0 6px rgba(245,158,11,0.6)", flexShrink:0 }} />
+                  <span style={{ color:"rgba(255,255,255,0.8)", fontSize:12.5 }}>
+                    Waiting for access to {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}…
+                  </span>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Access granted — requester sees this */}
+        {myAccepted.length > 0 && (
+          <section>
+            <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>Access Granted</div>
+            {myAccepted.map((n) => (
+              <div key={n.id} style={{ padding:"12px 14px", borderRadius:12, background:"rgba(34,197,94,0.12)", border:"1px solid rgba(34,197,94,0.25)", marginBottom:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <CheckCircle size={15} color="#86EFAC" />
+                  <span style={{ color:"#fff", fontSize:12.5, fontWeight:700 }}>
+                    You now have access to {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Section update notifications */}
+        {sectionUpdates.length > 0 && (
+          <section>
+            <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>English Updates Pending</div>
+            {sectionUpdates.map(({ lang, sectionKey }) => (
+              <button
+                type="button"
+                key={`${lang}-${sectionKey}`}
+                onClick={() => onSwitchToSection(lang, sectionKey)}
+                style={{ width:"100%", textAlign:"left", padding:"11px 14px", borderRadius:12, background:"rgba(245,158,11,0.10)", border:"1px solid rgba(245,158,11,0.22)", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}
+              >
+                <AlertTriangle size={14} color="#FCD34D" style={{ flexShrink:0 }} />
+                <div>
+                  <span style={{ color:"#fff", fontSize:12.5, fontWeight:700 }}>{sectionKey}</span>
+                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:11.5 }}> · {LANGUAGE_CONFIG[lang].flag} {LANGUAGE_CONFIG[lang].name}</span>
+                  <div style={{ color:"rgba(255,255,255,0.45)", fontSize:11, marginTop:2 }}>English was updated — tap to review</div>
+                </div>
+              </button>
+            ))}
+          </section>
+        )}
       </div>
     </div>
   );
@@ -2708,8 +2885,8 @@ function SectionEditorPanel({
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "16px", background: "#F2F5FB" }}>
         {readOnly && (
           <div style={{ position:"sticky", top:0, zIndex:3, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, padding:"10px 12px", borderRadius:10, background:"rgba(30,58,138,0.92)", color:"#fff", boxShadow:"0 8px 24px rgba(15,23,42,0.18)" }}>
-            <span style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:11.5, fontWeight:700 }}><Eye size={14} /> Viewing only—{LANGUAGE_CONFIG[language].name} is being edited by another user</span>
-            <button type="button" className="glass-secondary-button" onClick={onTakeOver}>Take Over</button>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:11.5, fontWeight:700 }}><Eye size={14} /> Viewing only — {LANGUAGE_CONFIG[language].name} is being edited</span>
+            <button type="button" className="glass-secondary-button" onClick={onTakeOver}><UserCheck size={13} /> Request to Take Over</button>
           </div>
         )}
         {pendingSync && (
@@ -2762,6 +2939,8 @@ export default function Home() {
   const [readOnly, setReadOnly] = useState(false);
   const [syncPreviewSection, setSyncPreviewSection] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
@@ -2893,6 +3072,32 @@ export default function Home() {
     const interval = window.setInterval(refreshLanguageStatus, 30_000);
     return () => window.clearInterval(interval);
   }, [refreshLanguageStatus]);
+
+  const pollNotifications = useCallback(async () => {
+    const res = await fetch(`/api/notifications?sessionId=${sessionId.current}`, { cache:"no-store" });
+    if (!res.ok) return;
+    const fresh = await res.json() as AppNotification[];
+    setNotifications(fresh);
+
+    // Auto-acquire lock when a request we sent gets accepted
+    const accepted = fresh.find(
+      (n) => n.type === "takeover_request" && n.fromSessionId === sessionId.current && n.status === "accepted",
+    );
+    if (accepted && readOnly && activeLangRef.current === accepted.lang) {
+      const acquisition = await postLockAction("acquire", accepted.lang);
+      if (acquisition.ok) {
+        setReadOnly(false);
+        await loadLanguage(accepted.lang);
+        await refreshLanguageStatus();
+      }
+    }
+  }, [loadLanguage, postLockAction, readOnly, refreshLanguageStatus]);
+
+  useEffect(() => {
+    pollNotifications();
+    const interval = window.setInterval(pollNotifications, 5_000);
+    return () => window.clearInterval(interval);
+  }, [pollNotifications]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -3108,6 +3313,44 @@ export default function Home() {
     setLockConflict(null);
     await loadLanguage(language);
     await refreshLanguageStatus();
+  };
+
+  const requestTakeover = async (language: BulletinLanguage, lock: LanguageLock) => {
+    setReadOnly(true);
+    setLockConflict(null);
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "takeover_request",
+        lang: language,
+        fromSessionId: sessionId.current,
+        fromUserName: "Editor",
+        targetSessionId: lock.sessionId,
+      }),
+    });
+    setNotifPanelOpen(true);
+    await pollNotifications();
+  };
+
+  const grantLockAccess = async (notif: AppNotification) => {
+    await postLockAction("release", notif.lang);
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: notif.id, status: "accepted", sessionId: sessionId.current }),
+    });
+    await pollNotifications();
+    await refreshLanguageStatus();
+  };
+
+  const declineTakeover = async (notif: AppNotification) => {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: notif.id, status: "declined", sessionId: sessionId.current }),
+    });
+    await pollNotifications();
   };
 
   const applyEnglishSection = async (sectionKey: string) => {
@@ -3340,7 +3583,23 @@ export default function Home() {
           language={lockConflict.language}
           lock={lockConflict.lock}
           onViewOnly={() => { setReadOnly(true); setLockConflict(null); }}
-          onTakeOver={() => takeOverLanguage(lockConflict.language)}
+          onRequestTakeover={() => requestTakeover(lockConflict.language, lockConflict.lock)}
+        />
+      )}
+
+      {notifPanelOpen && (
+        <NotificationPanel
+          notifications={notifications}
+          metaByLanguage={metaByLanguage}
+          sessionId={sessionId.current}
+          onGrant={grantLockAccess}
+          onDecline={declineTakeover}
+          onSwitchToSection={(lang, sectionKey) => {
+            void switchLanguage(lang);
+            setActiveTab(Object.entries(TAB_SECTION_KEY).find(([, k]) => k === sectionKey)?.[0] as TabId ?? null);
+            setNotifPanelOpen(false);
+          }}
+          onClose={() => setNotifPanelOpen(false)}
         />
       )}
 
@@ -3622,7 +3881,7 @@ export default function Home() {
           language={activeLang}
           meta={meta}
           readOnly={readOnly}
-          onTakeOver={() => takeOverLanguage(activeLang)}
+          onTakeOver={() => { const lock = locks[activeLang]; if (lock) requestTakeover(activeLang, lock); else takeOverLanguage(activeLang); }}
           onPreviewSync={setSyncPreviewSection}
           onApplySync={applyEnglishSection}
           onDismissSync={dismissEnglishSection}
@@ -3653,7 +3912,7 @@ export default function Home() {
           </div>
         )}
 
-        <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
+        <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted")).length} onBell={() => setNotifPanelOpen((v) => !v)} />
         {exportError && (
           <div style={{ position: "absolute", bottom: 80, right: 16, fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
             {exportError}
