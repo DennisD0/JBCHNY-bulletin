@@ -2601,6 +2601,7 @@ function SyncPreviewModal({
 function NotificationPanel({
   notifications,
   metaByLanguage,
+  activeLang,
   sessionId,
   onGrant,
   onDecline,
@@ -2609,6 +2610,7 @@ function NotificationPanel({
 }: {
   notifications: AppNotification[];
   metaByLanguage: Record<BulletinLanguage, BulletinMeta>;
+  activeLang: BulletinLanguage;
   sessionId: string;
   onGrant: (notif: AppNotification) => void;
   onDecline: (notif: AppNotification) => void;
@@ -2625,12 +2627,12 @@ function NotificationPanel({
     (n) => n.type === "takeover_request" && n.fromSessionId === sessionId && n.status === "accepted",
   );
 
-  // Aggregate pending section syncs across all non-en, non-ko languages
+  // Only show section sync alerts for the currently active language
   const sectionUpdates: { lang: BulletinLanguage; sectionKey: string }[] = [];
-  for (const lang of (["es", "zh", "ru"] as BulletinLanguage[])) {
-    const sections = metaByLanguage[lang]?.sections ?? {};
+  if (activeLang !== "en" && activeLang !== "ko") {
+    const sections = metaByLanguage[activeLang]?.sections ?? {};
     for (const [sectionKey, state] of Object.entries(sections)) {
-      if (state.status === "pending") sectionUpdates.push({ lang, sectionKey });
+      if (state.status === "pending") sectionUpdates.push({ lang: activeLang, sectionKey });
     }
   }
 
@@ -3600,6 +3602,7 @@ export default function Home() {
         <NotificationPanel
           notifications={notifications}
           metaByLanguage={metaByLanguage}
+          activeLang={activeLang}
           sessionId={sessionId.current}
           onGrant={grantLockAccess}
           onDecline={declineTakeover}
@@ -3921,7 +3924,10 @@ export default function Home() {
           </div>
         )}
 
-        <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted")).length} onBell={() => setNotifPanelOpen((v) => !v)} />
+        <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={
+  notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted")).length +
+  (activeLang !== "en" && activeLang !== "ko" ? Object.values(metaByLanguage[activeLang]?.sections ?? {}).filter(s => s.status === "pending").length : 0)
+} onBell={() => setNotifPanelOpen((v) => !v)} />
         {exportError && (
           <div style={{ position: "absolute", bottom: 80, right: 16, fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
             {exportError}
