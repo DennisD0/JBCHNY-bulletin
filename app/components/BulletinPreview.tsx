@@ -995,7 +995,7 @@ export default function BulletinPreview({
 
           {data.retreatInfo?.enabled && (
             <div data-fit-section="retreat-info" style={{ flexShrink:0, overflow:"hidden" }}>
-              <SecHead title="Retreat" />
+              <SecHead title="Retreat Schedule" />
               <div data-fit-body>
               <div style={{ padding:"2px 0 4px" }}>
                 <p style={{
@@ -1007,18 +1007,49 @@ export default function BulletinPreview({
                 </p>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <tbody>
-                    {([
-                      ["DATE",     data.retreatInfo.date,     "date"],
-                      ["LOCATION", data.retreatInfo.location, "location"],
-                      ["SPEAKER",  data.retreatInfo.speaker,  "speaker"],
-                    ] as [string, string, "date"|"location"|"speaker"][]).map(([lbl, val, field]) => (
-                      <tr key={lbl}>
-                        <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:2, width:60, whiteSpace:"nowrap" }}>{lbl}</td>
-                        <td style={{ fontSize:F.body, color:GR, paddingBottom:2 }}>
-                          <E value={val} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, [field]: v, enabled: true } }) : undefined} />
+                    <tr>
+                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, width:48, whiteSpace:"nowrap", verticalAlign:"middle" }}>기간</td>
+                      <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
+                        <E value={data.retreatInfo.date} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, date: v, enabled: true } }) : undefined} />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, whiteSpace:"nowrap", verticalAlign:"middle" }}>장소</td>
+                      <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
+                        <E value={data.retreatInfo.location} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, location: v, enabled: true } }) : undefined} />
+                      </td>
+                    </tr>
+                    {(data.retreatInfo.fees?.length ?? 0) > 0 && (
+                      <tr>
+                        <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, whiteSpace:"nowrap", verticalAlign:"top", paddingTop:2 }}>회비</td>
+                        <td style={{ paddingBottom:2 }}>
+                          <table style={{ width:"100%", borderCollapse:"collapse", border:`${RULE}px solid ${BL}` }}>
+                            <tbody>
+                              {Array.from({ length: Math.ceil((data.retreatInfo.fees?.length ?? 0) / 2) }, (_, row) => {
+                                const L = data.retreatInfo.fees?.[row * 2];
+                                const R = data.retreatInfo.fees?.[row * 2 + 1];
+                                return (
+                                  <tr key={row} style={{ borderBottom:`${RULE}px solid ${BL}` }}>
+                                    <td style={{ fontSize:F.small, padding:"2px 5px", borderRight:`${RULE}px solid ${BL}`, color:GR }}>
+                                      {L ? <E value={L.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
+                                    </td>
+                                    <td style={{ fontSize:F.small, padding:"2px 5px", fontWeight:700, color:BL, borderRight:`${RULE}px solid ${BL}`, whiteSpace:"nowrap" }}>
+                                      {L ? <E value={L.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
+                                    </td>
+                                    <td style={{ fontSize:F.small, padding:"2px 5px", borderRight:`${RULE}px solid ${BL}`, color:GR }}>
+                                      {R ? <E value={R.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
+                                    </td>
+                                    <td style={{ fontSize:F.small, padding:"2px 5px", fontWeight:700, color:BL, whiteSpace:"nowrap" }}>
+                                      {R ? <E value={R.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>

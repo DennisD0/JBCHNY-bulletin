@@ -1450,9 +1450,18 @@ function RetreatInfoPanel({
   data: BulletinData;
   set: (patch: Partial<BulletinData>) => void;
 }) {
-  const retreat = data.retreatInfo ?? { enabled: false, title: "", date: "", location: "", speaker: "" };
+  const defaultFees = [
+    { label: "성인 (13세 이상)", amount: "$200" },
+    { label: "은장회 (70세 이상)", amount: "$100" },
+    { label: "7-12세", amount: "$100" },
+    { label: "6세 이하, 전도대상자", amount: "FREE" },
+  ];
+  const retreat = data.retreatInfo ?? { enabled: false, title: "", date: "", location: "", fees: defaultFees };
+  const fees = retreat.fees ?? defaultFees;
   const setRetreat = (patch: Partial<typeof retreat>) =>
     set({ retreatInfo: { ...retreat, ...patch } });
+  const setFee = (i: number, field: "label" | "amount", v: string) =>
+    setRetreat({ fees: fees.map((f, x) => (x === i ? { ...f, [field]: v } : f)) });
 
   return (
     <Card>
@@ -1475,9 +1484,29 @@ function RetreatInfoPanel({
       {retreat.enabled && (
         <div className="flex flex-col gap-3">
           <Field label="Title" value={retreat.title} onChange={(v) => setRetreat({ title: v })} />
-          <Field label="Date" value={retreat.date} onChange={(v) => setRetreat({ date: v })} />
-          <Field label="Location" value={retreat.location} onChange={(v) => setRetreat({ location: v })} />
-          <Field label="Speaker" value={retreat.speaker} onChange={(v) => setRetreat({ speaker: v })} />
+          <Field label="기간 (Date)" value={retreat.date} onChange={(v) => setRetreat({ date: v })} />
+          <Field label="장소 (Location)" value={retreat.location} onChange={(v) => setRetreat({ location: v })} />
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 6 }}>회비 (Fees)</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {fees.map((fee, i) => (
+                <div key={i} style={{ display: "flex", gap: 6 }}>
+                  <input
+                    value={fee.label}
+                    onChange={(e) => setFee(i, "label", e.target.value)}
+                    placeholder="Category"
+                    style={{ flex: 3, fontSize: 12, padding: "5px 8px", border: "1px solid #E2E8F0", borderRadius: 6, background: "#FAFAFA" }}
+                  />
+                  <input
+                    value={fee.amount}
+                    onChange={(e) => setFee(i, "amount", e.target.value)}
+                    placeholder="Amount"
+                    style={{ flex: 1, fontSize: 12, padding: "5px 8px", border: "1px solid #E2E8F0", borderRadius: 6, background: "#FAFAFA" }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </Card>
@@ -2005,7 +2034,7 @@ const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   schedule: { cx: 673,  cy: 967,  h: 299 }, // col 2 p2, top half
   news:     { cx: 673,  cy: 1374, h: 330 }, // col 2 p2, bottom half
   prayer:   { cx: 1120, cy: 967,  h: 299 }, // col 3 p2, top half
-  retreat:  { cx: 1120, cy: 1560, h: 140 }, // col 3 p2, below joint prayer
+  retreat:  { cx: 1120, cy: 1530, h: 240 }, // col 3 p2, below joint prayer
 };
 
 type BulletinWeek = {

@@ -112,6 +112,6 @@ export interface BulletinData {
     title: string;
     date: string;
     location: string;
-    speaker: string;
+    fees: { label: string; amount: string }[];
   };
 }
