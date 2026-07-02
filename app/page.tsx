@@ -2967,6 +2967,67 @@ function SectionEditorPanel({
 // Comment thread panel component
 // ---------------------------------------------------------------------------
 
+function CommentPin({
+  x,
+  y,
+  label,
+  active = false,
+  onClick,
+}: {
+  x: number;
+  y: number;
+  label?: string;
+  active?: boolean;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  const marker = (
+    <svg aria-hidden="true" width="32" height="40" viewBox="0 0 32 40" style={{ display: "block", overflow: "visible" }}>
+      <path
+        d="M16 39C14.2 34.2 3 26.3 3 16A13 13 0 0 1 29 16C29 26.3 17.8 34.2 16 39Z"
+        fill="#4472C4"
+        stroke="#fff"
+        strokeWidth="2"
+        style={{
+          filter: active
+            ? "drop-shadow(0 0 4px rgba(68,114,196,0.95)) drop-shadow(0 2px 4px rgba(0,0,0,0.45))"
+            : "drop-shadow(0 2px 4px rgba(0,0,0,0.45))",
+        }}
+      />
+      {label && (
+        <text x="16" y="16.5" textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize="11" fontWeight="900" fontFamily="inherit">
+          {label}
+        </text>
+      )}
+    </svg>
+  );
+  const sharedStyle: React.CSSProperties = {
+    position: "absolute",
+    left: x,
+    top: y,
+    width: 32,
+    height: 40,
+    padding: 0,
+    border: 0,
+    background: "transparent",
+    transform: "translate(-50%, -100%)",
+  };
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        aria-label={`Open comment by ${label || "Editor"}`}
+        onClick={onClick}
+        style={{ ...sharedStyle, cursor: "pointer", pointerEvents: "all" }}
+      >
+        {marker}
+      </button>
+    );
+  }
+
+  return <div style={{ ...sharedStyle, pointerEvents: "none" }}>{marker}</div>;
+}
+
 function CommentThreadPanel({ comment, style, onReply, onResolve, onClose }: {
   comment: BulletinComment;
   style: React.CSSProperties;
@@ -4205,9 +4266,12 @@ export default function Home() {
                     const zoomEl = pdfZoomRef.current;
                     if (!zoomEl) return;
                     const rect = zoomEl.getBoundingClientRect();
-                    const cssZoom = parseFloat(zoomEl.style.zoom || "1");
-                    const localX = (e.clientX - rect.left) / cssZoom;
-                    const localY = (e.clientY - rect.top) / cssZoom;
+                    // Use the scale that is actually rendered at click time.
+                    // style.zoom is the animation target and can briefly differ
+                    // from the scale visible under the pointer.
+                    const renderedZoom = rect.width / PAGE_W || 1;
+                    const localX = (e.clientX - rect.left) / renderedZoom;
+                    const localY = (e.clientY - rect.top) / renderedZoom;
                     const TOTAL_H = PAGE_H * 2 + 4;
                     setDraftPin({ rx: Math.max(0, Math.min(1, localX / PAGE_W)), ry: Math.max(0, Math.min(1, localY / TOTAL_H)) });
                     setActiveCommentId(null);
@@ -4224,46 +4288,25 @@ export default function Home() {
               }}>
                 {/* Draft pin being placed */}
                 {draftPin && (
-                  <div style={{
-                    position: "absolute",
-                    left: draftPin.rx * PAGE_W - 14,
-                    top: draftPin.ry * (PAGE_H * 2 + 4) - 14,
-                    width: 28, height: 28,
-                    borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)",
-                    background: "#4472C4", border: "2px solid #fff",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-                    pointerEvents: "none",
-                  }} />
+                  <CommentPin
+                    x={draftPin.rx * PAGE_W}
+                    y={draftPin.ry * (PAGE_H * 2 + 4)}
+                  />
                 )}
                 {/* Existing pins — resolved ones are hidden */}
                 {comments.filter(c => !c.resolved).map(c => (
-                  <div
+                  <CommentPin
                     key={c.id}
-                    style={{
-                      position: "absolute",
-                      left: c.rx * PAGE_W - 14,
-                      top: c.ry * (PAGE_H * 2 + 4) - 14,
-                      width: 28, height: 28,
-                      borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)",
-                      background: "#4472C4",
-                      border: "2px solid #fff",
-                      boxShadow: activeCommentId === c.id ? "0 0 0 3px rgba(68,114,196,0.5)" : "0 2px 8px rgba(0,0,0,0.4)",
-                      cursor: "pointer",
-                      pointerEvents: "all",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 900, color: "#fff",
-                      zIndex: activeCommentId === c.id ? 2 : 1,
-                    }}
+                    x={c.rx * PAGE_W}
+                    y={c.ry * (PAGE_H * 2 + 4)}
+                    label={c.author.charAt(0).toUpperCase()}
+                    active={activeCommentId === c.id}
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveCommentId(c.id === activeCommentId ? null : c.id);
                       setDraftPin(null);
                     }}
-                  >
-                    <span style={{ transform: "rotate(45deg)" }}>
-                      {c.author.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  />
                 ))}
               </div>
 
