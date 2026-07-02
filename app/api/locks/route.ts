@@ -9,7 +9,7 @@ import {
 } from "@/lib/bulletin-languages";
 
 const LOCKS_PATH = join(process.cwd(), "data", "locks.json");
-const LOCK_TIMEOUT_MS = 10 * 60 * 1000;
+const LOCK_TIMEOUT_MS = 3 * 60 * 1000; // 3 min; heartbeat fires every 45s so 2 missed = lock reclaimed
 
 function readLocks(): LanguageLocks {
   return JSON.parse(readFileSync(LOCKS_PATH, "utf-8")) as LanguageLocks;

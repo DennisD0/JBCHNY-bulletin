@@ -2916,10 +2916,19 @@ export default function Home() {
   const historyStack = useRef<BulletinData[]>([]);
   const historyPos   = useRef(-1);
   const [historyStamp, setHistoryStamp] = useState(0);
+  // Persist sessionId in sessionStorage so page refreshes reuse the same
+  // identity and don't see their own lock as a conflict.
   const sessionId = useRef(
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    (() => {
+      const KEY = "bulletin-session-id";
+      const stored = typeof sessionStorage !== "undefined" && sessionStorage.getItem(KEY);
+      if (stored) return stored;
+      const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(KEY, id);
+      return id;
+    })(),
   );
   const activeLangRef = useRef<BulletinLanguage>("en");
 
@@ -3103,7 +3112,7 @@ export default function Home() {
     if (readOnly) return;
     const interval = window.setInterval(() => {
       postLockAction("heartbeat", activeLang).catch(() => undefined);
-    }, 120_000);
+    }, 45_000);
     return () => window.clearInterval(interval);
   }, [activeLang, postLockAction, readOnly]);
 
