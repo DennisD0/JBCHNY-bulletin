@@ -2266,18 +2266,17 @@ function NavItem({
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
           style={{ position: "absolute", inset: 0, overflow: "hidden" }}
         >
-          {/* Liquid glass tinted fill */}
+          {/* Blur + tint layer */}
           <div style={{
             position: "absolute", inset: 0,
-            filter: "url(#radio-glass)",
-            background: "rgba(68,114,196,0.12)",
-            backdropFilter: "blur(10px) saturate(1.8)",
-            WebkitBackdropFilter: "blur(10px) saturate(1.8)",
+            backdropFilter: "blur(12px) saturate(1.6) brightness(1.04)",
+            WebkitBackdropFilter: "blur(12px) saturate(1.6) brightness(1.04)",
+            background: "rgba(68,114,196,0.10)",
           }} />
-          {/* Glass shimmer */}
+          {/* Top-edge highlight gradient */}
           <div style={{
             position: "absolute", inset: 0,
-            background: "linear-gradient(170deg, rgba(255,255,255,0.2) 0%, transparent 55%)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 40%, transparent 100%)",
             pointerEvents: "none",
           }} />
           {/* Left accent bar */}
@@ -2285,11 +2284,12 @@ function NavItem({
             position: "absolute", left: 0, top: 0, bottom: 0, width: 3,
             background: "linear-gradient(180deg, #4472C4, #1E3A8A)",
           }} />
-          {/* Subtle border */}
+          {/* Border + inner glow */}
           <div style={{
             position: "absolute", inset: 0,
-            borderTop: "1px solid rgba(68,114,196,0.18)",
-            borderBottom: "1px solid rgba(68,114,196,0.18)",
+            borderTop: "1px solid rgba(68,114,196,0.22)",
+            borderBottom: "1px solid rgba(68,114,196,0.22)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
             pointerEvents: "none",
           }} />
         </motion.div>
@@ -2424,22 +2424,24 @@ function SectionEditorPanel({
         display: "flex", alignItems: "center", justifyContent: "space-between",
         gap: 12, padding: "0 16px 0 18px",
       }}>
-        {/* Liquid glass gradient background */}
+        {/* Blur + gradient tint layer */}
         <div style={{
           position: "absolute", inset: 0,
-          filter: "url(#radio-glass)",
-          background: "linear-gradient(135deg,#1a3370 0%,#2d55aa 55%,#4472C4 100%)",
+          backdropFilter: "blur(28px) saturate(2) brightness(1.08)",
+          WebkitBackdropFilter: "blur(28px) saturate(2) brightness(1.08)",
+          background: "linear-gradient(135deg,rgba(26,51,112,0.92) 0%,rgba(45,85,170,0.88) 55%,rgba(68,114,196,0.85) 100%)",
         }} />
-        {/* Glass shimmer overlay */}
+        {/* Top-edge highlight gradient — glass surface gloss */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(170deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+          background: "linear-gradient(175deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 45%, transparent 100%)",
           pointerEvents: "none",
         }} />
-        {/* Bottom border shine */}
+        {/* Bottom border + inner glow */}
         <div style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, height: 1,
-          background: "rgba(255,255,255,0.12)",
+          position: "absolute", inset: 0,
+          borderBottom: "1px solid rgba(255,255,255,0.18)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
           pointerEvents: "none",
         }} />
         {/* Content — sits above glass layers */}
