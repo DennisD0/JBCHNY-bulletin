@@ -8,7 +8,7 @@ export const metadata = { title: "Bulletin Print" };
 
 export default function PrintPage() {
   const data = JSON.parse(
-    readFileSync(join(process.cwd(), "data", "bulletin.json"), "utf-8")
+    readFileSync(join(process.cwd(), "data", "bulletin.en.json"), "utf-8")
   ) as BulletinData;
 
   return (

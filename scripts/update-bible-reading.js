@@ -1,5 +1,5 @@
 // Usage: node scripts/update-bible-reading.js [YYYY-MM-DD]
-// Updates bibleReadingDates and bibleReading1 in data/bulletin.json
+// Updates bibleReadingDates and bibleReading1 in data/bulletin.en.json
 // for the week (Sun–Sat) containing the given date, or today if omitted.
 
 import fs from 'fs';
@@ -32,11 +32,11 @@ for (let i = 0; i < 7; i++) {
   readings.push(formatReading(plan[isoKey]) || '');
 }
 
-const bulletinPath = join(root, 'data/bulletin.json');
+const bulletinPath = join(root, 'data/bulletin.en.json');
 const b = JSON.parse(fs.readFileSync(bulletinPath, 'utf8'));
 b.bibleReadingDates = dates;
 b.bibleReading1 = readings;
 fs.writeFileSync(bulletinPath, JSON.stringify(b, null, 2));
 
 console.log('Week:', dates.join(', '));
-console.log('Readings updated in bulletin.json');
+console.log('Readings updated in bulletin.en.json');

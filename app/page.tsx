@@ -8,7 +8,7 @@ import {
   BookMarked, CalendarRange, Save as SaveIcon,
   TextCursor, Hand, Maximize2, Download,
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
-  Undo2, Redo2, GripVertical,
+  Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
@@ -26,6 +26,16 @@ import type {
   CalendarBanner,
   FellowshipRow,
 } from "@/lib/bulletin-types";
+import {
+  BULLETIN_LANGUAGES,
+  defaultBulletinMeta,
+  type BulletinApiResponse,
+  type BulletinLanguage,
+  type BulletinMeta,
+  type LanguageLock,
+  type LanguageLocks,
+} from "@/lib/bulletin-languages";
+import { SECTION_FIELD_MAP } from "@/lib/section-field-map";
 
 // ---------------------------------------------------------------------------
 // Shared small components
@@ -2153,6 +2163,28 @@ const SECTIONS = [
 
 type TabId = (typeof SECTIONS)[number]["id"];
 
+const TAB_SECTION_KEY: Record<TabId, string> = {
+  header: "header",
+  sermon: "sermon",
+  services: "services",
+  bible: "bibleReading",
+  memory: "memoryVerses",
+  cleaning: "cleaning",
+  calendar: "calendar",
+  schedule: "weekSchedule",
+  news: "news",
+  prayer: "prayer",
+  retreat: "retreatInfo",
+};
+
+const LANGUAGE_CONFIG: Record<BulletinLanguage, { code: string; flag: string; name: string }> = {
+  en: { code: "EN", flag: "🇺🇸", name: "English" },
+  es: { code: "ES", flag: "🇪🇸", name: "Spanish" },
+  ko: { code: "KO", flag: "🇰🇷", name: "Korean" },
+  zh: { code: "ZH", flag: "🇨🇳", name: "Chinese" },
+  ru: { code: "RU", flag: "🇷🇺", name: "Russian" },
+};
+
 // Section centers in full-PDF coordinate space (1344 × 1634 stacked)
 // h = approximate section height — used to compute zoom level
 const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
@@ -2361,18 +2393,207 @@ function SidebarSourceProgress({
   );
 }
 
+function LanguageTabBar({
+  activeLanguage,
+  metaByLanguage,
+  locks,
+  sessionId,
+  onSelect,
+}: {
+  activeLanguage: BulletinLanguage;
+  metaByLanguage: Record<BulletinLanguage, BulletinMeta>;
+  locks: LanguageLocks;
+  sessionId: string;
+  onSelect: (language: BulletinLanguage) => void;
+}) {
+  return (
+    <div className="language-tab-bar" aria-label="Bulletin languages">
+      {BULLETIN_LANGUAGES.map((language) => {
+        const config = LANGUAGE_CONFIG[language];
+        const active = activeLanguage === language;
+        const pendingCount = Object.values(metaByLanguage[language].sections)
+          .filter((section) => section.status === "pending").length;
+        const lockedByOther = Boolean(locks[language] && locks[language]?.sessionId !== sessionId);
+        return (
+          <button
+            type="button"
+            key={language}
+            onClick={() => onSelect(language)}
+            title={language === "ko" ? "Korean is isolated from English sync" : config.name}
+            style={{
+              position: "relative",
+              height: 38,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "0 11px",
+              borderRadius: 999,
+              border: active ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(148,163,184,0.25)",
+              background: active ? "rgba(18,20,36,0.52)" : "rgba(255,255,255,0.08)",
+              color: active ? "#fff" : "rgba(255,255,255,0.68)",
+              boxShadow: active ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22)" : "none",
+              backdropFilter: active ? "blur(28px) saturate(2) brightness(1.08)" : "blur(12px)",
+              WebkitBackdropFilter: active ? "blur(28px) saturate(2) brightness(1.08)" : "blur(12px)",
+              opacity: active ? 1 : 0.82,
+              cursor: "pointer",
+              fontSize: 11.5,
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span aria-hidden>{config.flag}</span>
+            <span>{config.code}</span>
+            {language === "ko" && <Lock size={11} aria-label="Korean is isolated" />}
+            {language !== "en" && language !== "ko" && pendingCount > 0 && (
+              <span style={{ minWidth:16, height:16, padding:"0 4px", display:"grid", placeItems:"center", borderRadius:99, background:"#F59E0B", color:"#111827", fontSize:9, fontWeight:900 }}>
+                {pendingCount}
+              </span>
+            )}
+            {lockedByOther && <span aria-label="Locked by another editor" style={{ width:7, height:7, borderRadius:99, background:"#EF4444", boxShadow:"0 0 0 2px rgba(239,68,68,0.2)" }} />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function LockModal({
+  language,
+  lock,
+  onViewOnly,
+  onTakeOver,
+}: {
+  language: BulletinLanguage;
+  lock: LanguageLock;
+  onViewOnly: () => void;
+  onTakeOver: () => void;
+}) {
+  const minutes = Math.max(0, Math.floor((Date.now() - lock.acquiredAt) / 60000));
+  return (
+    <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label="Language bulletin locked">
+      <div className="multilang-modal-card" style={{ width:"min(440px, calc(100vw - 32px))" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:42, height:42, display:"grid", placeItems:"center", borderRadius:12, background:"rgba(239,68,68,0.14)", color:"#FCA5A5" }}><Lock size={20} /></div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:900, color:"#fff" }}>{LANGUAGE_CONFIG[language].name} bulletin is in use</div>
+            <div style={{ marginTop:3, fontSize:11, color:"rgba(255,255,255,0.55)" }}>Active since: {minutes} minute{minutes === 1 ? "" : "s"} ago</div>
+          </div>
+        </div>
+        <p style={{ margin:"18px 0", color:"rgba(255,255,255,0.72)", fontSize:13, lineHeight:1.55 }}>
+          {lock.userName} has this language open. You can view it without making changes or take over the editing lock.
+        </p>
+        <div style={{ display:"flex", justifyContent:"flex-end", gap:9 }}>
+          <button type="button" className="glass-secondary-button" onClick={onViewOnly}><Eye size={14} /> View Only</button>
+          <button type="button" className="glass-primary-button" onClick={onTakeOver}>Take Over</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KoreanInitOverlay({ onInitialize, loading }: { onInitialize: () => void; loading: boolean }) {
+  return (
+    <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label="Initialize Korean bulletin">
+      <div className="multilang-modal-card" style={{ width:"min(500px, calc(100vw - 32px))", textAlign:"center" }}>
+        <div style={{ fontSize:34 }} aria-hidden>🇰🇷</div>
+        <h2 style={{ margin:"8px 0 0", color:"#fff", fontSize:20 }}>Korean Bulletin</h2>
+        <p style={{ margin:"18px auto", maxWidth:390, color:"rgba(255,255,255,0.72)", fontSize:13, lineHeight:1.65 }}>
+          No Korean content yet. Start by copying the English bulletin as a base for translation.
+          After initialization, Korean is fully isolated—English changes will never affect it.
+        </p>
+        <button type="button" className="glass-primary-button" onClick={onInitialize} disabled={loading} style={{ margin:"0 auto" }}>
+          {loading ? "Initializing…" : "Initialize from English"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SyncPreviewModal({
+  sectionKey,
+  currentData,
+  meta,
+  onKeepMine,
+  onUseEnglish,
+  onClose,
+}: {
+  sectionKey: string;
+  currentData: BulletinData;
+  meta: BulletinMeta;
+  onKeepMine: () => void;
+  onUseEnglish: () => void;
+  onClose: () => void;
+}) {
+  const pending = meta.sections[sectionKey]?.pendingEnContent ?? {};
+  const fields = SECTION_FIELD_MAP[sectionKey] ?? [];
+  const displayValue = (value: unknown) => typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  return (
+    <div className="multilang-modal-backdrop" role="dialog" aria-modal="true" aria-label="English section update preview">
+      <div className="multilang-modal-card sync-preview-card">
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14 }}>
+          <div style={{ color:"#fff", fontSize:16, fontWeight:900 }}>Section: {sectionKey}</div>
+          <button type="button" onClick={onClose} aria-label="Close preview" className="glass-icon-button">×</button>
+        </div>
+        <div className="sync-preview-grid">
+          <div>
+            <div className="sync-column-title">English (updated)</div>
+            {fields.map((field) => {
+              const changed = JSON.stringify(pending[field]) !== JSON.stringify(currentData[field]);
+              return (
+                <div key={field} className="sync-field" style={{ background:changed ? "rgba(251,191,36,0.13)" : "rgba(255,255,255,0.04)" }}>
+                  <div className="sync-field-label">{field}</div>
+                  <pre>{displayValue(pending[field])}</pre>
+                </div>
+              );
+            })}
+          </div>
+          <div>
+            <div className="sync-column-title">Your current translation</div>
+            {fields.map((field) => (
+              <div key={field} className="sync-field">
+                <div className="sync-field-label">{field}</div>
+                <pre>{displayValue(currentData[field])}</pre>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", gap:10, marginTop:16 }}>
+          <button type="button" className="glass-secondary-button" onClick={onKeepMine}>Keep mine</button>
+          <button type="button" className="glass-primary-button" onClick={onUseEnglish}>Use English as starting point</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionEditorPanel({
   activeTab,
   data,
   set,
   onClose,
+  language,
+  meta,
+  readOnly,
+  onTakeOver,
+  onPreviewSync,
+  onApplySync,
+  onDismissSync,
 }: {
   activeTab: TabId;
   data: BulletinData;
   set: (patch: Partial<BulletinData>) => void;
   onClose: () => void;
+  language: BulletinLanguage;
+  meta: BulletinMeta;
+  readOnly: boolean;
+  onTakeOver: () => void;
+  onPreviewSync: (sectionKey: string) => void;
+  onApplySync: (sectionKey: string) => void;
+  onDismissSync: (sectionKey: string) => void;
 }) {
   const section = SECTIONS.find((item) => item.id === activeTab);
+  const sectionKey = TAB_SECTION_KEY[activeTab];
+  const pendingSync = language !== "en" && language !== "ko" && meta.sections[sectionKey]?.status === "pending";
 
   const editor = (() => {
     switch (activeTab) {
@@ -2480,8 +2701,26 @@ function SectionEditorPanel({
           }}
         >×</button>
       </div>
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "20px 16px", background: "#F2F5FB" }}>
-        {editor}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "16px", background: "#F2F5FB" }}>
+        {readOnly && (
+          <div style={{ position:"sticky", top:0, zIndex:3, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, padding:"10px 12px", borderRadius:10, background:"rgba(30,58,138,0.92)", color:"#fff", boxShadow:"0 8px 24px rgba(15,23,42,0.18)" }}>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:11.5, fontWeight:700 }}><Eye size={14} /> Viewing only—{LANGUAGE_CONFIG[language].name} is being edited by another user</span>
+            <button type="button" className="glass-secondary-button" onClick={onTakeOver}>Take Over</button>
+          </div>
+        )}
+        {pendingSync && (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap", marginBottom:12, padding:"11px 12px", borderRadius:10, borderLeft:"3px solid #F59E0B", background:"rgba(251,191,36,0.15)", color:"#78350F" }}>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:11.5, fontWeight:800 }}><AlertTriangle size={15} /> English updated this section</span>
+            <div style={{ display:"flex", gap:7 }}>
+              <button type="button" className="sync-banner-button" onClick={() => onPreviewSync(sectionKey)}>Preview ↗</button>
+              <button type="button" className="sync-banner-button" onClick={() => onApplySync(sectionKey)} disabled={readOnly}>Apply</button>
+              <button type="button" className="sync-banner-button" onClick={() => onDismissSync(sectionKey)} disabled={readOnly}>Dismiss</button>
+            </div>
+          </div>
+        )}
+        <div aria-disabled={readOnly} style={{ pointerEvents:readOnly ? "none" : "auto", opacity:readOnly ? 0.72 : 1 }}>
+          {editor}
+        </div>
       </div>
     </aside>
   );
@@ -2496,9 +2735,29 @@ export default function Home() {
   const historyStack = useRef<BulletinData[]>([]);
   const historyPos   = useRef(-1);
   const [historyStamp, setHistoryStamp] = useState(0);
+  const sessionId = useRef(
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
+  const activeLangRef = useRef<BulletinLanguage>("en");
 
   const [data, setData]           = useState<BulletinData | null>(null);
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [activeLang, setActiveLang] = useState<BulletinLanguage>("en");
+  const [meta, setMeta] = useState<BulletinMeta>(() => defaultBulletinMeta("en"));
+  const [metaByLanguage, setMetaByLanguage] = useState<Record<BulletinLanguage, BulletinMeta>>(() => ({
+    en: defaultBulletinMeta("en"),
+    es: defaultBulletinMeta("es"),
+    ko: defaultBulletinMeta("ko"),
+    zh: defaultBulletinMeta("zh"),
+    ru: defaultBulletinMeta("ru"),
+  }));
+  const [locks, setLocks] = useState<LanguageLocks>({ en:null, es:null, ko:null, zh:null, ru:null });
+  const [lockConflict, setLockConflict] = useState<{ language: BulletinLanguage; lock: LanguageLock } | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
+  const [syncPreviewSection, setSyncPreviewSection] = useState<string | null>(null);
+  const [initializingKorean, setInitializingKorean] = useState(false);
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
@@ -2541,39 +2800,113 @@ export default function Home() {
     zoom.style.zoom       = String(z);
   }, []);
 
-  // Load bulletin
+  const postLockAction = useCallback(async (
+    action: "acquire" | "release" | "heartbeat" | "takeover",
+    language: BulletinLanguage,
+  ) => {
+    const response = await fetch("/api/locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, lang:language, sessionId:sessionId.current, userName:"Editor" }),
+      keepalive: action === "release",
+    });
+    return response.json() as Promise<{ ok: boolean; lock?: LanguageLock }>;
+  }, []);
+
+  const loadLanguage = useCallback(async (language: BulletinLanguage) => {
+    const response = await fetch(`/api/bulletin/${language}`, { cache:"no-store" });
+    if (!response.ok) throw new Error(`Unable to load ${language} bulletin`);
+    const payload = await response.json() as BulletinApiResponse;
+    const bulletin = payload.data;
+
+    if (language === "en" && bulletin.date) {
+      try {
+        const autoResponse = await fetch(`/api/auto-populate?date=${encodeURIComponent(bulletin.date)}`);
+        if (autoResponse.ok) {
+          const { dates, reading1, reading2 } = await autoResponse.json();
+          bulletin.bibleReadingDates = dates;
+          bulletin.bibleReading1 = reading1;
+          bulletin.bibleReading2 = reading2;
+        }
+      } catch {}
+    }
+
+    setData(bulletin);
+    setMeta(payload.meta);
+    setMetaByLanguage((current) => ({ ...current, [language]: payload.meta }));
+    historyStack.current = [bulletin];
+    historyPos.current = 0;
+    setHistoryStamp((stamp) => stamp + 1);
+
+    const [calendarMonth, calendarYear] = String(bulletin.calendarMonth ?? "").split("/").map(Number);
+    const initialMonth = calendarMonth && calendarYear
+      ? `${calendarYear}-${String(calendarMonth).padStart(2, "0")}`
+      : monthFromBulletinDate(bulletin.date ?? "");
+    if (initialMonth) {
+      setSelectedMonth(initialMonth);
+      const [month, day, year] = String(bulletin.date).split("/").map(Number);
+      const selectedDate = new Date(year, month - 1, day);
+      const sunday = addLocalDays(selectedDate, -selectedDate.getDay());
+      const weekIndex = getBulletinWeeks(initialMonth).findIndex((week) => week.startIso === localIso(sunday));
+      setSelectedWeekIndex(Math.max(0, weekIndex));
+    }
+  }, []);
+
+  const refreshLanguageStatus = useCallback(async () => {
+    try {
+      const [locksResponse, ...languageResponses] = await Promise.all([
+        fetch("/api/locks", { cache:"no-store" }),
+        ...BULLETIN_LANGUAGES.map((language) => fetch(`/api/bulletin/${language}`, { cache:"no-store" })),
+      ]);
+      if (locksResponse.ok) setLocks(await locksResponse.json());
+      const updates: Partial<Record<BulletinLanguage, BulletinMeta>> = {};
+      for (let index = 0; index < BULLETIN_LANGUAGES.length; index += 1) {
+        if (!languageResponses[index].ok) continue;
+        const payload = await languageResponses[index].json() as BulletinApiResponse;
+        const language = BULLETIN_LANGUAGES[index];
+        updates[language] = payload.meta;
+        if (language === activeLangRef.current) setMeta(payload.meta);
+      }
+      setMetaByLanguage((current) => ({ ...current, ...updates }));
+    } catch {}
+  }, []);
+
   useEffect(() => {
-    fetch("/api/bulletin")
-      .then((r) => r.json())
-      .then(async (bulletin) => {
-        if (bulletin.date) {
-          try {
-            const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(bulletin.date)}`);
-            if (res.ok) {
-              const { dates, reading1, reading2 } = await res.json();
-              bulletin.bibleReadingDates = dates;
-              bulletin.bibleReading1     = reading1;
-              bulletin.bibleReading2     = reading2;
-            }
-          } catch {}
-        }
-        setData(bulletin);
-        historyStack.current = [bulletin];
-        historyPos.current = 0;
-        const [calendarMonth, calendarYear] = String(bulletin.calendarMonth ?? "").split("/").map(Number);
-        const initialMonth = calendarMonth && calendarYear
-          ? `${calendarYear}-${String(calendarMonth).padStart(2, "0")}`
-          : monthFromBulletinDate(bulletin.date ?? "");
-        if (initialMonth) {
-          setSelectedMonth(initialMonth);
-          const [month, day, year] = String(bulletin.date).split("/").map(Number);
-          const selectedDate = new Date(year, month - 1, day);
-          const sunday = addLocalDays(selectedDate, -selectedDate.getDay());
-          const weekIndex = getBulletinWeeks(initialMonth)
-            .findIndex((week) => week.startIso === localIso(sunday));
-          setSelectedWeekIndex(Math.max(0, weekIndex));
-        }
-      });
+    let cancelled = false;
+    (async () => {
+      const acquisition = await postLockAction("acquire", "en");
+      if (cancelled) return;
+      if (!acquisition.ok && acquisition.lock) setLockConflict({ language:"en", lock:acquisition.lock });
+      await loadLanguage("en");
+      await refreshLanguageStatus();
+    })().catch(() => setSavedMsg("Unable to load bulletin"));
+    return () => { cancelled = true; };
+  }, [loadLanguage, postLockAction, refreshLanguageStatus]);
+
+  useEffect(() => {
+    const interval = window.setInterval(refreshLanguageStatus, 30_000);
+    return () => window.clearInterval(interval);
+  }, [refreshLanguageStatus]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    const interval = window.setInterval(() => {
+      postLockAction("heartbeat", activeLang).catch(() => undefined);
+    }, 120_000);
+    return () => window.clearInterval(interval);
+  }, [activeLang, postLockAction, readOnly]);
+
+  useEffect(() => {
+    const release = () => {
+      fetch("/api/locks", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ action:"release", lang:activeLangRef.current, sessionId:sessionId.current, userName:"Editor" }),
+        keepalive:true,
+      }).catch(() => undefined);
+    };
+    window.addEventListener("beforeunload", release);
+    return () => window.removeEventListener("beforeunload", release);
   }, []);
 
   // Load auto-fill management data
@@ -2704,6 +3037,7 @@ export default function Home() {
   const canRedo = historyPos.current < historyStack.current.length - 1;
 
   const patch = useCallback((p: Partial<BulletinData>) => {
+    if (readOnly) return;
     setData((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...p };
@@ -2714,7 +3048,7 @@ export default function Home() {
       return next;
     });
     setHistoryStamp(s => s + 1);
-  }, []);
+  }, [readOnly]);
 
   const undo = useCallback(() => {
     if (historyPos.current <= 0) return;
@@ -2730,20 +3064,95 @@ export default function Home() {
     setHistoryStamp(s => s + 1);
   }, []);
 
+  const switchLanguage = async (language: BulletinLanguage) => {
+    if (language === activeLang) return;
+    if (!readOnly) await postLockAction("release", activeLang).catch(() => undefined);
+
+    activeLangRef.current = language;
+    setActiveLang(language);
+    setActiveTab(null);
+    setSyncPreviewSection(null);
+    setReadOnly(false);
+
+    const acquisition = await postLockAction("acquire", language);
+    await loadLanguage(language);
+    if (!acquisition.ok && acquisition.lock) {
+      setLockConflict({ language, lock:acquisition.lock });
+    }
+    await refreshLanguageStatus();
+  };
+
+  const takeOverLanguage = async (language: BulletinLanguage = activeLang) => {
+    const takeover = await postLockAction("takeover", language);
+    if (!takeover.ok) return;
+    activeLangRef.current = language;
+    setActiveLang(language);
+    setReadOnly(false);
+    setLockConflict(null);
+    await loadLanguage(language);
+    await refreshLanguageStatus();
+  };
+
+  const initializeKorean = async () => {
+    setInitializingKorean(true);
+    try {
+      const response = await fetch("/api/bulletin/ko/init", { method:"POST" });
+      if (!response.ok) throw new Error("Unable to initialize Korean bulletin");
+      await loadLanguage("ko");
+      await refreshLanguageStatus();
+    } finally {
+      setInitializingKorean(false);
+    }
+  };
+
+  const applyEnglishSection = async (sectionKey: string) => {
+    if (readOnly || activeLang === "en" || activeLang === "ko") return;
+    const response = await fetch(`/api/bulletin/${activeLang}/apply`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ sectionKey }),
+    });
+    if (!response.ok) return;
+    const payload = await response.json() as BulletinApiResponse;
+    setData(payload.data);
+    setMeta(payload.meta);
+    setMetaByLanguage((current) => ({ ...current, [activeLang]:payload.meta }));
+    historyStack.current = [payload.data];
+    historyPos.current = 0;
+    setSyncPreviewSection(null);
+  };
+
+  const dismissEnglishSection = async (sectionKey: string) => {
+    if (readOnly || activeLang === "en" || activeLang === "ko") return;
+    const response = await fetch(`/api/bulletin/${activeLang}/dismiss`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ sectionKey }),
+    });
+    if (!response.ok) return;
+    const payload = await response.json() as { meta: BulletinMeta };
+    setMeta(payload.meta);
+    setMetaByLanguage((current) => ({ ...current, [activeLang]:payload.meta }));
+    setSyncPreviewSection(null);
+  };
+
   const save = async () => {
-    if (!data) return;
+    if (!data || readOnly) return;
     setSaving(true);
-    const res = await fetch("/api/bulletin", {
-      method: "PUT",
+    const sectionKey = activeTab ? TAB_SECTION_KEY[activeTab] : undefined;
+    const res = await fetch(`/api/bulletin/${activeLang}`, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ data, sectionKey }),
     });
     setSaving(false);
     setSavedMsg(res.ok ? "Saved!" : "Error saving");
+    if (res.ok) await refreshLanguageStatus();
     setTimeout(() => setSavedMsg(""), 2500);
   };
 
   const handleGenerateWeek = async () => {
+    if (readOnly) return;
     const week = getBulletinWeeks(selectedMonth)[selectedWeekIndex];
     if (!week) return;
 
@@ -2811,19 +3220,7 @@ export default function Home() {
   }
 
   const refreshBulletin = async () => {
-    const bulletin = await fetch("/api/bulletin").then((r) => r.json());
-    if (bulletin.date) {
-      try {
-        const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(bulletin.date)}`);
-        if (res.ok) {
-          const { dates, reading1, reading2 } = await res.json();
-          bulletin.bibleReadingDates = dates;
-          bulletin.bibleReading1     = reading1;
-          bulletin.bibleReading2     = reading2;
-        }
-      } catch {}
-    }
-    setData(bulletin);
+    await loadLanguage(activeLang);
     loadMgmt();
   };
 
@@ -2925,6 +3322,38 @@ export default function Home() {
       )}
 
       {/* ── Figma-style layers sidebar (always visible) ── */}
+      <LanguageTabBar
+        activeLanguage={activeLang}
+        metaByLanguage={metaByLanguage}
+        locks={locks}
+        sessionId={sessionId.current}
+        onSelect={switchLanguage}
+      />
+
+      {lockConflict && (
+        <LockModal
+          language={lockConflict.language}
+          lock={lockConflict.lock}
+          onViewOnly={() => { setReadOnly(true); setLockConflict(null); }}
+          onTakeOver={() => takeOverLanguage(lockConflict.language)}
+        />
+      )}
+
+      {activeLang === "ko" && !meta.initializedFromEn && (
+        <KoreanInitOverlay onInitialize={initializeKorean} loading={initializingKorean} />
+      )}
+
+      {syncPreviewSection && data && (
+        <SyncPreviewModal
+          sectionKey={syncPreviewSection}
+          currentData={data}
+          meta={meta}
+          onClose={() => setSyncPreviewSection(null)}
+          onKeepMine={() => dismissEnglishSection(syncPreviewSection)}
+          onUseEnglish={() => applyEnglishSection(syncPreviewSection)}
+        />
+      )}
+
       <div className="mobile-toolbar">
         <div className="mobile-toolbar-row">
           <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
@@ -2937,7 +3366,7 @@ export default function Home() {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
             <button type="button" onClick={() => setMobileSetupOpen(true)} className="mobile-top-button">Setup</button>
-            <button type="button" onClick={save} disabled={saving || !data} className="mobile-top-button mobile-save-button">
+            <button type="button" onClick={save} disabled={saving || !data || readOnly} className="mobile-top-button mobile-save-button">
               {saving ? "Saving…" : "Save"}
             </button>
           </div>
@@ -3062,7 +3491,7 @@ export default function Home() {
 
             <motion.button
               onClick={handleGenerateWeek}
-              disabled={!selectedWeek || generatingWeek}
+              disabled={!selectedWeek || generatingWeek || readOnly}
               whileHover={selectedWeek && !generatingWeek ? { scale: 1.015 } : undefined}
               whileTap={selectedWeek && !generatingWeek ? { scale: 0.98 } : undefined}
               transition={{ duration: 0.15, ease: "easeOut" }}
@@ -3156,7 +3585,7 @@ export default function Home() {
         <div style={{ flexShrink: 0, borderTop: "1px solid #F1F5F9", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
           <motion.button
             onClick={save}
-            disabled={saving || !data}
+            disabled={saving || !data || readOnly}
             whileHover={!saving && data ? { scale: 1.015 } : undefined}
             whileTap={!saving && data ? { scale: 0.98 } : undefined}
             transition={{ duration: 0.15, ease: "easeOut" }}
@@ -3177,6 +3606,13 @@ export default function Home() {
           data={data}
           set={patch}
           onClose={() => setActiveTab(null)}
+          language={activeLang}
+          meta={meta}
+          readOnly={readOnly}
+          onTakeOver={() => takeOverLanguage(activeLang)}
+          onPreviewSync={setSyncPreviewSection}
+          onApplySync={applyEnglishSection}
+          onDismissSync={dismissEnglishSection}
         />
       )}
 
@@ -3194,7 +3630,7 @@ export default function Home() {
           <div ref={pdfPanRef} style={{ position: "absolute", left: 0, top: 0, willChange: "transform" }}>
             {/* Zoom layer — CSS zoom for crisp text re-rasterize */}
             <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: canvasMode === "grab" ? "none" : "auto" }}>
-              <BulletinPreview data={data} onUpdate={canvasMode === "grab" ? undefined : patch} />
+              <BulletinPreview data={data} onUpdate={canvasMode === "grab" || readOnly ? undefined : patch} />
               <BulletinFitController fitKey={JSON.stringify(data)} />
             </div>
           </div>
@@ -3220,7 +3656,105 @@ export default function Home() {
           display: none;
         }
 
-        @media (max-width: 1180px), (hover: none) and (pointer: coarse) {
+        .language-tab-bar {
+          position: fixed;
+          top: 10px;
+          right: 16px;
+          z-index: 80;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          padding: 5px;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 999px;
+          background: rgba(10,10,18,0.42);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          backdrop-filter: blur(24px) saturate(1.6);
+          -webkit-backdrop-filter: blur(24px) saturate(1.6);
+        }
+
+        .multilang-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 500;
+          display: grid;
+          place-items: center;
+          padding: 16px;
+          background: rgba(7,10,24,0.72);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .multilang-modal-card {
+          max-height: calc(100dvh - 32px);
+          overflow: auto;
+          padding: 22px;
+          border: 1px solid rgba(255,255,255,0.18);
+          border-radius: 18px;
+          background: rgba(18,20,36,0.88);
+          color: #fff;
+          box-shadow: 0 24px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16);
+          backdrop-filter: blur(28px) saturate(2) brightness(1.08);
+          -webkit-backdrop-filter: blur(28px) saturate(2) brightness(1.08);
+        }
+
+        .glass-primary-button,
+        .glass-secondary-button,
+        .glass-icon-button,
+        .sync-banner-button {
+          border-radius: 9px;
+          font-size: 11px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .glass-primary-button,
+        .glass-secondary-button {
+          min-height: 36px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 0 13px;
+        }
+
+        .glass-primary-button {
+          border: 1px solid rgba(147,197,253,0.35);
+          background: rgba(68,114,196,0.88);
+          color: #fff;
+        }
+
+        .glass-secondary-button {
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.08);
+          color: #fff;
+        }
+
+        .glass-icon-button {
+          width: 34px;
+          height: 34px;
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.08);
+          color: #fff;
+          font-size: 20px;
+        }
+
+        .sync-banner-button {
+          min-height: 28px;
+          padding: 0 9px;
+          border: 1px solid rgba(146,64,14,0.2);
+          background: rgba(255,255,255,0.65);
+          color: #92400E;
+        }
+
+        .sync-preview-card { width: min(900px, calc(100vw - 32px)); }
+        .sync-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .sync-column-title { margin-bottom: 8px; color: rgba(255,255,255,0.78); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; }
+        .sync-field { margin-bottom: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; background: rgba(255,255,255,0.04); }
+        .sync-field-label { margin-bottom: 5px; color: #93C5FD; font-size: 10px; font-weight: 900; }
+        .sync-field pre { margin: 0; color: rgba(255,255,255,0.82); font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+        @media (max-width: 720px) {
           .editor-shell {
             height: 100dvh !important;
             flex-direction: column !important;
@@ -3237,6 +3771,19 @@ export default function Home() {
             border-bottom: 1px solid #CBD5E1;
             z-index: 40;
           }
+
+          .language-tab-bar {
+            top: 114px;
+            left: 8px;
+            right: 8px;
+            justify-content: flex-start;
+            overflow-x: auto;
+            scrollbar-width: none;
+          }
+
+          .language-tab-bar::-webkit-scrollbar { display: none; }
+
+          .sync-preview-grid { grid-template-columns: 1fr; }
 
           .mobile-toolbar-row {
             height: 58px;

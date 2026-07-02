@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
-const DATA_PATH = join(process.cwd(), "data", "bulletin.json");
+const DATA_PATH = join(process.cwd(), "data", "bulletin.en.json");
 
 export async function GET() {
   const data = JSON.parse(readFileSync(DATA_PATH, "utf-8"));

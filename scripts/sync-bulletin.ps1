@@ -14,7 +14,7 @@ $bulletinPaths = @(
   "app\print\page.tsx"
   "app\layout.tsx"
   "app\page.tsx"
-  "data\bulletin.json"
+  "data\bulletin.en.json"
   "lib\bulletin-types.ts"
   "public\church.jpg"
   "public\logo-full.png"
