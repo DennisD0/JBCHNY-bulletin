@@ -494,5 +494,26 @@
       }
     ]
   },
-  "bulletinTitle": "Boletín de la Iglesia"
+  "bulletinTitle": "Boletín de la Iglesia",
+  "labels": {
+    "headSermon": "Sermón del Domingo",
+    "headServices": "Servicios",
+    "headSeminar": "Seminario Bíblico de la Costa Este",
+    "headFellowship": "Servicios y Comunión",
+    "lblTitle": "Título",
+    "lblMainVerse": "Versículo principal",
+    "lblSpeaker": "Predicador",
+    "lblEndingPraise": "Himno final",
+    "colSunday": "Domingo",
+    "colUsherSun": "Ujier (DOM)",
+    "colLunchDuty": "Almuerzo",
+    "colChildCare": "Cuidado de niños",
+    "colUsherWed": "Ujier (MIÉ)",
+    "colDate": "Fecha",
+    "colChurchName": "Iglesia",
+    "colSemSpeaker": "Predicador",
+    "colLanguage": "Idioma",
+    "lblPastor": "Pastor",
+    "lblAddress": "Dirección"
+  }
 }

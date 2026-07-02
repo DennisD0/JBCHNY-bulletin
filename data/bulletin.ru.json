@@ -494,5 +494,26 @@
       }
     ]
   },
-  "bulletinTitle": "Церковный бюллетень"
+  "bulletinTitle": "Церковный бюллетень",
+  "labels": {
+    "headSermon": "Воскресная Проповедь",
+    "headServices": "Служение",
+    "headSeminar": "Библейский Семинар Восточного Побережья",
+    "headFellowship": "Служение и Общение",
+    "lblTitle": "Тема",
+    "lblMainVerse": "Основной стих",
+    "lblSpeaker": "Проповедник",
+    "lblEndingPraise": "Заключительный гимн",
+    "colSunday": "Воскресенье",
+    "colUsherSun": "Помощник (ВС)",
+    "colLunchDuty": "Обед",
+    "colChildCare": "Детская",
+    "colUsherWed": "Помощник (СР)",
+    "colDate": "Дата",
+    "colChurchName": "Церковь",
+    "colSemSpeaker": "Проповедник",
+    "colLanguage": "Язык",
+    "lblPastor": "Пастор",
+    "lblAddress": "Адрес"
+  }
 }

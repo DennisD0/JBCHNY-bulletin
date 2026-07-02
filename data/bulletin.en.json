@@ -488,5 +488,26 @@
       }
     ]
   },
-  "bulletinTitle": "Church Bulletin"
+  "bulletinTitle": "Church Bulletin",
+  "labels": {
+    "headSermon": "Lord's Day Sermon",
+    "headServices": "Services",
+    "headSeminar": "US East Coast Bible Seminar",
+    "headFellowship": "Services & Fellowship",
+    "lblTitle": "Title",
+    "lblMainVerse": "Main verse",
+    "lblSpeaker": "Speaker",
+    "lblEndingPraise": "Ending praise",
+    "colSunday": "Sunday",
+    "colUsherSun": "Usher (SUN)",
+    "colLunchDuty": "Lunch Duty",
+    "colChildCare": "Child Care",
+    "colUsherWed": "Usher (WED)",
+    "colDate": "Date",
+    "colChurchName": "Church",
+    "colSemSpeaker": "Speaker",
+    "colLanguage": "Language",
+    "lblPastor": "Pastor",
+    "lblAddress": "Address"
+  }
 }

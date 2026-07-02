@@ -653,15 +653,15 @@ export default function BulletinPreview({
 
           {/* Lord's Day Sermon */}
           <div data-fit-section="sermon" style={{ height:140, overflow:"hidden", flexShrink:0 }}>
-            <SecHead title="Lord's Day Sermon" />
+            <SecHead title={data.labels?.headSermon ?? "Lord's Day Sermon"} />
             <div data-fit-body>
             <table style={{ ...tbl }}>
               <tbody>
                 {([
-                  ["Title",         data.sermonTitle,        "sermonTitle"],
-                  ["Main verse",    data.sermonVerse,        "sermonVerse"],
-                  ["Speaker",       data.sermonSpeaker,      "sermonSpeaker"],
-                  ["Ending praise", data.sermonEndingPraise, "sermonEndingPraise"],
+                  [data.labels?.lblTitle        ?? "Title",         data.sermonTitle,        "sermonTitle"],
+                  [data.labels?.lblMainVerse    ?? "Main verse",    data.sermonVerse,        "sermonVerse"],
+                  [data.labels?.lblSpeaker      ?? "Speaker",       data.sermonSpeaker,      "sermonSpeaker"],
+                  [data.labels?.lblEndingPraise ?? "Ending praise", data.sermonEndingPraise, "sermonEndingPraise"],
                 ] as [string, string, keyof BulletinData][]).map(([lbl, val, key]) => (
                   <tr key={lbl}>
                     <td style={{
@@ -683,12 +683,18 @@ export default function BulletinPreview({
 
           {/* Services */}
           <div data-fit-section="services" style={{ height:157, overflow:"hidden", flexShrink:0 }}>
-            <SecHead title="Services" />
+            <SecHead title={data.labels?.headServices ?? "Services"} />
             <div data-fit-body>
             <table style={tbl}>
               <thead>
                 <tr>
-                  {["Sunday","Usher (SUN)","Lunch Duty","Child Care","Usher (WED)"].map(h => (
+                  {[
+                    data.labels?.colSunday    ?? "Sunday",
+                    data.labels?.colUsherSun  ?? "Usher (SUN)",
+                    data.labels?.colLunchDuty ?? "Lunch Duty",
+                    data.labels?.colChildCare ?? "Child Care",
+                    data.labels?.colUsherWed  ?? "Usher (WED)",
+                  ].map(h => (
                     <TH key={h}>{h}</TH>
                   ))}
                 </tr>
@@ -712,12 +718,17 @@ export default function BulletinPreview({
 
           {/* US East Coast Bible Seminar */}
           <div data-fit-section="east-coast-seminar" style={{ height:201, overflow:"hidden", flexShrink:0 }}>
-            <SecHead title="US East Coast Bible Seminar" />
+            <SecHead title={data.labels?.headSeminar ?? "US East Coast Bible Seminar"} />
             <div data-fit-body>
             <table style={tbl}>
               <thead>
                 <tr>
-                  {["Date","Church","Speaker","Language"].map(h => <TH key={h}>{h}</TH>)}
+                  {[
+                    data.labels?.colDate        ?? "Date",
+                    data.labels?.colChurchName  ?? "Church",
+                    data.labels?.colSemSpeaker  ?? "Speaker",
+                    data.labels?.colLanguage    ?? "Language",
+                  ].map(h => <TH key={h}>{h}</TH>)}
                 </tr>
               </thead>
               <tbody>
@@ -736,7 +747,7 @@ export default function BulletinPreview({
 
           {/* Services & Fellowship */}
           <div data-fit-section="fellowship" style={{ height:209, overflow:"hidden", flexShrink:0 }}>
-            <SecHead title="Services &amp; Fellowship" />
+            <SecHead title={data.labels?.headFellowship ?? "Services & Fellowship"} />
             <div data-fit-body>
             <table style={{ ...tbl, marginBottom:0 }}>
               <tbody>
@@ -764,10 +775,10 @@ export default function BulletinPreview({
           {/* Contact — pinned to bottom */}
           <div style={{ marginTop:"auto", paddingTop:6, borderTop:`${RULE}px solid ${B}` }}>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
-              Pastor <E value={data.phone} onSave={upK("phone")} />&nbsp;&nbsp;&nbsp;&nbsp;<E value={data.email} onSave={upK("email")} />
+              {data.labels?.lblPastor ?? "Pastor"} <E value={data.phone} onSave={upK("phone")} />&nbsp;&nbsp;&nbsp;&nbsp;<E value={data.email} onSave={upK("email")} />
             </p>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
-              Address <E value={data.address} onSave={upK("address")} />
+              {data.labels?.lblAddress ?? "Address"} <E value={data.address} onSave={upK("address")} />
             </p>
           </div>
         </div>
@@ -834,7 +845,7 @@ export default function BulletinPreview({
             position:"absolute", left:0, right:0, top:669,
             textAlign:"center", fontSize:F.pastor, lineHeight:1, margin:0,
           }}>
-            Pastor <strong style={{ fontWeight:700 }}><E value={data.pastor} onSave={upK("pastor")} /></strong>
+            {data.labels?.lblPastor ?? "Pastor"} <strong style={{ fontWeight:700 }}><E value={data.pastor} onSave={upK("pastor")} /></strong>
           </p>
 
           {/* Full logo */}

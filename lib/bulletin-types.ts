@@ -67,8 +67,36 @@ export interface PrayerRequest {
   relation: string;
 }
 
+export interface BulletinLabels {
+  // Section headings
+  headSermon: string;
+  headServices: string;
+  headSeminar: string;
+  headFellowship: string;
+  // Sermon row labels
+  lblTitle: string;
+  lblMainVerse: string;
+  lblSpeaker: string;
+  lblEndingPraise: string;
+  // Services table columns
+  colSunday: string;
+  colUsherSun: string;
+  colLunchDuty: string;
+  colChildCare: string;
+  colUsherWed: string;
+  // Seminar table columns
+  colDate: string;
+  colChurchName: string;
+  colSemSpeaker: string;
+  colLanguage: string;
+  // Contact / front-page labels
+  lblPastor: string;
+  lblAddress: string;
+}
+
 export interface BulletinData {
   bulletinTitle?: string;
+  labels?: BulletinLabels;
   number: string;
   date: string;
   quote: string;

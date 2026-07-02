@@ -494,5 +494,26 @@
       }
     ]
   },
-  "bulletinTitle": "教会周报"
+  "bulletinTitle": "教会周报",
+  "labels": {
+    "headSermon": "主日崇拜证道",
+    "headServices": "服事表",
+    "headSeminar": "美东圣经研习营",
+    "headFellowship": "聚会与团契",
+    "lblTitle": "题目",
+    "lblMainVerse": "经文",
+    "lblSpeaker": "讲员",
+    "lblEndingPraise": "结束诗歌",
+    "colSunday": "主日",
+    "colUsherSun": "司门（主日）",
+    "colLunchDuty": "爱筵",
+    "colChildCare": "儿童看护",
+    "colUsherWed": "司门（周三）",
+    "colDate": "日期",
+    "colChurchName": "教会",
+    "colSemSpeaker": "讲员",
+    "colLanguage": "语言",
+    "lblPastor": "牧师",
+    "lblAddress": "地址"
+  }
 }

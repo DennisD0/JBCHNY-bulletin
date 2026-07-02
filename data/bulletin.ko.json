@@ -494,5 +494,26 @@
       }
     ]
   },
-  "bulletinTitle": "교회 주보"
+  "bulletinTitle": "교회 주보",
+  "labels": {
+    "headSermon": "주일 예배 설교",
+    "headServices": "봉사",
+    "headSeminar": "미 동부 성경 세미나",
+    "headFellowship": "예배와 교제",
+    "lblTitle": "제목",
+    "lblMainVerse": "본문",
+    "lblSpeaker": "강사",
+    "lblEndingPraise": "마침 찬송",
+    "colSunday": "주일",
+    "colUsherSun": "안내 (주일)",
+    "colLunchDuty": "점심 담당",
+    "colChildCare": "어린이 돌봄",
+    "colUsherWed": "안내 (수요)",
+    "colDate": "날짜",
+    "colChurchName": "교회",
+    "colSemSpeaker": "강사",
+    "colLanguage": "언어",
+    "lblPastor": "목사",
+    "lblAddress": "주소"
+  }
 }

@@ -1,7 +1,7 @@
 import type { BulletinData } from "@/lib/bulletin-types";
 
 export const SECTION_FIELD_MAP: Record<string, (keyof BulletinData)[]> = {
-  header: ["bulletinTitle", "number", "date", "quote", "quoteRef", "pastor"],
+  header: ["bulletinTitle", "labels", "number", "date", "quote", "quoteRef", "pastor"],
   sermon: ["sermonTitle", "sermonVerse", "sermonSpeaker", "sermonEndingPraise"],
   services: ["services"],
   bibleReading: ["bibleReadingDates", "bibleReading1", "bibleReading2"],
