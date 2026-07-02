@@ -470,10 +470,10 @@
     "date": "",
     "location": "",
     "fees": [
-      { "label": "성인 (13세 이상)", "amount": "$200" },
-      { "label": "은장회 (70세 이상)", "amount": "$100" },
-      { "label": "7-12세", "amount": "$100" },
-      { "label": "6세 이하, 전도대상자", "amount": "FREE" }
+      { "label": "Adult (13+)", "amount": "$200" },
+      { "label": "Senior (70+)", "amount": "$100" },
+      { "label": "Ages 7-12", "amount": "$100" },
+      { "label": "Under 6 / Prospect", "amount": "FREE" }
     ]
   }
 }

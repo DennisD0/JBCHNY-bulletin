@@ -1012,20 +1012,20 @@ export default function BulletinPreview({
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <tbody>
                     <tr>
-                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, width:48, whiteSpace:"nowrap", verticalAlign:"middle" }}>기간</td>
+                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, width:56, whiteSpace:"nowrap", verticalAlign:"middle" }}>Date</td>
                       <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
                         <E value={data.retreatInfo.date} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, date: v, enabled: true } }) : undefined} />
                       </td>
                     </tr>
                     <tr>
-                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, whiteSpace:"nowrap", verticalAlign:"middle" }}>장소</td>
+                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, whiteSpace:"nowrap", verticalAlign:"middle" }}>Location</td>
                       <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
                         <E value={data.retreatInfo.location} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, location: v, enabled: true } }) : undefined} />
                       </td>
                     </tr>
                     {(data.retreatInfo.fees?.length ?? 0) > 0 && (
                       <tr>
-                        <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, whiteSpace:"nowrap", verticalAlign:"top", paddingTop:2 }}>회비</td>
+                        <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, whiteSpace:"nowrap", verticalAlign:"top", paddingTop:2 }}>Fee</td>
                         <td style={{ paddingBottom:2 }}>
                           <table style={{ width:"100%", borderCollapse:"collapse", border:`${RULE}px solid ${BL}` }}>
                             <tbody>

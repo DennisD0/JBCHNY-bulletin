@@ -1451,10 +1451,10 @@ function RetreatInfoPanel({
   set: (patch: Partial<BulletinData>) => void;
 }) {
   const defaultFees = [
-    { label: "성인 (13세 이상)", amount: "$200" },
-    { label: "은장회 (70세 이상)", amount: "$100" },
-    { label: "7-12세", amount: "$100" },
-    { label: "6세 이하, 전도대상자", amount: "FREE" },
+    { label: "Adult (13+)", amount: "$200" },
+    { label: "Senior (70+)", amount: "$100" },
+    { label: "Ages 7-12", amount: "$100" },
+    { label: "Under 6 / Prospect", amount: "FREE" },
   ];
   const retreat = data.retreatInfo ?? { enabled: false, title: "", date: "", location: "", fees: defaultFees };
   const fees = retreat.fees ?? defaultFees;
@@ -1484,10 +1484,10 @@ function RetreatInfoPanel({
       {retreat.enabled && (
         <div className="flex flex-col gap-3">
           <Field label="Title" value={retreat.title} onChange={(v) => setRetreat({ title: v })} />
-          <Field label="기간 (Date)" value={retreat.date} onChange={(v) => setRetreat({ date: v })} />
-          <Field label="장소 (Location)" value={retreat.location} onChange={(v) => setRetreat({ location: v })} />
+          <Field label="Date" value={retreat.date} onChange={(v) => setRetreat({ date: v })} />
+          <Field label="Location" value={retreat.location} onChange={(v) => setRetreat({ location: v })} />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 6 }}>회비 (Fees)</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 6 }}>Fee Tiers</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {fees.map((fee, i) => (
                 <div key={i} style={{ display: "flex", gap: 6 }}>
