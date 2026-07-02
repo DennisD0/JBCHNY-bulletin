@@ -382,7 +382,7 @@ async function renderPdfToImages(pdfBuffer: Buffer): Promise<Buffer[]> {
     const page = doc.loadPage(i);
     const scale = 2.5; // ~180 DPI
     const pixmap = page.toPixmap(
-      [scale, 0, 0, scale, 0, 0] as unknown as number[],
+      [scale, 0, 0, scale, 0, 0] as import("mupdf").Matrix,
       mupdf.ColorSpace.DeviceRGB,
       false,
       true

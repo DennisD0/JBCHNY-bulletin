@@ -1067,18 +1067,18 @@ function CalendarTab({
               placeholder="Date (e.g. 7/12)"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
-              className="w-28 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+              className="w-28 shrink-0 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
             />
             <input
               placeholder="Event name"
               value={newEvent}
               onChange={(e) => setNewEvent(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addEvent()}
-              className="flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+              className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
             />
             <button
               onClick={addEvent}
-              className="rounded-xl bg-blue-900 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800"
+              className="shrink-0 rounded-xl bg-blue-900 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800"
             >
               Add
             </button>
@@ -1844,14 +1844,14 @@ function FloatingToolbar({
   };
 
   return (
-    <div style={{
+    <div className="floating-toolbar-shell" style={{
       position: "absolute", bottom: 20, left: "50%",
       transform: "translateX(-50%)",
       display: "flex", alignItems: "center", gap: 8,
       zIndex: 30, pointerEvents: "all",
     }}>
       {/* Main pill */}
-      <div style={pillStyle}>
+      <div className="floating-main-pill" style={pillStyle}>
         {/* Mode tools */}
         {CANVAS_TOOLS.map(({ id, label, shortcut, Icon }) => {
           const active = mode === id;
@@ -1934,6 +1934,7 @@ function FloatingToolbar({
       {/* Export button — separate accent pill */}
       <ToolbarTooltip text="Export PDF">
         <motion.button
+          className="floating-export-button"
           onClick={onExport}
           disabled={exporting || disabled}
           whileHover={!exporting && !disabled ? { scale: 1.04 } : undefined}
@@ -2158,6 +2159,111 @@ function SidebarSourceProgress({
   );
 }
 
+function SectionEditorPanel({
+  activeTab,
+  data,
+  set,
+  onClose,
+}: {
+  activeTab: TabId;
+  data: BulletinData;
+  set: (patch: Partial<BulletinData>) => void;
+  onClose: () => void;
+}) {
+  const section = SECTIONS.find((item) => item.id === activeTab);
+
+  const editor = (() => {
+    switch (activeTab) {
+      case "header":
+        return <HeaderTab data={data} set={set} />;
+      case "sermon":
+        return <SermonTab data={data} set={set} />;
+      case "services":
+        return <ServicesTab data={data} set={set} />;
+      case "bible":
+        return <BibleReadingTab data={data} set={set} />;
+      case "memory":
+        return <MemoryVersesSidebarPanel data={data} set={set} />;
+      case "cleaning":
+        return <CleaningTab data={data} set={set} />;
+      case "calendar":
+        return <CalendarTab data={data} set={set} />;
+      case "schedule":
+        return <WeeklyScheduleTab data={data} set={set} />;
+      case "news":
+        return <NewsTab data={data} set={set} />;
+      case "prayer":
+        return <PrayerTab data={data} set={set} />;
+    }
+  })();
+
+  return (
+    <aside
+      className="section-editor-panel"
+      aria-label={`${section?.label ?? "Section"} editor`}
+      style={{
+        width: "min(420px, calc(100vw - 264px))",
+        minWidth: 0,
+        flexShrink: 0,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        background: "#F8FAFC",
+        borderRight: "1px solid #CBD5E1",
+        boxShadow: "6px 0 18px rgba(15,23,42,0.08)",
+        zIndex: 20,
+      }}
+    >
+      <div style={{
+        height: 60,
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        padding: "0 16px 0 20px",
+        background: "#fff",
+        borderBottom: "1px solid #E2E8F0",
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            Edit section
+          </div>
+          <div style={{ marginTop: 2, fontSize: 15, fontWeight: 800, color: "#1E3A8A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {section?.label}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close section editor"
+          title="Close editor"
+          style={{
+            width: 32,
+            height: 32,
+            flexShrink: 0,
+            display: "grid",
+            placeItems: "center",
+            border: "1px solid #E2E8F0",
+            borderRadius: 8,
+            background: "#fff",
+            color: "#64748B",
+            fontSize: 20,
+            lineHeight: 1,
+            cursor: "pointer",
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: 16 }}>
+        {editor}
+      </div>
+    </aside>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main page
 // Layout: [framer sidebar hover-expand] [slide-in form panel] [Miro canvas]
@@ -2170,6 +2276,7 @@ export default function Home() {
 
   const [data, setData]           = useState<BulletinData | null>(null);
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -2270,6 +2377,18 @@ export default function Home() {
     initialized.current = true;
   }, [data, fitToScreen]);
 
+  // Mobile browsers can report a desktop-like layout width during startup and
+  // then settle on the real visual viewport. Refit after resize/orientation
+  // changes so the bulletin never remains cropped at the stale zoom level.
+  useEffect(() => {
+    const handleResize = () => {
+      if (activeTab) return;
+      window.requestAnimationFrame(fitToScreen);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [activeTab, fitToScreen]);
+
   // Non-passive wheel listener for zoom-toward-cursor
   useEffect(() => {
     const el = canvasRef.current;
@@ -2294,7 +2413,7 @@ export default function Home() {
     canvasModeRef.current = canvasMode;
     const el = canvasRef.current;
     if (el && !dragging.current) {
-      el.style.cursor = canvasMode === "grab" ? "grab" : canvasMode === "zoom" ? "zoom-in" : "default";
+      el.style.cursor = canvasMode === "grab" ? "grab" : "default";
     }
   }, [canvasMode]);
 
@@ -2486,14 +2605,21 @@ export default function Home() {
   };
 
   function handleSectionClick(id: TabId) {
-    setActiveTab((prev) => prev === id ? null : id);
-    // Zoom canvas to section center
-    const target = SECTION_ZOOM[id];
-    const el = canvasRef.current;
-    if (!el) return;
-    const cW = el.clientWidth, cH = el.clientHeight;
-    const targetZ = Math.min(Math.max((cH * 0.60) / target.h, 0.35), 2.8);
-    applyTransform(cW / 2 - target.cx * targetZ, cH / 2 - target.cy * targetZ, targetZ, true);
+    const isClosing = activeTab === id;
+    setActiveTab(isClosing ? null : id);
+    setMobileSetupOpen(false);
+    if (isClosing) return;
+
+    // Wait for the editor panel to take up its final width before centering the
+    // selected bulletin section in the remaining canvas.
+    window.requestAnimationFrame(() => {
+      const target = SECTION_ZOOM[id];
+      const el = canvasRef.current;
+      if (!el) return;
+      const cW = el.clientWidth, cH = el.clientHeight;
+      const targetZ = Math.min(Math.max((cH * 0.60) / target.h, 0.35), 2.8);
+      applyTransform(cW / 2 - target.cx * targetZ, cH / 2 - target.cy * targetZ, targetZ, true);
+    });
   }
 
   // Drag / zoom / select handlers — behaviour depends on canvasMode
@@ -2551,7 +2677,7 @@ export default function Home() {
   ].filter((value): value is string => Boolean(value));
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div className="editor-shell" style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
       {uploadTarget && (
         <UploadModal
@@ -2563,7 +2689,37 @@ export default function Home() {
       )}
 
       {/* ── Figma-style layers sidebar (always visible) ── */}
-      <div style={{
+      <div className="mobile-toolbar">
+        <div className="mobile-toolbar-row">
+          <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" style={{ width:30, height:30, objectFit:"contain", flexShrink:0 }} />
+            <div style={{ minWidth:0 }}>
+              <div style={{ fontSize:12, fontWeight:900, color:"#1E3A8A", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>NEW YORK CHURCH</div>
+              <div style={{ fontSize:10.5, color:"#64748B" }}>{data?.date ?? "Loading…"}</div>
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:7, flexShrink:0 }}>
+            <button type="button" onClick={() => setMobileSetupOpen(true)} className="mobile-top-button">Setup</button>
+            <button type="button" onClick={save} disabled={saving || !data} className="mobile-top-button mobile-save-button">
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+        <div className="mobile-section-tabs" aria-label="Bulletin sections">
+          {SECTIONS.map((section) => {
+            const Icon = section.icon;
+            return (
+              <button type="button" key={section.id} onClick={() => handleSectionClick(section.id)} className={activeTab === section.id ? "mobile-section-tab active" : "mobile-section-tab"}>
+                <Icon size={14} strokeWidth={2} />
+                {section.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={mobileSetupOpen ? "editor-sidebar mobile-setup-open" : "editor-sidebar"} style={{
         width: 264, flexShrink: 0, height: "100%",
         background: "#fff",
         borderRight: "1px solid #E2E8F0",
@@ -2578,6 +2734,7 @@ export default function Home() {
             <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
             <div style={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
           </div>
+          <button type="button" className="mobile-setup-close" onClick={() => setMobileSetupOpen(false)} aria-label="Close setup">×</button>
         </div>
 
         {/* Layers nav */}
@@ -2710,12 +2867,6 @@ export default function Home() {
                 isActive={activeTab === sec.id}
                 onClick={() => handleSectionClick(sec.id)}
               />
-              {sec.id === "services" && activeTab === "services" && data && (
-                <ServicesTab data={data} set={patch} />
-              )}
-              {sec.id === "memory" && activeTab === "memory" && data && (
-                <MemoryVersesSidebarPanel data={data} set={patch} />
-              )}
             </div>
           ))}
 
@@ -2732,12 +2883,6 @@ export default function Home() {
                 isActive={activeTab === sec.id}
                 onClick={() => handleSectionClick(sec.id)}
               />
-              {sec.id === "calendar" && activeTab === "calendar" && data && (
-                <RecurringEventsSidebarPanel data={data} set={patch} />
-              )}
-              {sec.id === "prayer" && activeTab === "prayer" && data && (
-                <PrayerTab data={data} set={patch} />
-              )}
             </div>
           ))}
 
@@ -2790,7 +2935,17 @@ export default function Home() {
       </div>
 
       {/* ── PDF canvas — Miro-like pan & zoom ── */}
+      {activeTab && data && (
+        <SectionEditorPanel
+          activeTab={activeTab}
+          data={data}
+          set={patch}
+          onClose={() => setActiveTab(null)}
+        />
+      )}
+
       <div
+        className="editor-canvas"
         ref={canvasRef}
         style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
@@ -2821,7 +2976,160 @@ export default function Home() {
         )}
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .mobile-toolbar,
+        .mobile-setup-close {
+          display: none;
+        }
+
+        @media (max-width: 720px) {
+          .editor-shell {
+            height: 100dvh !important;
+            flex-direction: column !important;
+          }
+
+          .mobile-toolbar {
+            display: flex;
+            width: 100%;
+            height: 108px;
+            flex: 0 0 108px;
+            flex-direction: column;
+            overflow: hidden;
+            background: #fff;
+            border-bottom: 1px solid #CBD5E1;
+            z-index: 40;
+          }
+
+          .mobile-toolbar-row {
+            height: 58px;
+            flex: 0 0 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 10px;
+          }
+
+          .mobile-top-button {
+            height: 34px;
+            padding: 0 11px;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            background: #fff;
+            color: #1E3A8A;
+            font-size: 11.5px;
+            font-weight: 800;
+          }
+
+          .mobile-save-button {
+            border-color: #1E3A8A;
+            background: #1E3A8A;
+            color: #fff;
+          }
+
+          .mobile-section-tabs {
+            height: 50px;
+            flex: 0 0 50px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 10px 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+          }
+
+          .mobile-section-tabs::-webkit-scrollbar { display: none; }
+
+          .mobile-section-tab {
+            height: 34px;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0 10px;
+            border: 1px solid #E2E8F0;
+            border-radius: 999px;
+            background: #F8FAFC;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+          }
+
+          .mobile-section-tab.active {
+            border-color: #4472C4;
+            background: #EEF3FB;
+            color: #1E3A8A;
+          }
+
+          .editor-sidebar {
+            display: none !important;
+          }
+
+          .editor-sidebar.mobile-setup-open {
+            position: fixed !important;
+            inset: 0 !important;
+            display: flex !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            border: none !important;
+            z-index: 90 !important;
+          }
+
+          .mobile-setup-close {
+            margin-left: auto;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            place-items: center;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            background: #fff;
+            color: #64748B;
+            font-size: 21px;
+            line-height: 1;
+          }
+
+          .editor-canvas {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            flex: 1 1 auto !important;
+          }
+
+          .section-editor-panel {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            height: 100dvh !important;
+            z-index: 100 !important;
+          }
+
+          .floating-toolbar-shell {
+            left: 8px !important;
+            right: 8px !important;
+            bottom: 8px !important;
+            width: auto !important;
+            justify-content: center !important;
+            transform: none !important;
+          }
+
+          .floating-main-pill { zoom: 0.78; }
+
+          .floating-export-button {
+            width: 38px !important;
+            height: 38px !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            font-size: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
