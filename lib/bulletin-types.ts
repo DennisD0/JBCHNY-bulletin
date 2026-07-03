@@ -92,6 +92,22 @@ export interface BulletinLabels {
   // Contact / front-page labels
   lblPastor: string;
   lblAddress: string;
+  // Section headings (back page — previously hardcoded in preview)
+  headBibleReading: string;
+  headMemoryVerses: string;
+  headCleaning: string;
+  headCalendar: string;
+  headSeminarInfo: string;
+  headWeekSchedule: string;
+  headChurchNews: string;
+  headPrayer: string;
+  headJointPrayer: string;
+  headRetreats: string;
+  // Week schedule table columns
+  colWeekDate: string;
+  colWeekEvent: string;
+  colWeekLocation: string;
+  colWeekTime: string;
 }
 
 export interface BulletinData {

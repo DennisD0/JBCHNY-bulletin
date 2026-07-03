@@ -676,7 +676,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", height:176, flexShrink:0 }}>
           <PendingBadge sectionKey="bibleReading" enContent={pendingDiffs?.["bibleReading"]} show={!!pendingDiffs?.["bibleReading"]} onDismiss={onDismissPending ? () => onDismissPending("bibleReading") : undefined} />
           <div data-fit-section="bible-reading" style={{ height:176, paddingTop:1, boxSizing:"border-box", overflow:"visible" }}>
-            <SecHead title="Bible Reading" gap={16} />
+            <SecHead title={data.labels?.headBibleReading ?? "Bible Reading"} gap={16} />
             <div data-fit-body>
             <table style={{
               ...tbl,
@@ -777,7 +777,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", height:372, flexShrink:0 }}>
           <PendingBadge sectionKey="memoryVerses" enContent={pendingDiffs?.["memoryVerses"]} show={!!pendingDiffs?.["memoryVerses"]} onDismiss={onDismissPending ? () => onDismissPending("memoryVerses") : undefined} />
           <div data-fit-section="memory-verses" style={{ height:372, overflow:"hidden" }}>
-            <SecHead title="Memory Verses" />
+            <SecHead title={data.labels?.headMemoryVerses ?? "Memory Verses"} />
             <div data-fit-body>
             {data.memoryVerses.map((v,i) => (
               <div key={i} style={{ marginBottom:8 }}>
@@ -805,7 +805,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", flex:1, minHeight:0 }}>
           <PendingBadge sectionKey="cleaning" enContent={pendingDiffs?.["cleaning"]} show={!!pendingDiffs?.["cleaning"]} onDismiss={onDismissPending ? () => onDismissPending("cleaning") : undefined} />
           <div data-fit-section="cleaning-area" style={{ height:"100%", overflow:"hidden" }}>
-            <SecHead title="Lord's Day Cleaning Area" size={14} fontFamily="'Malgun Gothic', Calibri, sans-serif" />
+            <SecHead title={data.labels?.headCleaning ?? "Lord's Day Cleaning Area"} size={14} fontFamily="'Malgun Gothic', Calibri, sans-serif" />
             <div data-fit-body>
             <table style={{ ...tbl, marginBottom:0 }}>
               <thead>
@@ -1051,7 +1051,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", height:560, flexShrink:0 }}>
           <PendingBadge sectionKey="calendar" enContent={pendingDiffs?.["calendar"]} show={!!pendingDiffs?.["calendar"]} onDismiss={onDismissPending ? () => onDismissPending("calendar") : undefined} />
           <div data-fit-section="monthly-calendar" style={{ height:560, overflow:"hidden" }}>
-            <SecHead title={`Monthly Schedule ${data.calendarMonth}`} />
+            <SecHead title={`${data.labels?.headCalendar ?? "Monthly Schedule"} ${data.calendarMonth}`} />
             <div data-fit-body>
               <CalGrid month={mm} year={yyyy} events={data.calendarEvents} banners={data.calendarBanners} weeklyRecurring={data.weeklyRecurring ?? []} onUpdate={onUpdate} />
             </div>
@@ -1059,7 +1059,7 @@ export default function BulletinPreview({
           </div>{/* /monthly-calendar wrapper */}
 
           <div data-fit-section="seminar-info" style={{ flex:1, overflow:"hidden" }}>
-            <SecHead title="Bible Seminar Info" />
+            <SecHead title={data.labels?.headSeminarInfo ?? "Bible Seminar Info"} />
             <div data-fit-body>
             <div style={{ padding:"7px 12px" }}>
               <p style={{
@@ -1095,12 +1095,17 @@ export default function BulletinPreview({
           <div style={{ position: "relative", height:299, flexShrink:0 }}>
           <PendingBadge sectionKey="weekSchedule" enContent={pendingDiffs?.["weekSchedule"]} show={!!pendingDiffs?.["weekSchedule"]} onDismiss={onDismissPending ? () => onDismissPending("weekSchedule") : undefined} />
           <div data-fit-section="weekly-schedule" style={{ height:299, overflow:"hidden" }}>
-            <SecHead title="This week's schedule" />
+            <SecHead title={data.labels?.headWeekSchedule ?? "This week's schedule"} />
             <div data-fit-body>
             <table style={tbl}>
               <thead>
                 <tr>
-                  {["Date","Event","Location","Time"].map(h => <TH key={h}>{h}</TH>)}
+                  {[
+                    data.labels?.colWeekDate ?? "Date",
+                    data.labels?.colWeekEvent ?? "Event",
+                    data.labels?.colWeekLocation ?? "Location",
+                    data.labels?.colWeekTime ?? "Time",
+                  ].map(h => <TH key={h}>{h}</TH>)}
                 </tr>
               </thead>
               <tbody>
@@ -1132,7 +1137,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", flex:1, minHeight:0 }}>
           <PendingBadge sectionKey="news" enContent={pendingDiffs?.["news"]} show={!!pendingDiffs?.["news"]} onDismiss={onDismissPending ? () => onDismissPending("news") : undefined} />
           <div data-fit-section="church-news" style={{ height:"100%", overflow:"hidden" }}>
-            <SecHead title="NY Church News" />
+            <SecHead title={data.labels?.headChurchNews ?? "NY Church News"} />
             <div data-fit-body>
             {data.news.map((item,i) => (
               <div key={i} style={{ marginBottom:7 }}>
@@ -1155,7 +1160,7 @@ export default function BulletinPreview({
           <div style={{ position: "relative", height:299, flexShrink:0 }}>
           <PendingBadge sectionKey="prayer" enContent={pendingDiffs?.["prayer"]} show={!!pendingDiffs?.["prayer"]} onDismiss={onDismissPending ? () => onDismissPending("prayer") : undefined} />
           <div data-fit-section="prayer-requests" style={{ height:299, overflow:"hidden" }}>
-            <SecHead title="Prayer Request" />
+            <SecHead title={data.labels?.headPrayer ?? "Prayer Request"} />
             <div data-fit-body>
             <table style={{ ...tbl, tableLayout: "fixed", border:`${RULE}px solid ${BL}` }}>
               <colgroup>
@@ -1188,7 +1193,7 @@ export default function BulletinPreview({
             height: data.retreatInfo?.enabled ? 190 : undefined,
             overflow:"hidden",
           }}>
-            <SecHead title="Joint Prayer" />
+            <SecHead title={data.labels?.headJointPrayer ?? "Joint Prayer"} />
             <div data-fit-body>
             {data.jointPrayer.map((item,i) => (
               <div key={i} style={{ marginBottom:7 }}>
@@ -1207,7 +1212,7 @@ export default function BulletinPreview({
             <div style={{ position: "relative", flex:1, minHeight:0 }}>
             <PendingBadge sectionKey="retreatInfo" enContent={pendingDiffs?.["retreatInfo"]} show={!!pendingDiffs?.["retreatInfo"]} onDismiss={onDismissPending ? () => onDismissPending("retreatInfo") : undefined} />
             <div data-fit-section="retreat-info" style={{ height:"100%", overflow:"hidden" }}>
-              <SecHead title="Retreat Schedule" />
+              <SecHead title={data.labels?.headRetreats ?? "Retreat Schedule"} />
               <div data-fit-body>
               <div style={{ padding:"2px 0 4px" }}>
                 <p style={{

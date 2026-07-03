@@ -14,6 +14,9 @@ const UNTRANSLATED_KEYS = new Set([
   "pastor", "sermonSpeaker", "speaker", "reference", "quoteRef", "sermonVerse",
   "who", "whom", "usherSun", "lunchDuty", "childCare", "usherWed", "church",
   "amount",
+  // Bible reading values are scripture references (e.g. "Psalms 73-77", "1 Pet 1-5") —
+  // translating them mangles abbreviations ("Pet" → "mascota", "Rev" → "Rev.", etc.)
+  "bibleReading1", "bibleReading2", "bibleReadingDates",
 ]);
 
 // skipValues is a Set of specific string *values* (not key names) that were already

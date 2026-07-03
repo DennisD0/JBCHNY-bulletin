@@ -508,6 +508,20 @@
     "colSemSpeaker": "Speaker",
     "colLanguage": "Language",
     "lblPastor": "Pastor",
-    "lblAddress": "Address"
+    "lblAddress": "Address",
+    "headBibleReading": "Bible Reading",
+    "headMemoryVerses": "Memory Verses",
+    "headCleaning": "Lord's Day Cleaning Area",
+    "headCalendar": "Monthly Schedule",
+    "headSeminarInfo": "Bible Seminar Info",
+    "headWeekSchedule": "This week's schedule",
+    "headChurchNews": "NY Church News",
+    "headPrayer": "Prayer Request",
+    "headJointPrayer": "Joint Prayer",
+    "headRetreats": "Retreat Schedule",
+    "colWeekDate": "Date",
+    "colWeekEvent": "Event",
+    "colWeekLocation": "Location",
+    "colWeekTime": "Time"
   }
 }
