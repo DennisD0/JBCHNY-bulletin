@@ -982,11 +982,11 @@ export default function BulletinPreview({
 
           {/* "Church Bulletin" — forced two-line break, matches original's stacked title */}
           <h1 style={{
-            position:"absolute", left:0, right:0, top:136,
+            position:"absolute", left:0, right:0, top:112,
             fontFamily:"'Book Antiqua', 'Palatino Linotype', serif",
             fontSize:F.title, fontWeight:700,
             textAlign:"center", letterSpacing:0, lineHeight:1,
-            color:"#000", margin:0, whiteSpace:"nowrap",
+            color:"#000", margin:0, whiteSpace:"pre-line",
           }}>
             {data.bulletinTitle ?? "Church Bulletin"}
           </h1>

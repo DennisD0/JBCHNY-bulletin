@@ -27,7 +27,7 @@ const BULLETIN_TITLES: Record<Exclude<BulletinLanguage, "en">, string> = {
   es: "Boletín Dominical",
   ko: "교회소식",
   zh: "教会消息",
-  ru: "Церковный вестник",
+  ru: "Церковный\nвестник",
 };
 
 // skipValues is a Set of specific string *values* (not key names) that were already
