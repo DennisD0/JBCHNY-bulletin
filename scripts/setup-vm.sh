@@ -28,7 +28,7 @@ sudo apt-get install -y -q curl git nginx
 
 # ── 3. Node.js 20 ────────────────────────────────────────────
 echo "▸ Installing Node.js 20..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - -q
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y -q nodejs
 
 # ── 4. PM2 (process manager / auto-restart on reboot) ────────
