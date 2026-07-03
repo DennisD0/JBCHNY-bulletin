@@ -2689,6 +2689,9 @@ function NotificationPanel({
   const myAccepted = notifications.filter(
     (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.status === "accepted",
   );
+  const myDeclined = notifications.filter(
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.status === "declined",
+  );
 
   // Only show section sync alerts for the currently active language
   const sectionUpdates: { lang: BulletinLanguage; sectionKey: string; notificationId: string }[] = [];
@@ -2702,7 +2705,7 @@ function NotificationPanel({
     }
   }
 
-  const hasNothing = incomingRequests.length === 0 && myPendingRequests.length === 0 && myAccepted.length === 0 && sectionUpdates.length === 0;
+  const hasNothing = incomingRequests.length === 0 && myPendingRequests.length === 0 && myAccepted.length === 0 && myDeclined.length === 0 && sectionUpdates.length === 0;
 
   return (
     <div style={{
@@ -2782,6 +2785,23 @@ function NotificationPanel({
                   <CheckCircle size={15} color="#86EFAC" />
                   <span style={{ color:"#fff", fontSize:12.5, fontWeight:700 }}>
                     You now have access to {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Access declined — requester sees this */}
+        {myDeclined.length > 0 && (
+          <section>
+            <div style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)", marginBottom:8 }}>Request Declined</div>
+            {myDeclined.map((n) => (
+              <div key={n.id} style={{ padding:"12px 14px", borderRadius:12, background:"rgba(239,68,68,0.10)", border:"1px solid rgba(239,68,68,0.28)", marginBottom:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <XCircle size={15} color="#FCA5A5" />
+                  <span style={{ color:"rgba(255,255,255,0.85)", fontSize:12.5 }}>
+                    Your {n.type === "join_request" ? "collaboration" : "takeover"} request for {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name} was declined.
                   </span>
                 </div>
               </div>
@@ -3172,6 +3192,7 @@ export default function Home() {
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [isCollaborator, setIsCollaborator] = useState(false);
   const [seenSectionNotifications, setSeenSectionNotifications] = useState<string[]>([]);
+  const [seenDeclinedIds, setSeenDeclinedIds] = useState<string[]>([]);
 
   // Comment system state
   const [comments, setComments] = useState<BulletinComment[]>([]);
@@ -3368,6 +3389,14 @@ export default function Home() {
       setIsCollaborator(true);
       setReadOnly(false);
     }
+
+    // Auto-open notification panel when a request we sent gets declined
+    const declined = fresh.find(
+      (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId.current && n.status === "declined",
+    );
+    if (declined) {
+      setNotifPanelOpen(true);
+    }
   }, [loadLanguage, postLockAction, readOnly, refreshLanguageStatus]);
 
   useEffect(() => {
@@ -3375,6 +3404,19 @@ export default function Home() {
     const interval = window.setInterval(pollNotifications, 5_000);
     return () => window.clearInterval(interval);
   }, [pollNotifications]);
+
+  // When notification panel opens, mark all currently visible declined notifications as seen
+  useEffect(() => {
+    if (!notifPanelOpen) return;
+    const declinedIds = notifications
+      .filter((n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId.current && n.status === "declined")
+      .map((n) => n.id);
+    if (declinedIds.length === 0) return;
+    setSeenDeclinedIds((prev) => {
+      const newIds = declinedIds.filter((id) => !prev.includes(id));
+      return newIds.length > 0 ? [...prev, ...newIds] : prev;
+    });
+  }, [notifPanelOpen, notifications]);
 
   const pollComments = useCallback(async () => {
     const res = await fetch("/api/comments", { cache: "no-store" });
@@ -4422,7 +4464,7 @@ export default function Home() {
         )}
 
         <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={
-  notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted")).length +
+  notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted" || (n.status === "declined" && !seenDeclinedIds.includes(n.id)))).length +
   (activeLang !== "en" && activeLang !== "ko"
     ? Object.entries(metaByLanguage[activeLang]?.sections ?? {}).filter(([sectionKey, state]) =>
         state.status === "pending" && !seenSectionNotifications.includes(buildSectionNotificationId(activeLang, sectionKey))
