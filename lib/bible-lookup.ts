@@ -217,7 +217,8 @@ export async function fetchVerseText(
 
   const lines: string[] = [];
   for (let v = parsed.verseStart; v <= parsed.verseEnd; v++) {
-    const text = chapter[v - 1]?.trim();
+    // Some Bible sources (e.g. Synodal) embed verse numbers like "(117:17)" in text — strip them
+    const text = chapter[v - 1]?.trim().replace(/^\(\d+:\d+\)\s*/, "");
     if (text) lines.push(text);
   }
   if (!lines.length) return null;

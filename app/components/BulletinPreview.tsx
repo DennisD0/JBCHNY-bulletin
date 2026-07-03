@@ -999,7 +999,8 @@ export default function BulletinPreview({
             <p style={{
               fontWeight:700, fontSize:F.quote,
               lineHeight:"23px", whiteSpace:"pre-line", margin:0,
-            }}>
+              textWrap: "balance",
+            } as React.CSSProperties & Record<string, unknown>}>
               <E value={data.quote} onSave={upK("quote")} multi />
             </p>
             <p style={{ fontWeight:700, fontSize:F.quoteRef, marginTop:0, marginBottom:0 }}>
