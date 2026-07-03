@@ -27,8 +27,13 @@ class BulletinOverflowError extends Error {
   }
 }
 
+const IS_WINDOWS = process.platform === "win32";
+const CHROME_BIN = IS_WINDOWS ? "chrome.exe" : "google-chrome";
+const PATH_SEP = IS_WINDOWS ? ";" : ":";
+
 function getChromeDirectory(): string {
   if (process.env.CHROME_DIRECTORY) return process.env.CHROME_DIRECTORY;
+  if (!IS_WINDOWS) return "/usr/bin";
   const programFiles =
     process.env.ProgramFiles ?? `${process.env.SystemDrive ?? "C:"}\\Program Files`;
   return `${programFiles}\\Google\\Chrome\\Application`;
@@ -71,7 +76,7 @@ export async function GET(request: Request) {
 
   const chromeDirectory = getChromeDirectory();
   const printUrl = getPrintUrl(request, lang);
-  const chrome = spawn("chrome.exe", [
+  const chrome = spawn(CHROME_BIN, [
     "--headless=new",
     "--disable-gpu",
     "--no-sandbox",
@@ -81,7 +86,7 @@ export async function GET(request: Request) {
     stdio: "ignore",
     env: {
       ...process.env,
-      PATH: `${chromeDirectory};${process.env.PATH ?? ""}`,
+      PATH: `${chromeDirectory}${PATH_SEP}${process.env.PATH ?? ""}`,
     },
   });
 
