@@ -16,4 +16,4 @@ jobs:
           host: 34.30.218.223
           username: dennisnasa
           key: ${{ secrets.VM_DEPLOY_KEY }}
-          script: ~/bulletin/scripts/deploy.sh
+          script: bash ~/bulletin/scripts/deploy.sh
