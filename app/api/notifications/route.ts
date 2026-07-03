@@ -1,10 +1,19 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { NextResponse } from "next/server";
-import { isBulletinLanguage, type BulletinLanguage } from "@/lib/bulletin-languages";
+import { isBulletinLanguage, type BulletinLanguage, type LanguageLocks } from "@/lib/bulletin-languages";
 
 const PATH = join(process.cwd(), "data", "notifications.json");
+const LOCKS_PATH = join(process.cwd(), "data", "locks.json");
 const MAX_AGE_MS = 60 * 60 * 1000; // prune notifications older than 1 hour
+
+function readLocks(): LanguageLocks {
+  try {
+    return JSON.parse(readFileSync(LOCKS_PATH, "utf-8")) as LanguageLocks;
+  } catch {
+    return { en: null, ko: null, es: null, zh: null, ru: null };
+  }
+}
 
 export type AppNotification = {
   id: string;
@@ -31,13 +40,27 @@ function write(notifications: AppNotification[]) {
 }
 
 // GET /api/notifications?sessionId=xxx
-// Returns notifications relevant to the caller (as sender or target)
+// Returns notifications relevant to the caller (as sender or target).
+// Auto-declines any pending request whose target session no longer holds the lock.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get("sessionId");
   if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
 
   const all = read();
+  const locks = readLocks();
+  let dirty = false;
+
+  for (const n of all) {
+    if (n.status !== "pending") continue;
+    const currentHolder = locks[n.lang]?.sessionId ?? null;
+    if (currentHolder !== n.targetSessionId) {
+      n.status = "declined";
+      dirty = true;
+    }
+  }
+  if (dirty) write(all);
+
   const relevant = all.filter(
     (n) => n.fromSessionId === sessionId || n.targetSessionId === sessionId,
   );
