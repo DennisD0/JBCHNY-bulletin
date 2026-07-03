@@ -13,7 +13,7 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 34.58.209.137
+          host: 34.30.218.223
           username: dennisdo440
           key: ${{ secrets.VM_DEPLOY_KEY }}
           script: ~/bulletin/scripts/deploy.sh
