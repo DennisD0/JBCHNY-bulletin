@@ -1,1 +1,122 @@
-[]
+[
+  {
+    "id": "1783049198964-bgtow",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "eef60a78-3209-4478-b1c3-8edf203bc9aa",
+    "fromUserName": "Editor",
+    "targetSessionId": "2c6628d1-3334-44d9-b2b7-183729eeadde",
+    "createdAt": 1783049198964,
+    "status": "declined"
+  },
+  {
+    "id": "1783049224055-jjnyo",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "eef60a78-3209-4478-b1c3-8edf203bc9aa",
+    "fromUserName": "Editor",
+    "targetSessionId": "2c6628d1-3334-44d9-b2b7-183729eeadde",
+    "createdAt": 1783049224055,
+    "status": "declined"
+  },
+  {
+    "id": "1783049442542-3w1jt",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "fromUserName": "Editor",
+    "targetSessionId": "2c6628d1-3334-44d9-b2b7-183729eeadde",
+    "createdAt": 1783049442542,
+    "status": "declined"
+  },
+  {
+    "id": "1783049450377-l0f3j",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "eef60a78-3209-4478-b1c3-8edf203bc9aa",
+    "fromUserName": "Editor",
+    "targetSessionId": "2c6628d1-3334-44d9-b2b7-183729eeadde",
+    "createdAt": 1783049450377,
+    "status": "declined"
+  },
+  {
+    "id": "1783049514967-hk3yy",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "82b274b5-125a-4dfa-b31b-5a4b53ef1e98",
+    "fromUserName": "Editor",
+    "targetSessionId": "2c6628d1-3334-44d9-b2b7-183729eeadde",
+    "createdAt": 1783049514967,
+    "status": "declined"
+  },
+  {
+    "id": "1783049907214-grssp",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "fromUserName": "Editor",
+    "targetSessionId": "82b274b5-125a-4dfa-b31b-5a4b53ef1e98",
+    "createdAt": 1783049907214,
+    "status": "declined"
+  },
+  {
+    "id": "1783050559729-f30aj",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "fromUserName": "Editor",
+    "targetSessionId": "82b274b5-125a-4dfa-b31b-5a4b53ef1e98",
+    "createdAt": 1783050559729,
+    "status": "accepted"
+  },
+  {
+    "id": "1783051502605-90alh",
+    "type": "takeover_request",
+    "lang": "es",
+    "fromSessionId": "82b274b5-125a-4dfa-b31b-5a4b53ef1e98",
+    "fromUserName": "Editor",
+    "targetSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "createdAt": 1783051502605,
+    "status": "accepted"
+  },
+  {
+    "id": "1783051638494-gv257",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "fromUserName": "Editor",
+    "targetSessionId": "82b274b5-125a-4dfa-b31b-5a4b53ef1e98",
+    "createdAt": 1783051638494,
+    "status": "accepted"
+  },
+  {
+    "id": "1783052683499-2m19a",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "fromUserName": "Editor",
+    "targetSessionId": "c2c7932c-c3ec-4012-8067-720ad38dec39",
+    "createdAt": 1783052683499,
+    "status": "accepted"
+  },
+  {
+    "id": "1783052719608-duafk",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "c2c7932c-c3ec-4012-8067-720ad38dec39",
+    "fromUserName": "Editor",
+    "targetSessionId": "040e5212-f097-4454-b190-4c738385fef4",
+    "createdAt": 1783052719609,
+    "status": "accepted"
+  },
+  {
+    "id": "1783052742059-grvbp",
+    "type": "takeover_request",
+    "lang": "en",
+    "fromSessionId": "a26a55e5-215c-45b7-894c-9062dce16780",
+    "fromUserName": "Editor",
+    "targetSessionId": "c2c7932c-c3ec-4012-8067-720ad38dec39",
+    "createdAt": 1783052742059,
+    "status": "accepted"
+  }
+]

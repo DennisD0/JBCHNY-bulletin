@@ -3,12 +3,23 @@ import { join } from "path";
 import BulletinPreview from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import type { BulletinData } from "@/lib/bulletin-types";
+import type { BulletinLanguage } from "@/lib/bulletin-languages";
 
 export const metadata = { title: "Bulletin Print" };
 
-export default function PrintPage() {
+const VALID_LANGS = new Set<BulletinLanguage>(["en", "es", "ko", "zh", "ru"]);
+
+export default async function PrintPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lang?: string }>;
+}) {
+  const { lang } = await searchParams;
+  const language: BulletinLanguage = VALID_LANGS.has(lang as BulletinLanguage)
+    ? (lang as BulletinLanguage)
+    : "en";
   const data = JSON.parse(
-    readFileSync(join(process.cwd(), "data", "bulletin.en.json"), "utf-8")
+    readFileSync(join(process.cwd(), "data", `bulletin.${language}.json`), "utf-8")
   ) as BulletinData;
 
   return (

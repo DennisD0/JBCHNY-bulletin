@@ -34,9 +34,11 @@ function getChromeDirectory(): string {
   return `${programFiles}\\Google\\Chrome\\Application`;
 }
 
-function getPrintUrl(request: Request): string {
+function getPrintUrl(request: Request, lang?: string): string {
   const configuredBaseUrl = process.env.BULLETIN_BASE_URL?.trim();
-  return new URL("/print", configuredBaseUrl || request.url).toString();
+  const url = new URL("/print", configuredBaseUrl || request.url);
+  if (lang) url.searchParams.set("lang", lang);
+  return url.toString();
 }
 
 function waitForChrome(timeoutMs = 10_000): Promise<void> {
@@ -57,6 +59,9 @@ function waitForChrome(timeoutMs = 10_000): Promise<void> {
 }
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const lang = searchParams.get("lang") ?? "en";
+
   const tmpDir = join(process.cwd(), ".next", "tmp");
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
   const profileDir = join(tmpDir, "chrome-pdf-profile");
@@ -65,7 +70,7 @@ export async function GET(request: Request) {
   if (existsSync(profileDir)) rmSync(profileDir, { recursive: true, force: true });
 
   const chromeDirectory = getChromeDirectory();
-  const printUrl = getPrintUrl(request);
+  const printUrl = getPrintUrl(request, lang);
   const chrome = spawn("chrome.exe", [
     "--headless=new",
     "--disable-gpu",
@@ -215,7 +220,7 @@ export async function GET(request: Request) {
     return new NextResponse(Buffer.from(pdfBase64, "base64"), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="bulletin.pdf"`,
+        "Content-Disposition": `attachment; filename="bulletin-${lang}.pdf"`,
       },
     });
   } catch (err: unknown) {

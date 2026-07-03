@@ -18,7 +18,17 @@ const UNTRANSLATED_KEYS = new Set([
   // Bible reading values are scripture references (e.g. "Psalms 73-77", "1 Pet 1-5") —
   // translating them mangles abbreviations ("Pet" → "mascota", "Rev" → "Rev.", etc.)
   "bibleReading1", "bibleReading2", "bibleReadingDates",
+  // Cover title is locked per-language below — skip Google Translate so it stays stable
+  "bulletinTitle",
 ]);
+
+// Fixed cover titles per language — locked so re-translation never changes them
+const BULLETIN_TITLES: Record<Exclude<BulletinLanguage, "en">, string> = {
+  es: "Boletín Dominical",
+  ko: "교회소식",
+  zh: "教会消息",
+  ru: "Церковный вестник",
+};
 
 // skipValues is a Set of specific string *values* (not key names) that were already
 // translated by the Bible API — skip them in the Google Translate pass.
@@ -158,5 +168,12 @@ export async function translateBulletinContent<T>(value: T, language: Exclude<Bu
   }
 
   await Promise.all(Array.from({ length: Math.min(4, queue.length || 1) }, () => worker()));
-  return replaceStrings(enriched, translations, undefined, replacedValues) as T;
+  const result = replaceStrings(enriched, translations, undefined, replacedValues) as T;
+
+  // Lock in the fixed per-language cover title regardless of source content
+  if (result && typeof result === "object" && !Array.isArray(result)) {
+    (result as Partial<BulletinData>).bulletinTitle = BULLETIN_TITLES[language];
+  }
+
+  return result;
 }
