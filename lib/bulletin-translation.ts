@@ -90,6 +90,8 @@ async function injectBibleVerses(
       replacedValues.add(text);
       result.quote = text;
     }
+    // Translate the book name in the displayed reference ("Psalms 118:17" → "시 118:17")
+    result.quoteRef = translateBibleReadingEntry(String(result.quoteRef), lang);
   }
 
   // Memory verses
@@ -97,12 +99,15 @@ async function injectBibleVerses(
     result.memoryVerses = await Promise.all(
       (result.memoryVerses as MemoryVerse[]).map(async (verse) => {
         if (!verse.reference || !verse.text) return verse;
+        // Fetch verse text from authoritative Bible version using English reference
         const text = await fetchVerseText(verse.reference, lang);
+        // Translate book name in the reference label ("1 Peter 1:3-4" → "벧전 1:3-4")
+        const translatedRef = translateBibleReadingEntry(verse.reference, lang);
         if (text) {
           replacedValues.add(text);
-          return { ...verse, text };
+          return { ...verse, text, reference: translatedRef };
         }
-        return verse;
+        return { ...verse, reference: translatedRef };
       }),
     );
   }
