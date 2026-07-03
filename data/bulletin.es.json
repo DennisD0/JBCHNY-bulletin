@@ -3,74 +3,11 @@
     "language": "es",
     "isolated": false,
     "initializedFromEn": true,
-    "sections": {
-      "bibleReading": {
-        "status": "dismissed",
-        "enContentHash": "cc7d61b249851922536f3711272efc016aa22ee3e90dd59d9ab2048a8536bf48",
-        "pendingEnContent": {
-          "bibleReadingDates": [
-            "6/28",
-            "6/29",
-            "6/30",
-            "7/1",
-            "7/2",
-            "7/3",
-            "7/4"
-          ],
-          "bibleReading1": [
-            "Psalms 73-77",
-            "Psalms 78-83",
-            "Psalms 84-89",
-            "Psalms 90-99",
-            "Psalms 100-105",
-            "Psalms 106-110",
-            "Psalms 111-118"
-          ],
-          "bibleReading2": [
-            "1 Pet 1-5\n2 Pet 1-3",
-            "1 John 1-5\nJohn 2,3 / Jude 1",
-            "Rev 1-4\nRev 5-9",
-            "Rev 10-14\nRev 15-18",
-            "Rev 19-22\nGen 1-3",
-            "Gen 4-7\nGen 8-11",
-            "Gen 12-16\nGen 17-19"
-          ]
-        }
-      },
-      "memoryVerses": {
-        "status": "dismissed",
-        "enContentHash": "e0925d4f6e122041ea5faa2d50449dcb82565ae56c15900808a621f87f927780",
-        "pendingEnContent": {
-          "memoryVerses": [
-            {
-              "label": "Last week",
-              "date": "6/21",
-              "reference": "2 Corinthians 4:17-18",
-              "theme": "Hope",
-              "text": "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
-            },
-            {
-              "label": "This week",
-              "date": "6/28",
-              "reference": "1 Peter 1:3-4",
-              "theme": "Hope",
-              "text": "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
-            },
-            {
-              "label": "Next week",
-              "date": "7/5",
-              "reference": "1 Peter 3:15-16",
-              "theme": "Hope",
-              "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
-            }
-          ]
-        }
-      }
-    }
+    "sections": {}
   },
   "number": "2026-25",
   "date": "06/28/2026",
-  "quote": "No moriré, sino viviré,\nY contar las obras de Jehová.",
+  "quote": "No moriré, sino que viviré, Y contaré las obras de JAH.",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
   "sermonTitle": "El amor que tengo tan abundantemente por ti.",
@@ -158,22 +95,22 @@
     "7/4"
   ],
   "bibleReading1": [
-    "Salmos 73-77",
-    "Salmos 78-83",
-    "Salmos 84-89",
-    "Salmos 90-99",
-    "Salmos 100-105",
-    "Salmos 106-110",
-    "Salmos 111-118"
+    "Sal 73-77",
+    "Sal 78-83",
+    "Sal 84-89",
+    "Sal 90-99",
+    "Sal 100-105",
+    "Sal 106-110",
+    "Sal 111-118"
   ],
   "bibleReading2": [
-    "1 mascota 1-5\n2 mascotas1-3",
-    "1 Juan 1-5\n2 Juan, 3 Juan, Judas",
-    "Apocalipsis 1-9",
-    "Apocalipsis 10-18",
-    "Apocalipsis 19-22\nGeneración 1-3",
-    "Génesis 4-11",
-    "Génesis 12-19"
+    "1Pe 1-5\n2Pe 1-3",
+    "1Jn 1-5\nJn 2,3 / Jud 1",
+    "Ap 1-4\nAp 5-9",
+    "Ap 10-14\nAp 15-18",
+    "Ap 19-22\nGén 1-3",
+    "Gén 4-7\nGén 8-11",
+    "Gén 12-16\nGén 17-19"
   ],
   "memoryVerses": [
     {
@@ -181,21 +118,21 @@
       "date": "6/21",
       "reference": "2 Corinthians 4:17-18",
       "theme": "Esperanza",
-      "text": "Porque nuestra leve tribulación, que es momentánea, produce en nosotros un peso de gloria mucho más excelente y eterno, mientras no miramos las cosas que se ven, sino las que no se ven. Porque las cosas que se ven son temporales, pero las que no se ven son eternas."
+      "text": "Porque esta leve tribulación momentánea produce en nosotros un cada vez más excelente y eterno peso de gloria; no mirando nosotros las cosas que se ven, sino las que no se ven; pues las cosas que se ven son temporales, pero las que no se ven son eternas."
     },
     {
       "label": "Esta semana",
       "date": "6/28",
       "reference": "1 Peter 1:3-4",
       "theme": "Esperanza",
-      "text": "Bendito sea el Dios y Padre de nuestro Señor Jesucristo, que según su gran misericordia nos hizo renacer para una esperanza viva, por la resurrección de Jesucristo de entre los muertos, para una herencia incorruptible, incontaminada e inmarcesible, reservada en los cielos para vosotros,"
+      "text": "Bendito el Dios y Padre de nuestro Señor Jesucristo, que según su grande misericordia nos hizo renacer para una esperanza viva, por la resurrección de Jesucristo de los muertos, para una herencia incorruptible, incontaminada e inmarcesible, reservada en los cielos para vosotros,"
     },
     {
       "label": "La próxima semana",
       "date": "7/5",
       "reference": "1 Peter 3:15-16",
       "theme": "Esperanza",
-      "text": "Pero santificad a Jehová Dios en vuestros corazones, y estad siempre preparados para dar defensa a todo el que os pida razón de la esperanza que hay en vosotros, con mansedumbre y temor; teniendo buena conciencia, para que cuando os califiquen de malhechores, queden avergonzados los que vilipendian vuestra buena conducta en Cristo."
+      "text": "sino santificad a Dios el Señor en vuestros corazones, y estad siempre preparados para presentar defensa con mansedumbre y reverencia ante todo el que os demande razón de la esperanza que hay en vosotros; teniendo buena conciencia, para que en lo que murmuran de vosotros como de malhechores, sean avergonzados los que calumnian vuestra buena conducta en Cristo."
     }
   ],
   "cleaningAreas": [
@@ -559,24 +496,38 @@
   },
   "bulletinTitle": "Boletín de la Iglesia",
   "labels": {
-    "headSermon": "Sermón del Domingo",
+    "headSermon": "Sermón del día del Señor",
     "headServices": "Servicios",
-    "headSeminar": "Seminario Bíblico de la Costa Este",
-    "headFellowship": "Servicios y Comunión",
+    "headSeminar": "Seminario Bíblico de la Costa Este de EE. UU.",
+    "headFellowship": "Servicios y becas",
     "lblTitle": "Título",
-    "lblMainVerse": "Versículo principal",
-    "lblSpeaker": "Predicador",
-    "lblEndingPraise": "Himno final",
+    "lblMainVerse": "Verso principal",
+    "lblSpeaker": "Vocero",
+    "lblEndingPraise": "Alabanza final",
     "colSunday": "Domingo",
-    "colUsherSun": "Ujier (DOM)",
-    "colLunchDuty": "Almuerzo",
-    "colChildCare": "Cuidado de niños",
+    "colUsherSun": "Ujier (SOL)",
+    "colLunchDuty": "Servicio de almuerzo",
+    "colChildCare": "Cuidado de los niños",
     "colUsherWed": "Ujier (MIÉ)",
     "colDate": "Fecha",
     "colChurchName": "Iglesia",
-    "colSemSpeaker": "Predicador",
+    "colSemSpeaker": "Vocero",
     "colLanguage": "Idioma",
     "lblPastor": "Pastor",
-    "lblAddress": "Dirección"
+    "lblAddress": "DIRECCIÓN",
+    "headBibleReading": "Lectura de la Biblia",
+    "headMemoryVerses": "Versículos para memorizar",
+    "headCleaning": "Área de limpieza del día del Señor",
+    "headCalendar": "Horario mensual",
+    "headSeminarInfo": "Información del seminario bíblico",
+    "headWeekSchedule": "El horario de esta semana",
+    "headChurchNews": "Noticias de la Iglesia de Nueva York",
+    "headPrayer": "Petición de oración",
+    "headJointPrayer": "Oración conjunta",
+    "headRetreats": "Calendario de retiro",
+    "colWeekDate": "Fecha",
+    "colWeekEvent": "Evento",
+    "colWeekLocation": "Ubicación",
+    "colWeekTime": "Tiempo"
   }
 }

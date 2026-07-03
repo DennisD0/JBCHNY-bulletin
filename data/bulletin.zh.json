@@ -3,74 +3,11 @@
     "language": "zh",
     "isolated": false,
     "initializedFromEn": true,
-    "sections": {
-      "bibleReading": {
-        "status": "dismissed",
-        "enContentHash": "cc7d61b249851922536f3711272efc016aa22ee3e90dd59d9ab2048a8536bf48",
-        "pendingEnContent": {
-          "bibleReadingDates": [
-            "6/28",
-            "6/29",
-            "6/30",
-            "7/1",
-            "7/2",
-            "7/3",
-            "7/4"
-          ],
-          "bibleReading1": [
-            "Psalms 73-77",
-            "Psalms 78-83",
-            "Psalms 84-89",
-            "Psalms 90-99",
-            "Psalms 100-105",
-            "Psalms 106-110",
-            "Psalms 111-118"
-          ],
-          "bibleReading2": [
-            "1 Pet 1-5\n2 Pet 1-3",
-            "1 John 1-5\nJohn 2,3 / Jude 1",
-            "Rev 1-4\nRev 5-9",
-            "Rev 10-14\nRev 15-18",
-            "Rev 19-22\nGen 1-3",
-            "Gen 4-7\nGen 8-11",
-            "Gen 12-16\nGen 17-19"
-          ]
-        }
-      },
-      "memoryVerses": {
-        "status": "dismissed",
-        "enContentHash": "e0925d4f6e122041ea5faa2d50449dcb82565ae56c15900808a621f87f927780",
-        "pendingEnContent": {
-          "memoryVerses": [
-            {
-              "label": "Last week",
-              "date": "6/21",
-              "reference": "2 Corinthians 4:17-18",
-              "theme": "Hope",
-              "text": "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
-            },
-            {
-              "label": "This week",
-              "date": "6/28",
-              "reference": "1 Peter 1:3-4",
-              "theme": "Hope",
-              "text": "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
-            },
-            {
-              "label": "Next week",
-              "date": "7/5",
-              "reference": "1 Peter 3:15-16",
-              "theme": "Hope",
-              "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
-            }
-          ]
-        }
-      }
-    }
+    "sections": {}
   },
   "number": "2026-25",
   "date": "06/28/2026",
-  "quote": "我不会死，但会活着，\n并述说耶和华的作为。",
+  "quote": "我 必 不 致 死 ， 仍 要 存 活 ， 並 要 傳 揚 耶 和 華 的 作 為 。",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
   "sermonTitle": "我对你的爱如此丰富",
@@ -158,22 +95,22 @@
     "7/4"
   ],
   "bibleReading1": [
-    "诗篇 73-77",
-    "诗篇 78-83",
-    "诗篇 84-89",
-    "诗篇 90-99",
-    "诗篇 100-105",
-    "诗篇 106-110",
-    "诗篇 111-118"
+    "诗 73-77",
+    "诗 78-83",
+    "诗 84-89",
+    "诗 90-99",
+    "诗 100-105",
+    "诗 106-110",
+    "诗 111-118"
   ],
   "bibleReading2": [
-    "1 宠物1-5\n2 宠物1-3",
-    "约翰一书 1-5\n约翰二书、约翰三书、犹大书",
-    "修订版 1-9",
-    "修订版 10-18",
-    "修订版 19-22\n第1-3代",
-    "4-11代",
-    "12-19代"
+    "彼前 1-5\n彼后 1-3",
+    "约一 1-5\n约 2,3 / 犹 1",
+    "启 1-4\n启 5-9",
+    "启 10-14\n启 15-18",
+    "启 19-22\n创 1-3",
+    "创 4-7\n创 8-11",
+    "创 12-16\n创 17-19"
   ],
   "memoryVerses": [
     {
@@ -181,21 +118,21 @@
       "date": "6/21",
       "reference": "2 Corinthians 4:17-18",
       "theme": "希望",
-      "text": "因为我们这至暂至轻的苦楚，要为我们成就极重无比、永远的荣耀；我们不是顾念所见的事，而是顾念所不见的事。因为所见的都是暂时的，所不见的才是永远的。"
+      "text": "我 們 這 至 暫 至 輕 的 苦 楚 ， 要 為 我 們 成 就 極 重 無 比 、 永 遠 的 榮 耀 。 原 來 我 們 不 是 顧 念 所 見 的 ， 乃 是 顧 念 所 不 見 的 ； 因 為 所 見 的 是 暫 時 的 ， 所 不 見 的 是 永 遠 的 。"
     },
     {
       "label": "本星期",
       "date": "6/28",
       "reference": "1 Peter 1:3-4",
       "theme": "希望",
-      "text": "愿颂赞归于我们主耶稣基督的父上帝，他按照他丰盛的怜悯，借着耶稣基督从死里复活，使我们重生了活泼的盼望，并得着不能朽坏、不能玷污、不能衰残的基业，为你们保留在天上，"
+      "text": "願 頌 讚 歸 與 我 們 主 耶 穌 基 督 的 父 神 ！ 他 曾 照 自 己 的 大 憐 憫 ， 藉 耶 穌 基 督 從 死 裡 復 活 ， 重 生 了 我 們 ， 叫 我 們 有 活 潑 的 盼 望 ， 可 以 得 著 不 能 朽 壞 、 不 能 玷 污 、 不 能 衰 殘 、 為 你 們 存 留 在 天 上 的 基 業 。"
     },
     {
       "label": "下周",
       "date": "7/5",
       "reference": "1 Peter 3:15-16",
       "theme": "希望",
-      "text": "但要在你们心中尊主为圣，并时刻准备好以温柔和敬畏的态度，为每一个向你们询问心中希望的原因的人进行辩护；良心无亏，这样，当他们诽谤你们为作恶的人时，那些辱骂你们在基督里的善行的人就会感到羞耻。"
+      "text": "只 要 心 裡 尊 主 基 督 為 聖 。 有 人 問 你 們 心 中 盼 望 的 緣 由 ， 就 要 常 作 準 備 ， 以 溫 柔 、 敬 畏 的 心 回 答 各 人 ； 存 著 無 虧 的 良 心 ， 叫 你 們 在 何 事 上 被 毀 謗 ， 就 在 何 事 上 可 以 叫 那 誣 賴 你 們 在 基 督 裡 有 好 品 行 的 人 自 覺 羞 愧 。"
     }
   ],
   "cleaningAreas": [
@@ -557,26 +494,40 @@
       }
     ]
   },
-  "bulletinTitle": "教会周报",
+  "bulletinTitle": "教会公告",
   "labels": {
-    "headSermon": "主日崇拜证道",
-    "headServices": "服事表",
-    "headSeminar": "美东圣经研习营",
-    "headFellowship": "聚会与团契",
-    "lblTitle": "题目",
-    "lblMainVerse": "经文",
-    "lblSpeaker": "讲员",
-    "lblEndingPraise": "结束诗歌",
-    "colSunday": "主日",
-    "colUsherSun": "司门（主日）",
-    "colLunchDuty": "爱筵",
-    "colChildCare": "儿童看护",
-    "colUsherWed": "司门（周三）",
+    "headSermon": "主日讲道",
+    "headServices": "服务",
+    "headSeminar": "美国东海岸圣经研讨会",
+    "headFellowship": "服务与团契",
+    "lblTitle": "标题",
+    "lblMainVerse": "主要诗句",
+    "lblSpeaker": "扬声器",
+    "lblEndingPraise": "结束好评",
+    "colSunday": "星期日",
+    "colUsherSun": "亚瑟 (太阳)",
+    "colLunchDuty": "午餐值班",
+    "colChildCare": "儿童保育",
+    "colUsherWed": "亚瑟（周三）",
     "colDate": "日期",
     "colChurchName": "教会",
-    "colSemSpeaker": "讲员",
+    "colSemSpeaker": "扬声器",
     "colLanguage": "语言",
     "lblPastor": "牧师",
-    "lblAddress": "地址"
+    "lblAddress": "地址",
+    "headBibleReading": "圣经阅读",
+    "headMemoryVerses": "背诵经文",
+    "headCleaning": "主日清洁区",
+    "headCalendar": "每月时间表",
+    "headSeminarInfo": "圣经研讨会信息",
+    "headWeekSchedule": "本周的日程安排",
+    "headChurchNews": "纽约教会新闻",
+    "headPrayer": "祈祷请求",
+    "headJointPrayer": "共同祷告",
+    "headRetreats": "静修时间表",
+    "colWeekDate": "日期",
+    "colWeekEvent": "事件",
+    "colWeekLocation": "地点",
+    "colWeekTime": "时间"
   }
 }

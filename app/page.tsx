@@ -167,6 +167,11 @@ function HeaderTab({
     <div className="flex flex-col gap-5">
       <Card>
         <SectionTitle>Bulletin header</SectionTitle>
+        <Field
+          label="Bulletin title (front page)"
+          value={data.bulletinTitle ?? "Church Bulletin"}
+          onChange={(v) => set({ bulletinTitle: v })}
+        />
         <div className="grid grid-cols-2 gap-4">
           <Field
             label="Bulletin number"

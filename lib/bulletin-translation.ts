@@ -1,6 +1,7 @@
 import type { BulletinLanguage } from "@/lib/bulletin-languages";
 import type { BulletinData, MemoryVerse } from "@/lib/bulletin-types";
 import { fetchVerseText } from "@/lib/bible-lookup";
+import { translateBibleReadingEntry } from "@/lib/bible-book-names";
 
 const TARGET_LANGUAGE: Record<Exclude<BulletinLanguage, "en">, string> = {
   es: "es",
@@ -121,6 +122,18 @@ export async function translateBulletinContent<T>(value: T, language: Exclude<Bu
     const result = await injectBibleVerses(value as Partial<BulletinData>, language);
     enriched = result.enriched as T;
     for (const v of result.replacedValues) replacedValues.add(v);
+
+    // Translate Bible book names in the reading schedule using a lookup table
+    // (these fields are in UNTRANSLATED_KEYS so Google Translate skips them,
+    //  but we still need "Psalms" → "시", "Sal", "诗", "Пс" etc.)
+    const bd = enriched as Partial<BulletinData>;
+    if (bd.bibleReading1 || bd.bibleReading2) {
+      enriched = {
+        ...bd,
+        bibleReading1: bd.bibleReading1?.map(e => translateBibleReadingEntry(e, language)),
+        bibleReading2: bd.bibleReading2?.map(e => translateBibleReadingEntry(e, language)),
+      } as T;
+    }
   }
 
   // Step 2: Google-translate the remaining fields
