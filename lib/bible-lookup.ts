@@ -13,15 +13,33 @@ import type { BulletinLanguage } from "@/lib/bulletin-languages";
  * JSON format: [{abbrev, chapters: [[v1, v2, ...], ...]}, ...] — all arrays are 0-indexed.
  */
 
+// thiagobodruk format: [{abbrev, chapters: string[][]}]
+// TriGataro RVR1960 format: [{BoookNumber, Chapter, Verse, Text, ...}] (flat per-verse)
 const GITHUB_URLS: Partial<Record<BulletinLanguage, string>> = {
   ko: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/ko_ko.json",
-  es: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/es_rvr.json",
+  // RVR1960 (Reina Valera 1960) — flat format, converted on load
+  es: "https://raw.githubusercontent.com/TriGataro/Biblia_Reina_Valera_1960/master/Biblia_Reina_Valera_1960_Esp.json",
   zh: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/zh_cuv.json",
   ru: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/ru_synodal.json",
 };
 
 type BibleBook = { abbrev: string; chapters: string[][] };
 type BibleData = BibleBook[];
+
+// TriGataro flat-verse format (Reina Valera 1960)
+type RVR1960Entry = { BoookNumber: number; Chapter: number; Verse: number; Text: string };
+
+function convertRVR1960(flat: RVR1960Entry[]): BibleData {
+  const books: BibleData = [];
+  for (const entry of flat) {
+    const bookIdx = entry.BoookNumber - 1;
+    if (!books[bookIdx]) books[bookIdx] = { abbrev: "", chapters: [] };
+    const chapterIdx = entry.Chapter - 1;
+    if (!books[bookIdx].chapters[chapterIdx]) books[bookIdx].chapters[chapterIdx] = [];
+    books[bookIdx].chapters[chapterIdx][entry.Verse - 1] = entry.Text;
+  }
+  return books;
+}
 
 // In-memory cache of parsed Bible files (avoids repeated 2-5 MB disk reads)
 const memoryBibles = new Map<BulletinLanguage, BibleData>();
@@ -50,9 +68,12 @@ async function loadBible(lang: BulletinLanguage): Promise<BibleData | null> {
   }
 
   try {
-    // Strip BOM from locally stored file if present
     if (raw.startsWith("﻿")) raw = raw.slice(1);
-    const data = JSON.parse(raw) as BibleData;
+    const parsed = JSON.parse(raw);
+    // TriGataro RVR1960 is a flat per-verse array; convert to standard BibleData format
+    const data: BibleData = lang === "es" && Array.isArray(parsed) && parsed[0]?.BoookNumber !== undefined
+      ? convertRVR1960(parsed as RVR1960Entry[])
+      : parsed as BibleData;
     memoryBibles.set(lang, data);
     return data;
   } catch {
