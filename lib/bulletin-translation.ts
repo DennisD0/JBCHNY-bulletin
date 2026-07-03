@@ -1,4 +1,6 @@
 import type { BulletinLanguage } from "@/lib/bulletin-languages";
+import type { BulletinData, MemoryVerse } from "@/lib/bulletin-types";
+import { fetchVerseText } from "@/lib/bible-lookup";
 
 const TARGET_LANGUAGE: Record<Exclude<BulletinLanguage, "en">, string> = {
   es: "es",
@@ -14,35 +16,39 @@ const UNTRANSLATED_KEYS = new Set([
   "amount",
 ]);
 
-function shouldTranslate(text: string, key?: string) {
-  if (!text.trim() || (key && UNTRANSLATED_KEYS.has(key))) return false;
+// skipValues is a Set of specific string *values* (not key names) that were already
+// translated by the Bible API — skip them in the Google Translate pass.
+function shouldTranslate(text: string, key?: string, skipValues?: Set<string>) {
+  if (!text.trim()) return false;
+  if (key && UNTRANSLATED_KEYS.has(key)) return false;
+  if (skipValues?.has(text)) return false;
   if (/https?:\/\/|@/.test(text)) return false;
   if (/^[\d\s/.,:()+$-]+$/.test(text)) return false;
   return true;
 }
 
-function collectStrings(value: unknown, output: Set<string>, key?: string) {
+function collectStrings(value: unknown, output: Set<string>, key?: string, skipValues?: Set<string>) {
   if (typeof value === "string") {
-    if (shouldTranslate(value, key)) output.add(value);
+    if (shouldTranslate(value, key, skipValues)) output.add(value);
     return;
   }
   if (Array.isArray(value)) {
-    for (const item of value) collectStrings(item, output, key);
+    for (const item of value) collectStrings(item, output, key, skipValues);
     return;
   }
   if (value && typeof value === "object") {
     for (const [childKey, childValue] of Object.entries(value)) {
-      collectStrings(childValue, output, childKey);
+      collectStrings(childValue, output, childKey, skipValues);
     }
   }
 }
 
-function replaceStrings(value: unknown, translations: Map<string, string>, key?: string): unknown {
-  if (typeof value === "string") return shouldTranslate(value, key) ? translations.get(value) ?? value : value;
-  if (Array.isArray(value)) return value.map((item) => replaceStrings(item, translations, key));
+function replaceStrings(value: unknown, translations: Map<string, string>, key?: string, skipValues?: Set<string>): unknown {
+  if (typeof value === "string") return shouldTranslate(value, key, skipValues) ? (translations.get(value) ?? value) : value;
+  if (Array.isArray(value)) return value.map((item) => replaceStrings(item, translations, key, skipValues));
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(([childKey, childValue]) => [childKey, replaceStrings(childValue, translations, childKey)]),
+      Object.entries(value).map(([childKey, childValue]) => [childKey, replaceStrings(childValue, translations, childKey, skipValues)]),
     );
   }
   return value;
@@ -60,9 +66,63 @@ async function translateText(text: string, target: string) {
   return segments.map((segment) => String(segment[0] ?? "")).join("") || text;
 }
 
+/**
+ * Fills `quote` and each `memoryVerse.text` with the authoritative Bible translation.
+ * Returns both the enriched data and the set of string values that were successfully
+ * replaced — only those values are skipped in the Google Translate pass, so a failed
+ * Bible lookup automatically falls back to Google Translate.
+ */
+async function injectBibleVerses(
+  data: Partial<BulletinData>,
+  lang: Exclude<BulletinLanguage, "en">,
+): Promise<{ enriched: Partial<BulletinData>; replacedValues: Set<string> }> {
+  const result = { ...data };
+  const replacedValues = new Set<string>();
+
+  // Opening quote
+  if (result.quote && result.quoteRef) {
+    const text = await fetchVerseText(String(result.quoteRef), lang);
+    if (text) {
+      replacedValues.add(text);
+      result.quote = text;
+    }
+  }
+
+  // Memory verses
+  if (Array.isArray(result.memoryVerses)) {
+    result.memoryVerses = await Promise.all(
+      (result.memoryVerses as MemoryVerse[]).map(async (verse) => {
+        if (!verse.reference || !verse.text) return verse;
+        const text = await fetchVerseText(verse.reference, lang);
+        if (text) {
+          replacedValues.add(text);
+          return { ...verse, text };
+        }
+        return verse;
+      }),
+    );
+  }
+
+  return { enriched: result, replacedValues };
+}
+
 export async function translateBulletinContent<T>(value: T, language: Exclude<BulletinLanguage, "en">): Promise<T> {
+  // Step 1: Fill Bible verse fields from the authoritative translation for this language.
+  // replacedValues tracks which text strings are now already in the target language so
+  // Google Translate can skip them. If a Bible lookup fails, the original English text
+  // is NOT in replacedValues and flows through to Google Translate automatically.
+  let enriched: T = value;
+  const replacedValues = new Set<string>();
+
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const result = await injectBibleVerses(value as Partial<BulletinData>, language);
+    enriched = result.enriched as T;
+    for (const v of result.replacedValues) replacedValues.add(v);
+  }
+
+  // Step 2: Google-translate the remaining fields
   const strings = new Set<string>();
-  collectStrings(value, strings);
+  collectStrings(enriched, strings, undefined, replacedValues);
   const queue = [...strings];
   const translations = new Map<string, string>();
   let nextIndex = 0;
@@ -76,7 +136,6 @@ export async function translateBulletinContent<T>(value: T, language: Exclude<Bu
     }
   }
 
-  await Promise.all(Array.from({ length:Math.min(4, queue.length || 1) }, () => worker()));
-  return replaceStrings(value, translations) as T;
+  await Promise.all(Array.from({ length: Math.min(4, queue.length || 1) }, () => worker()));
+  return replaceStrings(enriched, translations, undefined, replacedValues) as T;
 }
-

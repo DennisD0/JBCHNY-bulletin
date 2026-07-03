@@ -56,6 +56,8 @@ server-*.log
 /tunnel.err.log
 /.next-*.log
 /data/*.bak
+/data/bible_verse_cache.json
+/data/bible_*.json
 
 # typescript
 *.tsbuildinfo
