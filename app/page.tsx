@@ -18,6 +18,7 @@ import type { BulletinComment } from "@/app/api/comments/route";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
+import PresenceModal from "@/app/components/PresenceModal";
 import type {
   BulletinData,
   ServiceRow,
@@ -3986,6 +3987,8 @@ export default function Home() {
           </filter>
         </defs>
       </svg>
+
+      <PresenceModal />
 
       {uploadTarget && (
         <UploadModal
