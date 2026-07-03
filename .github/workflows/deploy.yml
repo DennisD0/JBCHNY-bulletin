@@ -14,6 +14,6 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 34.30.218.223
-          username: dennisdo440
+          username: dennisnasa
           key: ${{ secrets.VM_DEPLOY_KEY }}
           script: ~/bulletin/scripts/deploy.sh
