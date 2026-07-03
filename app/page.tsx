@@ -2524,7 +2524,7 @@ function LockModal({
           <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"-0.01em" }}>Currently being edited</span>
         </div>
         <p style={{ margin:"0 0 18px", color:"rgba(255,255,255,0.6)", fontSize:12.5, lineHeight:1.6 }}>
-          Someone is editing the {LANGUAGE_CONFIG[language].name} bulletin
+          <strong style={{ color: "#fff" }}>{lock.userName}</strong> is editing the {LANGUAGE_CONFIG[language].name} bulletin
           {minutes > 0 ? ` (${minutes}m ago)` : " right now"}. Choose how you&apos;d like to proceed:
         </p>
         {/* Request to Take Over */}
