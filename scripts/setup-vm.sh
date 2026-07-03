@@ -61,7 +61,7 @@ EOF
 
 # ── 8. Install deps + build ───────────────────────────────────
 echo "▸ Installing dependencies..."
-npm ci --prefer-offline
+npm install
 
 echo "▸ Building app (may take 2–3 min)..."
 npm run build

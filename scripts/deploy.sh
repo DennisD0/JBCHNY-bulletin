@@ -11,7 +11,7 @@ echo "▸ Pulling latest code..."
 git pull
 
 echo "▸ Installing dependencies..."
-npm ci --prefer-offline
+npm install
 
 echo "▸ Building..."
 npm run build
