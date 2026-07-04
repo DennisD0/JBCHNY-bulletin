@@ -244,7 +244,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   } finally {
     chrome.kill();
-    // Remove this run's throwaway Chrome profile so they don't accumulate on disk.
-    if (existsSync(profileDir)) rmSync(profileDir, { recursive: true, force: true });
+    // Best-effort cleanup of this run's throwaway profile. Chrome may still hold
+    // its files for a moment after kill() (Windows EBUSY), so never let cleanup
+    // failure turn a successful export into a 500 — a leftover dir under
+    // .next/tmp is transient and harmless.
+    try {
+      if (existsSync(profileDir)) rmSync(profileDir, { recursive: true, force: true });
+    } catch {
+      /* profile still locked by the exiting Chrome — leave it */
+    }
   }
 }
