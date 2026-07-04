@@ -2253,6 +2253,36 @@ function isAccessRequestNotification(notification: AppNotification): notificatio
   return ACCESS_REQUEST_TYPES.includes(notification.type as AccessRequestType);
 }
 
+// Short, pleasant two-note "ding-dong" chime for incoming requests/notifications.
+// Synthesized with the Web Audio API so there's no audio asset to ship or load.
+let sharedAudioCtx: AudioContext | null = null;
+function playNotificationChime() {
+  try {
+    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return;
+    sharedAudioCtx = sharedAudioCtx ?? new Ctor();
+    const ctx = sharedAudioCtx;
+    if (ctx.state === "suspended") void ctx.resume();
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 880.0, start: 0.0, dur: 0.18 },    // A5
+      { freq: 1174.66, start: 0.11, dur: 0.30 }, // D6
+    ];
+    for (const n of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = n.freq;
+      gain.gain.setValueAtTime(0.0001, now + n.start);
+      gain.gain.exponentialRampToValueAtTime(0.16, now + n.start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + n.start);
+      osc.stop(now + n.start + n.dur + 0.03);
+    }
+  } catch { /* audio unavailable — silently skip */ }
+}
+
 const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   // Page 1 (y: 0–816), col widths ≈ [449, 448, 447]
   header:   { cx: 1120, cy: 320,  h: 380 }, // col 3 – cover panel
@@ -2533,7 +2563,7 @@ function LanguageTabBar({
               </span>
             )}
             {lockedByOther && (
-              <span aria-label="Locked by another editor" style={{ position: "relative", zIndex: 1, width: 6, height: 6, borderRadius: 99, background: "#EF4444", boxShadow: "0 0 0 2px rgba(239,68,68,0.2)" }} />
+              <span aria-label="Locked by another editor" style={{ position: "relative", zIndex: 1, width: 6, height: 6, borderRadius: 99, background: "#EF4444", animation: "livePulse 1.6s ease-in-out infinite" }} />
             )}
             {/* Presence avatars with role badges */}
             {shownEditors.length > 0 && (
@@ -3794,6 +3824,9 @@ export default function Home() {
   const [presenceUsers, setPresenceUsers] = useState<Array<{ name: string; sessionId: string; language?: string; section?: string }>>([]);
   const [presenceMyName, setPresenceMyName] = useState("");
   const presenceMyNameRef = useRef("");
+  // Notification-sound bookkeeping: signatures (id:status) we've already chimed for.
+  // Seeded on the first poll so we don't play a sound for pre-existing notifications.
+  const heardNotifSigsRef = useRef<Set<string> | null>(null);
   // Track which incoming-request toasts the user has dismissed from view (not from notifications)
   const [dismissedToastIds, setDismissedToastIds] = useState<string[]>([]);
 
@@ -3968,6 +4001,23 @@ export default function Home() {
     if (!res.ok) return;
     const fresh = await res.json() as AppNotification[];
     setNotifications(fresh);
+
+    // Play a chime for anything freshly arriving that concerns me: an incoming
+    // request/transfer aimed at me, or a resolution (accept/decline) of a request
+    // I sent. Signature includes status so a status change re-triggers the sound.
+    const forMe = fresh.filter(
+      (n) =>
+        n.targetSessionId === sessionId.current ||
+        (n.fromSessionId === sessionId.current && n.status !== "pending"),
+    );
+    const sigs = forMe.map((n) => `${n.id}:${n.status}`);
+    if (heardNotifSigsRef.current === null) {
+      heardNotifSigsRef.current = new Set(sigs); // seed on first poll — no sound on load
+    } else {
+      const heard = heardNotifSigsRef.current;
+      if (sigs.some((s) => !heard.has(s))) playNotificationChime();
+      for (const s of sigs) heard.add(s);
+    }
 
     // Auto-acquire lock when a takeover request we sent gets accepted.
     // Works for both viewers and collaborators requesting full control.
@@ -5274,6 +5324,16 @@ export default function Home() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Pulsing glow for the "live — someone is editing" red dot */
+        @keyframes livePulse {
+          0%, 100% {
+            box-shadow: 0 0 0 2px rgba(239,68,68,0.22), 0 0 4px 1px rgba(239,68,68,0.55);
+          }
+          50% {
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.10), 0 0 10px 3px rgba(239,68,68,0.9);
+          }
+        }
 
         .mobile-toolbar,
         .mobile-setup-close {
