@@ -2953,8 +2953,8 @@ function AccessControlBar({
             title="Ask them to hand over full editing control to you"
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: "rgba(245,158,11,0.2)", color: "#FCD34D",
-              border: "1px solid rgba(245,158,11,0.42)", borderRadius: 999,
+              background: "rgba(239,68,68,0.22)", color: "#FCA5A5",
+              border: "1px solid rgba(239,68,68,0.45)", borderRadius: 999,
               padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
             }}
           >
