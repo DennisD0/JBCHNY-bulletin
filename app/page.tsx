@@ -10,7 +10,7 @@ import {
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
   Bell, CheckCircle, XCircle, UserCheck,
-  MessageCircle, Check, Send,
+  MessageCircle, Check, Send, Pencil,
   type LucideIcon,
 } from "lucide-react";
 import type { AppNotification } from "@/app/api/notifications/route";
@@ -2519,25 +2519,51 @@ function LanguageTabBar({
                 {shownEditors.map((u, i) => {
                   const isSelf = u.sessionId === mySessionId;
                   const c = presenceColorFor(u.name);
+                  const langLock = locks[language];
+                  const role = langLock?.sessionId === u.sessionId
+                    ? "editor"
+                    : langLock?.collaborators?.includes(u.sessionId)
+                      ? "collaborator"
+                      : "viewer";
+                  const roleBadgeColor = role === "editor" ? "#F59E0B" : role === "collaborator" ? "#8B5CF6" : "#94A3B8";
+                  const roleLabel = role === "editor" ? "Editor" : role === "collaborator" ? "Collaborator" : "Viewer";
                   return (
                     <div
                       key={u.sessionId}
-                      title={isSelf ? `${u.name} (you)` : u.name}
+                      title={`${u.name}${isSelf ? " (you)" : ""} · ${roleLabel}`}
                       style={{
+                        position: "relative",
+                        marginLeft: i > 0 ? -6 : 0,
+                        zIndex: shownEditors.length - i,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
                         width: 18, height: 18, borderRadius: "50%",
                         background: c.bg,
                         color: c.text,
                         border: `2px solid ${active ? "#4472C4" : "#fff"}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 7, fontWeight: 900,
-                        marginLeft: i > 0 ? -6 : 0,
-                        zIndex: shownEditors.length - i,
-                        position: "relative",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {presenceInitials(u.name)}
+                        boxShadow: isSelf
+                          ? "0 0 0 1.5px rgba(255,255,255,0.95), 0 1px 4px rgba(0,0,0,0.22)"
+                          : "0 1px 4px rgba(0,0,0,0.18)",
+                      }}>
+                        {presenceInitials(u.name)}
+                      </div>
+                      <div style={{
+                        position: "absolute", bottom: -2, right: -2,
+                        width: 9, height: 9, borderRadius: "50%",
+                        background: roleBadgeColor,
+                        border: "1.5px solid #fff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.28)",
+                        pointerEvents: "none",
+                      }}>
+                        {role === "editor" && <Pencil size={5} strokeWidth={2.5} color="#fff" />}
+                        {role === "collaborator" && <Users size={5} strokeWidth={2.5} color="#fff" />}
+                        {role === "viewer" && <Eye size={5} strokeWidth={2.5} color="#fff" />}
+                      </div>
                     </div>
                   );
                 })}
@@ -2557,6 +2583,40 @@ function LanguageTabBar({
           </button>
         );
       })}
+
+      {/* My Role pill — far right of tab bar */}
+      {(() => {
+        const activeLock = locks[activeLanguage];
+        const myRole = activeLock?.sessionId === mySessionId
+          ? "editor"
+          : activeLock?.collaborators?.includes(mySessionId)
+            ? "collaborator"
+            : "viewer";
+        const roleStyles: Record<string, { bg: string; text: string; border: string }> = {
+          editor:       { bg: "rgba(245,158,11,0.14)", text: "#B45309", border: "rgba(245,158,11,0.45)" },
+          collaborator: { bg: "rgba(139,92,246,0.14)", text: "#7C3AED", border: "rgba(139,92,246,0.45)" },
+          viewer:       { bg: "rgba(148,163,184,0.13)", text: "#64748B", border: "rgba(148,163,184,0.4)"  },
+        };
+        const s = roleStyles[myRole];
+        const RoleIcon = myRole === "editor" ? Pencil : myRole === "collaborator" ? Users : Eye;
+        const roleLabel = myRole === "editor" ? "Editor" : myRole === "collaborator" ? "Collaborator" : "Viewer";
+        return (
+          <div style={{
+            marginLeft: "auto",
+            display: "flex", alignItems: "center", gap: 5,
+            background: s.bg,
+            border: `1px solid ${s.border}`,
+            borderRadius: 999,
+            padding: "4px 10px 4px 7px",
+            flexShrink: 0,
+          }}>
+            <RoleIcon size={11} strokeWidth={2.5} color={s.text} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: s.text, letterSpacing: "0.02em" }}>
+              {roleLabel}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }
