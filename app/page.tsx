@@ -2857,21 +2857,22 @@ function AccessControlBar({
 
   return (
     <motion.div
-      initial={{ y: 26, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 26, opacity: 0 }}
+      initial={{ y: 16, opacity: 0, x: "-50%" }}
+      animate={{ y: 0, opacity: 1, x: "-50%" }}
+      exit={{ y: 16, opacity: 0, x: "-50%" }}
       transition={{ type: "spring", stiffness: 420, damping: 36 }}
+      onMouseDown={(e) => e.stopPropagation()}
       style={{
-        position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)",
-        zIndex: 70, display: "flex", alignItems: "center", gap: 12,
+        position: "absolute", bottom: 84, left: "50%",
+        zIndex: 31, display: "flex", alignItems: "center", gap: 12,
         background: "rgba(10,15,30,0.9)",
         backdropFilter: "blur(20px) saturate(1.7)",
         WebkitBackdropFilter: "blur(20px) saturate(1.7)",
         border: "1px solid rgba(255,255,255,0.14)",
         borderRadius: 999, padding: "8px 10px 8px 14px",
         boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
-        maxWidth: "calc(100vw - 24px)",
-        whiteSpace: "nowrap",
+        maxWidth: "calc(100% - 24px)",
+        whiteSpace: "nowrap", pointerEvents: "all",
       }}
     >
       {/* Role chip */}
@@ -3625,7 +3626,8 @@ export default function Home() {
   const [mobileSetupOpen, setMobileSetupOpen] = useState(false);
   const [isCollaborator, setIsCollaborator] = useState(false);
   const [seenSectionNotifications, setSeenSectionNotifications] = useState<string[]>([]);
-  const [seenDeclinedIds, setSeenDeclinedIds] = useState<string[]>([]);
+  // IDs of access-request notifications the user has already seen (panel opened while visible)
+  const [seenNotifIds, setSeenNotifIds] = useState<string[]>([]);
 
   // Presence: list of all active users (including self), updated via PresenceModal callback
   const [presenceUsers, setPresenceUsers] = useState<Array<{ name: string; sessionId: string; language?: string; section?: string }>>([]);
@@ -3843,18 +3845,27 @@ export default function Home() {
     return () => window.clearInterval(interval);
   }, [pollNotifications]);
 
-  // When notification panel opens, mark all currently visible declined notifications as seen
+  // When the notification panel opens, mark everything currently visible as seen so the
+  // bell badge clears — access requests (as sender or target) and pending section updates.
   useEffect(() => {
     if (!notifPanelOpen) return;
-    const declinedIds = notifications
-      .filter((n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId.current && n.status === "declined")
+    const requestIds = notifications
+      .filter((n) => isAccessRequestNotification(n) && (n.fromSessionId === sessionId.current || n.targetSessionId === sessionId.current))
       .map((n) => n.id);
-    if (declinedIds.length === 0) return;
-    setSeenDeclinedIds((prev) => {
-      const newIds = declinedIds.filter((id) => !prev.includes(id));
+    setSeenNotifIds((prev) => {
+      const newIds = requestIds.filter((id) => !prev.includes(id));
       return newIds.length > 0 ? [...prev, ...newIds] : prev;
     });
-  }, [notifPanelOpen, notifications]);
+    if (activeLang !== "en" && activeLang !== "ko") {
+      const sectionIds = Object.entries(metaByLanguage[activeLang]?.sections ?? {})
+        .filter(([, state]) => state.status === "pending")
+        .map(([sectionKey]) => buildSectionNotificationId(activeLang, sectionKey));
+      setSeenSectionNotifications((prev) => {
+        const newIds = sectionIds.filter((id) => !prev.includes(id));
+        return newIds.length > 0 ? [...prev, ...newIds] : prev;
+      });
+    }
+  }, [notifPanelOpen, notifications, activeLang, metaByLanguage, buildSectionNotificationId]);
 
   const pollComments = useCallback(async () => {
     const res = await fetch("/api/comments", { cache: "no-store" });
@@ -4525,23 +4536,6 @@ export default function Home() {
         />
       )}
 
-      {/* Persistent access bar — viewers and collaborators can request more access anytime */}
-      <AnimatePresence>
-        {(readOnly || isCollaborator) && locks[activeLang] && locks[activeLang]!.sessionId !== sessionId.current && !lockConflict && (
-          <AccessControlBar
-            role={isCollaborator ? "collaborator" : "viewer"}
-            lock={locks[activeLang]!}
-            language={activeLang}
-            notifications={notifications}
-            sessionId={sessionId.current}
-            onRequestTakeover={() => sendAccessRequest("takeover_request")}
-            onRequestJoin={() => sendAccessRequest("join_request")}
-            onLeave={leaveCollaboration}
-            onCancelRequest={cancelAccessRequest}
-          />
-        )}
-      </AnimatePresence>
-
       {notifPanelOpen && (
         <NotificationPanel
           notifications={notifications}
@@ -5027,13 +5021,30 @@ export default function Home() {
         )}
 
         <FloatingToolbar mode={canvasMode} onMode={setCanvasMode} onFit={fitToScreen} onExport={exportPDF} exporting={exporting} disabled={!data} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} notifCount={
-  notifications.filter(n => (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && (n.status === "pending" || n.status === "accepted" || (n.status === "declined" && !seenDeclinedIds.includes(n.id)))).length +
+  notifications.filter(n => isAccessRequestNotification(n) && (n.targetSessionId === sessionId.current || n.fromSessionId === sessionId.current) && !seenNotifIds.includes(n.id)).length +
   (activeLang !== "en" && activeLang !== "ko"
     ? Object.entries(metaByLanguage[activeLang]?.sections ?? {}).filter(([sectionKey, state]) =>
         state.status === "pending" && !seenSectionNotifications.includes(buildSectionNotificationId(activeLang, sectionKey))
       ).length
     : 0)
 } onBell={() => setNotifPanelOpen((v) => !v)} />
+
+        {/* Persistent access bar — centered over the canvas, directly above the toolbar */}
+        <AnimatePresence>
+          {(readOnly || isCollaborator) && locks[activeLang] && locks[activeLang]!.sessionId !== sessionId.current && !lockConflict && (
+            <AccessControlBar
+              role={isCollaborator ? "collaborator" : "viewer"}
+              lock={locks[activeLang]!}
+              language={activeLang}
+              notifications={notifications}
+              sessionId={sessionId.current}
+              onRequestTakeover={() => sendAccessRequest("takeover_request")}
+              onRequestJoin={() => sendAccessRequest("join_request")}
+              onLeave={leaveCollaboration}
+              onCancelRequest={cancelAccessRequest}
+            />
+          )}
+        </AnimatePresence>
         {exportError && (
           <div style={{ position: "absolute", bottom: 80, right: 16, fontSize: 11, color: "#F87171", background: "#2A1A1A", border: "1px solid #7F1D1D", borderRadius: 6, padding: "5px 10px", pointerEvents: "all" }}>
             {exportError}
