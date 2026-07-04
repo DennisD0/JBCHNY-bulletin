@@ -1939,7 +1939,7 @@ type CanvasMode = "grab" | "select" | "comment";
 
 const CANVAS_TOOLS: { id: CanvasMode; label: string; shortcut: string; Icon: LucideIcon }[] = [
   { id: "select",  label: "Select & Edit", shortcut: "V", Icon: TextCursor },
-  { id: "grab",    label: "Grab & Pan",   shortcut: "Space", Icon: Hand },
+  { id: "grab",    label: "Grab & Pan",   shortcut: "H", Icon: Hand },
   { id: "comment", label: "Comment",      shortcut: "C", Icon: MessageCircle },
 ];
 
@@ -4249,6 +4249,7 @@ export default function Home() {
 
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         if (e.key === "v" || e.key === "V") setCanvasMode("select");
+        if (e.key === "h" || e.key === "H") setCanvasMode("grab");
         if (e.key === "c" || e.key === "C") setCanvasMode("comment");
       }
     };
