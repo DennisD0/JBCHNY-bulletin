@@ -2925,12 +2925,19 @@ function AccessControlBar({
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {declined && (
             <span style={{ color: "#FCA5A5", fontSize: 11.5, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <XCircle size={13} strokeWidth={2.4} /> Declined
+              <XCircle size={13} strokeWidth={2.4} /> Last request declined
             </span>
           )}
+          {/* Divider */}
+          <span aria-hidden style={{ width: 1, height: 20, background: "rgba(255,255,255,0.14)", flexShrink: 0 }} />
+          {/* "Request to:" label makes the buttons read as requests */}
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>
+            Request to:
+          </span>
           {role === "viewer" && (
             <button
               onClick={onRequestJoin}
+              title="Ask to edit alongside them at the same time"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
                 background: "rgba(139,92,246,0.22)", color: "#C4B5FD",
@@ -2938,11 +2945,12 @@ function AccessControlBar({
                 padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
               }}
             >
-              <Users size={13} strokeWidth={2.4} /> Collaborate
+              <Users size={13} strokeWidth={2.4} /> Edit together
             </button>
           )}
           <button
             onClick={onRequestTakeover}
+            title="Ask them to hand over full editing control to you"
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               background: "rgba(245,158,11,0.2)", color: "#FCD34D",
@@ -2950,21 +2958,24 @@ function AccessControlBar({
               padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
             }}
           >
-            <Pencil size={12} strokeWidth={2.4} /> {role === "collaborator" ? "Request full control" : "Take over"}
+            <Pencil size={12} strokeWidth={2.4} /> Take full control
           </button>
           {role === "collaborator" && (
-            <button
-              onClick={onLeave}
-              title="Leave collaboration and return to view-only"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "transparent", color: "rgba(255,255,255,0.6)",
-                border: "1px solid rgba(255,255,255,0.16)", borderRadius: 999,
-                padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer",
-              }}
-            >
-              <LogOut size={12} strokeWidth={2.4} /> Leave
-            </button>
+            <>
+              <span aria-hidden style={{ width: 1, height: 20, background: "rgba(255,255,255,0.14)", flexShrink: 0 }} />
+              <button
+                onClick={onLeave}
+                title="Stop collaborating and go back to view-only"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: "transparent", color: "rgba(255,255,255,0.6)",
+                  border: "1px solid rgba(255,255,255,0.16)", borderRadius: 999,
+                  padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                <LogOut size={12} strokeWidth={2.4} /> Leave
+              </button>
+            </>
           )}
         </span>
       )}
