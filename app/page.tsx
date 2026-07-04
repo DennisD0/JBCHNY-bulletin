@@ -10,7 +10,7 @@ import {
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
   Bell, CheckCircle, XCircle, UserCheck,
-  MessageCircle, Check, Send, Pencil, LogOut,
+  MessageCircle, Check, Send, Pencil, LogOut, ChevronDown, ChevronUp,
   type LucideIcon,
 } from "lucide-react";
 import type { AppNotification } from "@/app/api/notifications/route";
@@ -2854,6 +2854,52 @@ function AccessControlBar({
     : null;
 
   const RoleIcon = meta.Icon;
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Collapsed: a compact role chip you can expand back into the full bar.
+  if (collapsed) {
+    const hasStatus = Boolean(pending || declined);
+    return (
+      <motion.button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        onMouseDown={(e) => e.stopPropagation()}
+        title="Show access options"
+        initial={{ y: 16, opacity: 0, x: "-50%" }}
+        animate={{ y: 0, opacity: 1, x: "-50%" }}
+        exit={{ y: 16, opacity: 0, x: "-50%" }}
+        transition={{ type: "spring", stiffness: 420, damping: 36 }}
+        style={{
+          position: "absolute", bottom: 84, left: "50%",
+          zIndex: 31, display: "flex", alignItems: "center", gap: 8,
+          background: "rgba(10,15,30,0.9)",
+          backdropFilter: "blur(20px) saturate(1.7)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.7)",
+          border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: 999, padding: "6px 12px 6px 6px",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
+          cursor: "pointer", pointerEvents: "all",
+        }}
+      >
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          background: meta.solid, borderRadius: 999, padding: "4px 10px 4px 8px",
+          boxShadow: `0 2px 8px ${meta.solid}66`,
+        }}>
+          <RoleIcon size={12} strokeWidth={2.75} color="#fff" />
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>{meta.label}</span>
+        </span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>Request access</span>
+        {hasStatus && (
+          <span style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: pending ? "#93C5FD" : "#FCA5A5", flexShrink: 0,
+          }} />
+        )}
+        <ChevronUp size={14} strokeWidth={2.4} color="rgba(255,255,255,0.55)" />
+      </motion.button>
+    );
+  }
 
   return (
     <motion.div
@@ -2979,6 +3025,22 @@ function AccessControlBar({
           )}
         </span>
       )}
+
+      {/* Minimize to a compact chip */}
+      <button
+        type="button"
+        onClick={() => setCollapsed(true)}
+        title="Minimize"
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 26, height: 26, flexShrink: 0,
+          background: "transparent", color: "rgba(255,255,255,0.5)",
+          border: "1px solid rgba(255,255,255,0.14)", borderRadius: "50%",
+          cursor: "pointer",
+        }}
+      >
+        <ChevronDown size={15} strokeWidth={2.4} />
+      </button>
     </motion.div>
   );
 }
