@@ -3858,8 +3858,6 @@ export default function Home() {
   const [canvasMode, setCanvasMode]   = useState<CanvasMode>("grab");
   const [spacePanning, setSpacePanning] = useState(false);
   const spaceHeld = useRef(false);
-  const lastPointer = useRef<{ x: number; y: number } | null>(null);
-  const spacePointer = useRef<{ x: number; y: number } | null>(null);
   const canvasModeRef = useRef<CanvasMode>("grab");
   const interactionMode: CanvasMode = spacePanning ? "grab" : canvasMode;
 
@@ -4225,7 +4223,6 @@ export default function Home() {
         e.preventDefault();
         if (!e.repeat) {
           spaceHeld.current = true;
-          spacePointer.current = lastPointer.current;
           setSpacePanning(true);
         }
       }
@@ -4258,20 +4255,33 @@ export default function Home() {
     const upHandler = (e: KeyboardEvent) => {
       if (e.code !== "Space") return;
       spaceHeld.current = false;
-      spacePointer.current = null;
       setSpacePanning(false);
+    };
+    const moveHandler = (e: MouseEvent) => {
+      if (!spaceHeld.current) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      if (e.movementX === 0 && e.movementY === 0) return;
+      applyTransform(
+        transformRef.current.x + e.movementX,
+        transformRef.current.y + e.movementY,
+        transformRef.current.z,
+      );
     };
     const blurHandler = () => {
       spaceHeld.current = false;
-      spacePointer.current = null;
       setSpacePanning(false);
     };
     window.addEventListener("keydown", handler);
     window.addEventListener("keyup", upHandler);
+    window.addEventListener("mousemove", moveHandler);
     window.addEventListener("blur", blurHandler);
     return () => {
       window.removeEventListener("keydown", handler);
       window.removeEventListener("keyup", upHandler);
+      window.removeEventListener("mousemove", moveHandler);
       window.removeEventListener("blur", blurHandler);
     };
   }, [applyTransform, fitToScreen]);
@@ -4704,33 +4714,16 @@ export default function Home() {
     // select mode: do nothing — let clicks propagate to BulletinPreview
   }
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const pointer = { x: e.clientX, y: e.clientY };
-    lastPointer.current = pointer;
-    if (spaceHeld.current) {
-      const previous = spacePointer.current;
-      spacePointer.current = pointer;
-      if (previous) {
-        applyTransform(
-          transformRef.current.x + pointer.x - previous.x,
-          transformRef.current.y + pointer.y - previous.y,
-          transformRef.current.z,
-        );
-      }
-      return;
-    }
+    if (spaceHeld.current) return;
     if (!dragging.current) return;
     const { mx, my, tx, ty } = dragOrigin.current;
     applyTransform(tx + e.clientX - mx, ty + e.clientY - my, transformRef.current.z);
   }
   function onMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     dragging.current = false;
-    if (e.type === "mouseleave") {
-      lastPointer.current = null;
-      spacePointer.current = null;
-    }
     const m = spaceHeld.current ? "grab" : canvasModeRef.current;
     (e.currentTarget as HTMLDivElement).style.cursor =
-      m === "grab" ? "grab" : "default";
+      spaceHeld.current ? "grabbing" : m === "grab" ? "grab" : m === "comment" ? "crosshair" : "default";
   }
 
   const reading  = mgmt?.readingSources?.[0];
@@ -5173,7 +5166,7 @@ export default function Home() {
       <div
         className="editor-canvas"
         ref={canvasRef}
-        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: interactionMode === "grab" ? "grab" : interactionMode === "comment" ? "crosshair" : "default", userSelect: interactionMode === "select" ? "auto" : "none" }}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: spacePanning ? "grabbing" : interactionMode === "grab" ? "grab" : interactionMode === "comment" ? "crosshair" : "default", userSelect: interactionMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
