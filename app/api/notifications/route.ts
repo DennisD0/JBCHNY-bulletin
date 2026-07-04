@@ -71,10 +71,9 @@ export async function GET(request: Request) {
 // POST /api/notifications — create an access request
 export async function POST(request: Request) {
   const body = await request.json() as Partial<AppNotification>;
-  const validType =
-    body.type === "takeover_request" || body.type === "join_request" || body.type === "editor_transferred";
+  const type = body.type;
   if (
-    !validType ||
+    (type !== "takeover_request" && type !== "join_request" && type !== "editor_transferred") ||
     !body.lang || !isBulletinLanguage(body.lang) ||
     !body.fromSessionId || !body.targetSessionId
   ) {
@@ -95,7 +94,7 @@ export async function POST(request: Request) {
 
   const notification: AppNotification = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    type: body.type,
+    type,
     lang: body.lang,
     fromSessionId: body.fromSessionId,
     fromUserName: body.fromUserName?.trim() || "Editor",
