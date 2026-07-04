@@ -87,10 +87,14 @@ export async function POST(request: Request) {
     if (current?.collaborators?.includes(body.sessionId)) {
       return NextResponse.json({ ok: true, lock: current, collaborator: true });
     }
-    if (current && current.sessionId !== body.sessionId) {
+    // Self-healing: if the current holder's tab is gone (not in active presence),
+    // treat the lock as free and steal it rather than reporting a false conflict.
+    const holderIsMe = !current || current.sessionId === body.sessionId;
+    if (current && !holderIsMe && activePresenceIds().has(current.sessionId)) {
       return NextResponse.json({ ok: false, lock: current });
     }
-    locks[body.lang] = current ? { ...current, acquiredAt: Date.now() } : nextLock;
+    // Keep my own lock's collaborators; otherwise (free or stolen) start fresh.
+    locks[body.lang] = holderIsMe && current ? { ...current, acquiredAt: Date.now() } : nextLock;
     writeLocks(locks);
     return NextResponse.json({ ok: true, lock: locks[body.lang] });
   }

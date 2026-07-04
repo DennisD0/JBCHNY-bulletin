@@ -2222,6 +2222,28 @@ const LANGUAGE_CONFIG: Record<BulletinLanguage, { code: string; flag: string; na
   ru: { code: "RU", flag: "🇷🇺", name: "Russian" },
 };
 
+type PresenceRole = "editor" | "collaborator" | "viewer";
+
+// Single source of truth for the three collaboration roles — icon, colors, label.
+const ROLE_META: Record<PresenceRole, {
+  label: string;
+  Icon: LucideIcon;
+  solid: string;   // badge / accent fill
+  tint: string;    // soft chip background
+  ink: string;     // chip text/icon color
+  ring: string;    // chip border
+}> = {
+  editor:       { label: "Editor",       Icon: Pencil, solid: "#F59E0B", tint: "rgba(245,158,11,0.14)", ink: "#B45309", ring: "rgba(245,158,11,0.45)" },
+  collaborator: { label: "Collaborator", Icon: Users,  solid: "#8B5CF6", tint: "rgba(139,92,246,0.14)", ink: "#7C3AED", ring: "rgba(139,92,246,0.45)" },
+  viewer:       { label: "Viewer",       Icon: Eye,    solid: "#94A3B8", tint: "rgba(148,163,184,0.14)", ink: "#64748B", ring: "rgba(148,163,184,0.42)" },
+};
+
+function roleForSession(lock: LanguageLock | null | undefined, sessionId: string): PresenceRole {
+  if (lock?.sessionId === sessionId) return "editor";
+  if (lock?.collaborators?.includes(sessionId)) return "collaborator";
+  return "viewer";
+}
+
 // Section centers in full-PDF coordinate space (1344 × 1634 stacked)
 // h = approximate section height — used to compute zoom level
 const ACCESS_REQUEST_TYPES = ["takeover_request", "join_request"] as const;
@@ -2473,17 +2495,17 @@ function LanguageTabBar({
             title={language === "ko" ? "Korean is isolated from English sync" : config.name}
             style={{
               position: "relative",
-              height: 38,
+              height: 42,
               display: "inline-flex",
               alignItems: "center",
-              gap: 5,
-              padding: "0 10px",
+              gap: 6,
+              padding: "0 13px",
               borderRadius: 999,
               border: "none",
               background: "transparent",
-              color: active ? "#fff" : "#64748B",
+              color: active ? "#fff" : "#475569",
               cursor: "pointer",
-              fontSize: 11.5,
+              fontSize: 12.5,
               fontWeight: 800,
               whiteSpace: "nowrap",
               transition: "color 0.18s",
@@ -2495,12 +2517,12 @@ function LanguageTabBar({
                 transition={{ type: "spring", stiffness: 500, damping: 40 }}
                 style={{
                   position: "absolute", inset: 0, borderRadius: 999,
-                  background: "#4472C4",
-                  boxShadow: "0 2px 10px rgba(68,114,196,0.35)",
+                  background: "linear-gradient(180deg, #4E80D9 0%, #3E68BF 100%)",
+                  boxShadow: "0 4px 14px rgba(62,104,191,0.42), inset 0 1px 0 rgba(255,255,255,0.25)",
                 }}
               />
             )}
-            <span aria-hidden style={{ position: "relative", zIndex: 1 }}>{config.flag}</span>
+            <span aria-hidden style={{ position: "relative", zIndex: 1, fontSize: 15, lineHeight: 1 }}>{config.flag}</span>
             <span style={{ position: "relative", zIndex: 1 }}>{config.code}</span>
             {language === "ko" && (
               <Lock size={10} aria-label="Korean is isolated" style={{ position: "relative", zIndex: 1 }} />
@@ -2513,70 +2535,68 @@ function LanguageTabBar({
             {lockedByOther && (
               <span aria-label="Locked by another editor" style={{ position: "relative", zIndex: 1, width: 6, height: 6, borderRadius: 99, background: "#EF4444", boxShadow: "0 0 0 2px rgba(239,68,68,0.2)" }} />
             )}
-            {/* Editor avatars */}
+            {/* Presence avatars with role badges */}
             {shownEditors.length > 0 && (
-              <div style={{ position: "relative", zIndex: 1, display: "flex", marginLeft: 2 }}>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", marginLeft: 3 }}>
                 {shownEditors.map((u, i) => {
                   const isSelf = u.sessionId === mySessionId;
                   const c = presenceColorFor(u.name);
-                  const langLock = locks[language];
-                  const role = langLock?.sessionId === u.sessionId
-                    ? "editor"
-                    : langLock?.collaborators?.includes(u.sessionId)
-                      ? "collaborator"
-                      : "viewer";
-                  const roleBadgeColor = role === "editor" ? "#F59E0B" : role === "collaborator" ? "#8B5CF6" : "#94A3B8";
-                  const roleLabel = role === "editor" ? "Editor" : role === "collaborator" ? "Collaborator" : "Viewer";
+                  const role = roleForSession(locks[language], u.sessionId);
+                  const meta = ROLE_META[role];
+                  const separator = active ? "#4472C4" : "#fff";
                   return (
                     <div
                       key={u.sessionId}
-                      title={`${u.name}${isSelf ? " (you)" : ""} · ${roleLabel}`}
+                      title={`${u.name}${isSelf ? " (you)" : ""} — ${meta.label}`}
                       style={{
                         position: "relative",
-                        marginLeft: i > 0 ? -6 : 0,
+                        marginLeft: i > 0 ? -7 : 0,
                         zIndex: shownEditors.length - i,
                         flexShrink: 0,
                       }}
                     >
                       <div style={{
-                        width: 18, height: 18, borderRadius: "50%",
+                        width: 24, height: 24, borderRadius: "50%",
                         background: c.bg,
                         color: c.text,
-                        border: `2px solid ${active ? "#4472C4" : "#fff"}`,
+                        border: `2px solid ${separator}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 7, fontWeight: 900,
+                        fontSize: 9, fontWeight: 900, letterSpacing: "0.02em",
                         boxShadow: isSelf
-                          ? "0 0 0 1.5px rgba(255,255,255,0.95), 0 1px 4px rgba(0,0,0,0.22)"
-                          : "0 1px 4px rgba(0,0,0,0.18)",
+                          ? `0 0 0 2px ${separator}, 0 0 0 3.5px ${meta.solid}, 0 2px 6px rgba(0,0,0,0.22)`
+                          : "0 1px 5px rgba(0,0,0,0.18)",
                       }}>
                         {presenceInitials(u.name)}
                       </div>
+                      {/* Role badge */}
                       <div style={{
-                        position: "absolute", bottom: -2, right: -2,
-                        width: 9, height: 9, borderRadius: "50%",
-                        background: roleBadgeColor,
-                        border: "1.5px solid #fff",
+                        position: "absolute", bottom: -3, right: -3,
+                        width: 14, height: 14, borderRadius: "50%",
+                        background: meta.solid,
+                        border: "2px solid #fff",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.28)",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
                         pointerEvents: "none",
                       }}>
-                        {role === "editor" && <Pencil size={5} strokeWidth={2.5} color="#fff" />}
-                        {role === "collaborator" && <Users size={5} strokeWidth={2.5} color="#fff" />}
-                        {role === "viewer" && <Eye size={5} strokeWidth={2.5} color="#fff" />}
+                        <meta.Icon size={8} strokeWidth={2.75} color="#fff" />
                       </div>
                     </div>
                   );
                 })}
                 {extraCount > 0 && (
-                  <div style={{
-                    width: 18, height: 18, borderRadius: "50%", marginLeft: -6, flexShrink: 0,
-                    background: "#F1F5F9",
-                    color: "#64748B",
-                    border: `2px solid ${active ? "#4472C4" : "#fff"}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 7, fontWeight: 900,
-                    position: "relative", zIndex: 0,
-                  }}>+{extraCount}</div>
+                  <div
+                    title={`${extraCount} more`}
+                    style={{
+                      width: 24, height: 24, borderRadius: "50%", marginLeft: -7, flexShrink: 0,
+                      background: "#EEF2F7",
+                      color: "#475569",
+                      border: `2px solid ${active ? "#4472C4" : "#fff"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 9, fontWeight: 900,
+                      position: "relative", zIndex: 0,
+                      boxShadow: "0 1px 5px rgba(0,0,0,0.15)",
+                    }}
+                  >+{extraCount}</div>
                 )}
               </div>
             )}
@@ -2584,36 +2604,35 @@ function LanguageTabBar({
         );
       })}
 
-      {/* My Role pill — far right of tab bar */}
+      {/* My Role chip — far right of tab bar, separated by a hairline divider */}
       {(() => {
-        const activeLock = locks[activeLanguage];
-        const myRole = activeLock?.sessionId === mySessionId
-          ? "editor"
-          : activeLock?.collaborators?.includes(mySessionId)
-            ? "collaborator"
-            : "viewer";
-        const roleStyles: Record<string, { bg: string; text: string; border: string }> = {
-          editor:       { bg: "rgba(245,158,11,0.14)", text: "#B45309", border: "rgba(245,158,11,0.45)" },
-          collaborator: { bg: "rgba(139,92,246,0.14)", text: "#7C3AED", border: "rgba(139,92,246,0.45)" },
-          viewer:       { bg: "rgba(148,163,184,0.13)", text: "#64748B", border: "rgba(148,163,184,0.4)"  },
-        };
-        const s = roleStyles[myRole];
-        const RoleIcon = myRole === "editor" ? Pencil : myRole === "collaborator" ? Users : Eye;
-        const roleLabel = myRole === "editor" ? "Editor" : myRole === "collaborator" ? "Collaborator" : "Viewer";
+        const myRole = roleForSession(locks[activeLanguage], mySessionId);
+        const meta = ROLE_META[myRole];
         return (
-          <div style={{
-            marginLeft: "auto",
-            display: "flex", alignItems: "center", gap: 5,
-            background: s.bg,
-            border: `1px solid ${s.border}`,
-            borderRadius: 999,
-            padding: "4px 10px 4px 7px",
-            flexShrink: 0,
-          }}>
-            <RoleIcon size={11} strokeWidth={2.5} color={s.text} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: s.text, letterSpacing: "0.02em" }}>
-              {roleLabel}
-            </span>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <span aria-hidden style={{ width: 1, height: 22, background: "#E2E8F0", borderRadius: 1 }} />
+            <div
+              title={`Your role on ${LANGUAGE_CONFIG[activeLanguage].name}: ${meta.label}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: meta.tint,
+                border: `1px solid ${meta.ring}`,
+                borderRadius: 999,
+                padding: "5px 12px 5px 8px",
+              }}
+            >
+              <span style={{
+                width: 18, height: 18, borderRadius: "50%",
+                background: meta.solid,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: `0 1px 4px ${meta.ring}`,
+              }}>
+                <meta.Icon size={11} strokeWidth={2.75} color="#fff" />
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 800, color: meta.ink, letterSpacing: "0.02em" }}>
+                {meta.label}
+              </span>
+            </div>
           </div>
         );
       })()}
@@ -4964,14 +4983,14 @@ export default function Home() {
           z-index: 80;
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 5px;
-          border: 1px solid #E2E8F0;
+          gap: 3px;
+          padding: 6px 8px;
+          border: 1px solid rgba(226,232,240,0.9);
           border-radius: 999px;
-          background: #fff;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
+          background: rgba(255,255,255,0.86);
+          box-shadow: 0 8px 28px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.06);
+          backdrop-filter: blur(16px) saturate(1.4);
+          -webkit-backdrop-filter: blur(16px) saturate(1.4);
         }
 
         .multilang-modal-backdrop {

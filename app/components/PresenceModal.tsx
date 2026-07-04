@@ -90,12 +90,17 @@ export default function PresenceModal({
       void fetchOthers(userName);
     }, PING_MS);
     const leave = () => {
-      navigator.sendBeacon?.("/api/presence", JSON.stringify({ sessionId: sessionId.current }));
+      // Blob with JSON type so the presence route parses it; POST-only beacon is
+      // treated as a "leave" (no name) which removes the entry and frees locks.
+      const blob = new Blob([JSON.stringify({ sessionId: sessionId.current })], { type: "application/json" });
+      navigator.sendBeacon?.("/api/presence", blob);
     };
     window.addEventListener("beforeunload", leave);
+    window.addEventListener("pagehide", leave);
     return () => {
       clearInterval(interval);
       window.removeEventListener("beforeunload", leave);
+      window.removeEventListener("pagehide", leave);
     };
   }, [userName, register, fetchOthers]);
 

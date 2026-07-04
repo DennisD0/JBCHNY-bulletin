@@ -33,15 +33,42 @@ function active(users: PresenceUser[]): PresenceUser[] {
   return users.filter((u) => u.lastSeen >= cutoff);
 }
 
+// Release any language locks held by the given session IDs.
+function releaseLocksFor(sessionIds: string[]) {
+  if (sessionIds.length === 0) return;
+  try {
+    const raw = existsSync(LOCKS_FILE) ? readFileSync(LOCKS_FILE, "utf-8") : null;
+    if (!raw) return;
+    const locks = JSON.parse(raw) as Record<string, { sessionId: string } | null>;
+    let changed = false;
+    for (const lang of Object.keys(locks)) {
+      if (locks[lang] && sessionIds.includes(locks[lang]!.sessionId)) {
+        locks[lang] = null;
+        changed = true;
+      }
+    }
+    if (changed) writeFileSync(LOCKS_FILE, JSON.stringify(locks, null, 2));
+  } catch { /* ignore lock file errors */ }
+}
+
 // GET — return list of currently active users
 export async function GET() {
   return NextResponse.json(active(read()));
 }
 
 // POST — register / heartbeat  { name, sessionId, language?, section? }
+// Also handles tab-close "leave" beacons: sendBeacon can only POST, so a body
+// with a sessionId but no name is treated as a leave (remove entry + release locks).
 export async function POST(req: Request) {
-  const { name, sessionId, language, section } = (await req.json()) as { name: string; sessionId: string; language?: string; section?: string };
-  if (!name?.trim() || !sessionId) return NextResponse.json({ ok: false }, { status: 400 });
+  const { name, sessionId, language, section } = (await req.json()) as { name?: string; sessionId: string; language?: string; section?: string };
+  if (!sessionId) return NextResponse.json({ ok: false }, { status: 400 });
+
+  // Leave signal (no name) — remove this session and release any locks it holds.
+  if (!name?.trim()) {
+    write(read().filter((u) => u.sessionId !== sessionId));
+    releaseLocksFor([sessionId]);
+    return NextResponse.json({ ok: true, left: true });
+  }
 
   const trimmedName = name.trim().toLowerCase();
   const users = read();
@@ -51,23 +78,7 @@ export async function POST(req: Request) {
     .filter((u) => u.name.trim().toLowerCase() === trimmedName && u.sessionId !== sessionId)
     .map((u) => u.sessionId);
 
-  if (evictedIds.length > 0) {
-    // Release locks held by evicted sessions
-    try {
-      const raw = existsSync(LOCKS_FILE) ? readFileSync(LOCKS_FILE, "utf-8") : null;
-      if (raw) {
-        const locks = JSON.parse(raw) as Record<string, { sessionId: string } | null>;
-        let changed = false;
-        for (const lang of Object.keys(locks)) {
-          if (locks[lang] && evictedIds.includes(locks[lang]!.sessionId)) {
-            locks[lang] = null;
-            changed = true;
-          }
-        }
-        if (changed) writeFileSync(LOCKS_FILE, JSON.stringify(locks, null, 2));
-      }
-    } catch { /* ignore lock file errors */ }
-  }
+  releaseLocksFor(evictedIds);
 
   // Remove evicted sessions from presence list
   const filtered = users.filter(
