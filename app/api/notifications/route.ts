@@ -18,7 +18,7 @@ function readLocks(): LanguageLocks {
 
 export type AppNotification = {
   id: string;
-  type: "takeover_request" | "join_request";
+  type: "takeover_request" | "join_request" | "editor_transferred";
   lang: BulletinLanguage;
   fromSessionId: string;
   fromUserName: string;
@@ -71,8 +71,10 @@ export async function GET(request: Request) {
 // POST /api/notifications — create an access request
 export async function POST(request: Request) {
   const body = await request.json() as Partial<AppNotification>;
+  const validType =
+    body.type === "takeover_request" || body.type === "join_request" || body.type === "editor_transferred";
   if (
-    (body.type !== "takeover_request" && body.type !== "join_request") ||
+    !validType ||
     !body.lang || !isBulletinLanguage(body.lang) ||
     !body.fromSessionId || !body.targetSessionId
   ) {

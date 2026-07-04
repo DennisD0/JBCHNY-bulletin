@@ -2826,18 +2826,20 @@ function presenceInitials(name: string) {
 // access at any time — Collaborate / Take over for viewers, Request full control /
 // Leave for collaborators — plus live pending/declined status with a cancel option.
 function AccessControlBar({
-  role, lock, language, notifications, sessionId,
-  onRequestTakeover, onRequestJoin, onLeave, onCancelRequest,
+  role, lock, language, notifications, sessionId, candidates,
+  onRequestTakeover, onRequestJoin, onLeave, onCancelRequest, onTransferEditor,
 }: {
-  role: "viewer" | "collaborator";
+  role: PresenceRole;
   lock: LanguageLock;
   language: BulletinLanguage;
   notifications: AppNotification[];
   sessionId: string;
+  candidates: Array<{ name: string; sessionId: string }>;
   onRequestTakeover: () => void;
   onRequestJoin: () => void;
   onLeave: () => void;
   onCancelRequest: (id: string) => void;
+  onTransferEditor: (target: { sessionId: string; name: string }) => void;
 }) {
   const config = LANGUAGE_CONFIG[language];
   const meta = ROLE_META[role];
@@ -2855,10 +2857,12 @@ function AccessControlBar({
 
   const RoleIcon = meta.Icon;
   const [collapsed, setCollapsed] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const isEditor = role === "editor";
 
   // Collapsed: a compact role chip you can expand back into the full bar.
   if (collapsed) {
-    const hasStatus = Boolean(pending || declined);
+    const hasStatus = !isEditor && Boolean(pending || declined);
     return (
       <motion.button
         type="button"
@@ -2889,14 +2893,14 @@ function AccessControlBar({
           <RoleIcon size={12} strokeWidth={2.75} color="#fff" />
           <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>{meta.label}</span>
         </span>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>Request access</span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{isEditor ? "Pass role" : "Request access"}</span>
         {hasStatus && (
           <span style={{
             width: 7, height: 7, borderRadius: "50%",
             background: pending ? "#93C5FD" : "#FCA5A5", flexShrink: 0,
           }} />
         )}
-        <ChevronUp size={14} strokeWidth={2.4} color="rgba(255,255,255,0.55)" />
+        <ChevronRight size={14} strokeWidth={2.4} color="rgba(255,255,255,0.55)" />
       </motion.button>
     );
   }
@@ -2933,16 +2937,100 @@ function AccessControlBar({
 
       {/* Status text */}
       <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {role === "collaborator" ? "Collaborating on " : "Viewing "}
-        <span aria-hidden>{config.flag}</span> {config.name}
-        <span style={{ color: "rgba(255,255,255,0.4)" }}> · </span>
-        <span style={{ color: "rgba(255,255,255,0.4)" }}>{role === "collaborator" ? "with" : ""}</span>{" "}
-        <strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>{lock.userName}</strong>
-        {role === "viewer" && " is editing"}
+        {isEditor ? (
+          <>
+            Editing <span aria-hidden>{config.flag}</span> {config.name}
+          </>
+        ) : (
+          <>
+            {role === "collaborator" ? "Collaborating on " : "Viewing "}
+            <span aria-hidden>{config.flag}</span> {config.name}
+            <span style={{ color: "rgba(255,255,255,0.4)" }}> · </span>
+            <span style={{ color: "rgba(255,255,255,0.4)" }}>{role === "collaborator" ? "with" : ""}</span>{" "}
+            <strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>{lock.userName}</strong>
+            {role === "viewer" && " is editing"}
+          </>
+        )}
       </span>
 
+      {/* Editor: hand the role off to another present user */}
+      {isEditor && (
+        <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span aria-hidden style={{ width: 1, height: 20, background: "rgba(255,255,255,0.14)", flexShrink: 0 }} />
+          <button
+            onClick={() => candidates.length > 0 && setPickerOpen((v) => !v)}
+            disabled={candidates.length === 0}
+            title={candidates.length === 0 ? "No one else is in this language" : "Hand the editor role to someone here"}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: candidates.length === 0 ? "rgba(255,255,255,0.05)" : "rgba(245,158,11,0.22)",
+              color: candidates.length === 0 ? "rgba(255,255,255,0.35)" : "#FCD34D",
+              border: `1px solid ${candidates.length === 0 ? "rgba(255,255,255,0.1)" : "rgba(245,158,11,0.4)"}`,
+              borderRadius: 999, padding: "6px 13px", fontSize: 12, fontWeight: 700,
+              cursor: candidates.length === 0 ? "default" : "pointer",
+            }}
+          >
+            <UserCheck size={13} strokeWidth={2.4} />
+            {candidates.length === 0 ? "No one else here" : "Pass editor role"}
+            {candidates.length > 0 && (pickerOpen ? <ChevronDown size={13} strokeWidth={2.6} /> : <ChevronUp size={13} strokeWidth={2.6} />)}
+          </button>
+
+          {/* Pop-up list of present users to hand off to */}
+          <AnimatePresence>
+            {pickerOpen && candidates.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 460, damping: 34 }}
+                style={{
+                  position: "absolute", bottom: "calc(100% + 10px)", right: 0,
+                  minWidth: 210, maxHeight: 240, overflowY: "auto",
+                  background: "rgba(17,24,39,0.98)",
+                  backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.14)", borderRadius: 14,
+                  boxShadow: "0 16px 48px rgba(0,0,0,0.5)", padding: 6, zIndex: 40,
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", padding: "6px 10px 4px" }}>
+                  Hand off to
+                </div>
+                {candidates.map((u) => {
+                  const c = presenceColorFor(u.name);
+                  return (
+                    <button
+                      key={u.sessionId}
+                      onClick={() => { setPickerOpen(false); onTransferEditor({ sessionId: u.sessionId, name: u.name }); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10, width: "100%",
+                        background: "transparent", border: "none", borderRadius: 9,
+                        padding: "7px 10px", cursor: "pointer", textAlign: "left",
+                        transition: "background 0.12s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <span style={{
+                        width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                        background: c.bg, color: c.text, fontSize: 11, fontWeight: 800,
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {presenceInitials(u.name)}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {u.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </span>
+      )}
+
       {/* Pending state */}
-      {pending && (
+      {!isEditor && pending && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "#93C5FD", fontSize: 12, fontWeight: 600 }}>
             <span style={{
@@ -2967,7 +3055,7 @@ function AccessControlBar({
       )}
 
       {/* Action buttons (hidden while a request is pending) */}
-      {!pending && (
+      {!isEditor && !pending && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {declined && (
             <span style={{ color: "#FCA5A5", fontSize: 11.5, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
@@ -3039,7 +3127,7 @@ function AccessControlBar({
           cursor: "pointer",
         }}
       >
-        <ChevronDown size={15} strokeWidth={2.4} />
+        <ChevronLeft size={15} strokeWidth={2.4} />
       </button>
     </motion.div>
   );
@@ -3909,6 +3997,26 @@ export default function Home() {
       setIsCollaborator(true);
       setReadOnly(false);
     }
+    // The editor handed the role to me — claim the lock and become the editor.
+    const editorGranted = fresh.find(
+      (n) => n.type === "editor_transferred" && n.targetSessionId === sessionId.current && n.status === "pending",
+    );
+    if (editorGranted && activeLangRef.current === editorGranted.lang) {
+      const acquisition = await postLockAction("acquire", editorGranted.lang);
+      if (acquisition.ok) {
+        setReadOnly(false);
+        setIsCollaborator(false);
+        await loadLanguage(editorGranted.lang);
+        await refreshLanguageStatus();
+      }
+      // Mark consumed so it isn't reprocessed on the next poll.
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editorGranted.id, status: "accepted", sessionId: sessionId.current }),
+      });
+    }
+
     // Declined requests surface inline on the AccessControlBar — no forced panel.
   }, [loadLanguage, postLockAction, readOnly, isCollaborator, refreshLanguageStatus]);
 
@@ -4300,6 +4408,43 @@ export default function Home() {
     setIsCollaborator(false);
     setReadOnly(true);
     await refreshLanguageStatus();
+  };
+
+  // Hand the editor role to another present user in the same language.
+  // The lock is reassigned to them; I drop to view-only. A notification tells
+  // them to promote themselves immediately (rather than wait for the 30s poll).
+  const transferEditor = async (target: { sessionId: string; name: string }) => {
+    const res = await fetch("/api/locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "transfer",
+        lang: activeLang,
+        sessionId: sessionId.current,
+        targetSessionId: target.sessionId,
+        targetUserName: target.name,
+      }),
+    });
+    const data = await res.json() as { ok: boolean };
+    if (!data.ok) {
+      await refreshLanguageStatus();
+      return;
+    }
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "editor_transferred",
+        lang: activeLang,
+        fromSessionId: sessionId.current,
+        fromUserName: presenceMyNameRef.current || "Editor",
+        targetSessionId: target.sessionId,
+      }),
+    });
+    setReadOnly(true);
+    setIsCollaborator(false);
+    await refreshLanguageStatus();
+    await pollNotifications();
   };
 
   const grantLockAccess = async (notif: AppNotification) => {
@@ -5104,17 +5249,19 @@ export default function Home() {
 
         {/* Persistent access bar — centered over the canvas, directly above the toolbar */}
         <AnimatePresence>
-          {(readOnly || isCollaborator) && locks[activeLang] && locks[activeLang]!.sessionId !== sessionId.current && !lockConflict && (
+          {locks[activeLang] && !lockConflict && (
             <AccessControlBar
-              role={isCollaborator ? "collaborator" : "viewer"}
+              role={roleForSession(locks[activeLang], sessionId.current)}
               lock={locks[activeLang]!}
               language={activeLang}
               notifications={notifications}
               sessionId={sessionId.current}
+              candidates={presenceUsers.filter((u) => u.language === activeLang && u.sessionId !== sessionId.current)}
               onRequestTakeover={() => sendAccessRequest("takeover_request")}
               onRequestJoin={() => sendAccessRequest("join_request")}
               onLeave={leaveCollaboration}
               onCancelRequest={cancelAccessRequest}
+              onTransferEditor={transferEditor}
             />
           )}
         </AnimatePresence>

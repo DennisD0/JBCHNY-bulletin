@@ -64,11 +64,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json() as {
-    action?: "acquire" | "release" | "heartbeat" | "takeover" | "add-collaborator";
+    action?: "acquire" | "release" | "heartbeat" | "takeover" | "add-collaborator" | "transfer";
     lang?: string;
     sessionId?: string;
     userName?: string;
     targetSessionId?: string;
+    targetUserName?: string;
   };
 
   if (!body.action || !body.lang || !isBulletinLanguage(body.lang) || !body.sessionId) {
@@ -118,6 +119,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, lock: current }, { status: 409 });
     }
     locks[body.lang] = { ...current, acquiredAt: Date.now() };
+    writeLocks(locks);
+    return NextResponse.json({ ok: true, lock: locks[body.lang] });
+  }
+
+  // Hand the editor role to another present user. Only the current holder may do it.
+  if (body.action === "transfer") {
+    if (current?.sessionId !== body.sessionId) {
+      return NextResponse.json({ ok: false, lock: current }, { status: 409 });
+    }
+    if (!body.targetSessionId) {
+      return NextResponse.json({ error: "targetSessionId required" }, { status: 400 });
+    }
+    // The new holder can't also be listed as a collaborator; drop them from that list.
+    const remainingCollaborators = (current.collaborators ?? []).filter((id) => id !== body.targetSessionId);
+    locks[body.lang] = {
+      sessionId: body.targetSessionId,
+      userName: body.targetUserName?.trim() || "Editor",
+      acquiredAt: Date.now(),
+      collaborators: remainingCollaborators,
+    };
     writeLocks(locks);
     return NextResponse.json({ ok: true, lock: locks[body.lang] });
   }
