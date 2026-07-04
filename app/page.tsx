@@ -3856,10 +3856,7 @@ export default function Home() {
   const [exporting, setExporting]     = useState(false);
   const [exportError, setExportError] = useState("");
   const [canvasMode, setCanvasMode]   = useState<CanvasMode>("grab");
-  const [spacePanning, setSpacePanning] = useState(false);
-  const spaceHeld    = useRef(false);
   const canvasModeRef = useRef<CanvasMode>("grab");
-  const interactionMode: CanvasMode = spacePanning ? "grab" : canvasMode;
 
   // Two-layer transform: outer div pans via translate, inner div zooms via CSS zoom.
   // CSS zoom re-rasterizes at the display size → crisp text (vs transform:scale which blurs).
@@ -4221,11 +4218,7 @@ export default function Home() {
       if (editing) return;
       if (e.code === "Space") {
         e.preventDefault();
-        if (!e.repeat) {
-          spaceHeld.current = true;
-          setSpacePanning(true);
-          if (canvasRef.current) canvasRef.current.style.cursor = "grab";
-        }
+        if (!e.repeat) setCanvasMode("grab");
       }
       // Undo / Redo — only when not in an editable element
       if (!editing && (e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
@@ -4253,32 +4246,9 @@ export default function Home() {
         if (e.key === "c" || e.key === "C") setCanvasMode("comment");
       }
     };
-    const upHandler = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        spaceHeld.current = false;
-        setSpacePanning(false);
-        const m = canvasModeRef.current;
-        if (canvasRef.current && !dragging.current) {
-          canvasRef.current.style.cursor = m === "grab" ? "grab" : "default";
-        }
-      }
-    };
-    const blurHandler = () => {
-      if (!spaceHeld.current) return;
-      spaceHeld.current = false;
-      setSpacePanning(false);
-      const m = canvasModeRef.current;
-      if (canvasRef.current && !dragging.current) {
-        canvasRef.current.style.cursor = m === "grab" ? "grab" : "default";
-      }
-    };
     window.addEventListener("keydown", handler);
-    window.addEventListener("keyup", upHandler);
-    window.addEventListener("blur", blurHandler);
     return () => {
       window.removeEventListener("keydown", handler);
-      window.removeEventListener("keyup", upHandler);
-      window.removeEventListener("blur", blurHandler);
     };
   }, [applyTransform, fitToScreen]);
 
@@ -4700,7 +4670,7 @@ export default function Home() {
   // Drag / zoom / select handlers — behaviour depends on canvasMode
   function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     if (e.button !== 0) return;
-    const effective = spaceHeld.current ? "grab" : canvasModeRef.current;
+    const effective = canvasModeRef.current;
     if (effective === "grab") {
       dragging.current = true;
       dragOrigin.current = { mx: e.clientX, my: e.clientY, tx: transformRef.current.x, ty: transformRef.current.y };
@@ -4715,7 +4685,7 @@ export default function Home() {
   }
   function onMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     dragging.current = false;
-    const m = spaceHeld.current ? "grab" : canvasModeRef.current;
+    const m = canvasModeRef.current;
     (e.currentTarget as HTMLDivElement).style.cursor =
       m === "grab" ? "grab" : "default";
   }
@@ -5160,7 +5130,7 @@ export default function Home() {
       <div
         className="editor-canvas"
         ref={canvasRef}
-        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: interactionMode === "grab" ? "grab" : interactionMode === "comment" ? "crosshair" : "default", userSelect: interactionMode === "select" ? "auto" : "none" }}
+        style={{ flex: 1, minWidth: 0, height: "100%", background: "#1C1C2B", overflow: "hidden", position: "relative", cursor: canvasMode === "grab" ? "grab" : canvasMode === "comment" ? "crosshair" : "default", userSelect: canvasMode === "select" ? "auto" : "none" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
@@ -5171,10 +5141,10 @@ export default function Home() {
           /* Pan layer — translate only */
           <div ref={pdfPanRef} style={{ position: "absolute", left: 0, top: 0, willChange: "transform" }}>
             {/* Zoom layer — CSS zoom for crisp text re-rasterize */}
-            <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: interactionMode === "grab" ? "none" : "auto", position: "relative" }}>
+            <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: canvasMode === "grab" ? "none" : "auto", position: "relative" }}>
               <BulletinPreview
                 data={data}
-                onUpdate={interactionMode === "grab" || readOnly ? undefined : patch}
+                onUpdate={canvasMode === "grab" || readOnly ? undefined : patch}
                 pendingDiffs={
                   activeLang !== "en" && activeLang !== "ko"
                     ? Object.fromEntries(
@@ -5189,7 +5159,7 @@ export default function Home() {
               <BulletinFitController fitKey={JSON.stringify(data)} />
 
               {/* Comment mode click-capture overlay — must be inside zoom layer for correct coordinates */}
-              {interactionMode === "comment" && (
+              {canvasMode === "comment" && (
                 <div
                   style={{ position: "absolute", top: 0, left: 0, width: PAGE_W, height: PAGE_H * 2 + 4, zIndex: 19, cursor: "crosshair" }}
                   onClick={(e) => {
