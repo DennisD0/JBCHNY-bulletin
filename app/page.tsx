@@ -10,7 +10,7 @@ import {
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
   Bell, CheckCircle, XCircle, UserCheck,
-  MessageCircle, Check, Send, Pencil,
+  MessageCircle, Check, Send, Pencil, LogOut,
   type LucideIcon,
 } from "lucide-react";
 import type { AppNotification } from "@/app/api/notifications/route";
@@ -2821,91 +2821,151 @@ function presenceInitials(name: string) {
   return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-// ── Persistent read-only access bar ───────────────────────────────────────────
-function ReadOnlyAccessBar({
-  lock, language, notifications, sessionId, myName, onRequestTakeover, onRequestJoin,
+// ── Persistent access-control bar (viewer & collaborator) ─────────────────────
+// A pill-shaped dark bar pinned bottom-center that lets non-editors request more
+// access at any time — Collaborate / Take over for viewers, Request full control /
+// Leave for collaborators — plus live pending/declined status with a cancel option.
+function AccessControlBar({
+  role, lock, language, notifications, sessionId,
+  onRequestTakeover, onRequestJoin, onLeave, onCancelRequest,
 }: {
+  role: "viewer" | "collaborator";
   lock: LanguageLock;
   language: BulletinLanguage;
   notifications: AppNotification[];
   sessionId: string;
-  myName: string;
   onRequestTakeover: () => void;
   onRequestJoin: () => void;
+  onLeave: () => void;
+  onCancelRequest: (id: string) => void;
 }) {
-  const myPending = notifications.find(
-    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.lang === language && n.status === "pending",
-  );
-  const lastDeclined = notifications.find(
-    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.lang === language && n.status === "declined",
-  );
   const config = LANGUAGE_CONFIG[language];
+  const meta = ROLE_META[role];
+  const mine = notifications.filter(
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.lang === language,
+  );
+  const pending = mine.find((n) => n.status === "pending");
+  const declined = mine.filter((n) => n.status === "declined").sort((a, b) => b.createdAt - a.createdAt)[0];
+
+  const pendingLabel = pending
+    ? pending.type === "takeover_request"
+      ? (role === "collaborator" ? "Requesting full control" : "Take-over request sent")
+      : "Collaborate request sent"
+    : null;
+
+  const RoleIcon = meta.Icon;
 
   return (
     <motion.div
-      initial={{ y: 24, opacity: 0 }}
+      initial={{ y: 26, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 24, opacity: 0 }}
+      exit={{ y: 26, opacity: 0 }}
       transition={{ type: "spring", stiffness: 420, damping: 36 }}
       style={{
         position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)",
-        zIndex: 70, display: "flex", alignItems: "center", gap: 10,
-        background: "rgba(10,15,30,0.88)",
-        backdropFilter: "blur(18px) saturate(1.6)",
-        WebkitBackdropFilter: "blur(18px) saturate(1.6)",
-        border: "1px solid rgba(255,255,255,0.13)",
-        borderRadius: 999, padding: "8px 8px 8px 16px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.40)",
-        maxWidth: "calc(100vw - 32px)",
+        zIndex: 70, display: "flex", alignItems: "center", gap: 12,
+        background: "rgba(10,15,30,0.9)",
+        backdropFilter: "blur(20px) saturate(1.7)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.7)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        borderRadius: 999, padding: "8px 10px 8px 14px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
+        maxWidth: "calc(100vw - 24px)",
         whiteSpace: "nowrap",
       }}
     >
-      {/* Status */}
-      <Eye size={13} color="rgba(255,255,255,0.45)" strokeWidth={2} />
-      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-        Viewing {config.flag} {config.name} —{" "}
-        <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>{lock.userName}</strong> is editing
-        {lastDeclined && !myPending && (
-          <span style={{ color: "#FCA5A5", marginLeft: 6 }}>· Request declined</span>
-        )}
-        {myPending && (
-          <span style={{ color: "#93C5FD", marginLeft: 6 }}>· Request sent…</span>
-        )}
+      {/* Role chip */}
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        background: meta.solid, borderRadius: 999, padding: "4px 10px 4px 8px",
+        flexShrink: 0, boxShadow: `0 2px 8px ${meta.solid}66`,
+      }}>
+        <RoleIcon size={12} strokeWidth={2.75} color="#fff" />
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.02em" }}>{meta.label}</span>
       </span>
 
-      {/* Action buttons */}
-      {!myPending && (
-        <>
+      {/* Status text */}
+      <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {role === "collaborator" ? "Collaborating on " : "Viewing "}
+        <span aria-hidden>{config.flag}</span> {config.name}
+        <span style={{ color: "rgba(255,255,255,0.4)" }}> · </span>
+        <span style={{ color: "rgba(255,255,255,0.4)" }}>{role === "collaborator" ? "with" : ""}</span>{" "}
+        <strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>{lock.userName}</strong>
+        {role === "viewer" && " is editing"}
+      </span>
+
+      {/* Pending state */}
+      {pending && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "#93C5FD", fontSize: 12, fontWeight: 600 }}>
+            <span style={{
+              width: 13, height: 13, borderRadius: "50%",
+              border: "2px solid rgba(147,197,253,0.3)", borderTopColor: "#93C5FD",
+              animation: "spin 0.8s linear infinite", flexShrink: 0,
+            }} />
+            {pendingLabel}…
+          </span>
+          <button
+            onClick={() => onCancelRequest(pending.id)}
+            title="Cancel request"
+            style={{
+              background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)",
+              border: "1px solid rgba(255,255,255,0.16)", borderRadius: 999,
+              padding: "5px 11px", fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+        </span>
+      )}
+
+      {/* Action buttons (hidden while a request is pending) */}
+      {!pending && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {declined && (
+            <span style={{ color: "#FCA5A5", fontSize: 11.5, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <XCircle size={13} strokeWidth={2.4} /> Declined
+            </span>
+          )}
+          {role === "viewer" && (
+            <button
+              onClick={onRequestJoin}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "rgba(139,92,246,0.22)", color: "#C4B5FD",
+                border: "1px solid rgba(139,92,246,0.4)", borderRadius: 999,
+                padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              <Users size={13} strokeWidth={2.4} /> Collaborate
+            </button>
+          )}
           <button
             onClick={onRequestTakeover}
             style={{
-              background: "rgba(239,68,68,0.18)", color: "#FCA5A5",
-              border: "1px solid rgba(239,68,68,0.35)", borderRadius: 999,
-              padding: "5px 12px", fontSize: 11.5, fontWeight: 700,
-              cursor: "pointer", whiteSpace: "nowrap",
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(245,158,11,0.2)", color: "#FCD34D",
+              border: "1px solid rgba(245,158,11,0.42)", borderRadius: 999,
+              padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
             }}
           >
-            Take Over
+            <Pencil size={12} strokeWidth={2.4} /> {role === "collaborator" ? "Request full control" : "Take over"}
           </button>
-          <button
-            onClick={onRequestJoin}
-            style={{
-              background: "rgba(68,114,196,0.22)", color: "#93C5FD",
-              border: "1px solid rgba(68,114,196,0.4)", borderRadius: 999,
-              padding: "5px 12px", fontSize: 11.5, fontWeight: 700,
-              cursor: "pointer", whiteSpace: "nowrap", marginRight: 4,
-            }}
-          >
-            Collaborate
-          </button>
-        </>
-      )}
-      {myPending && (
-        <div style={{
-          width: 13, height: 13, borderRadius: "50%", marginRight: 8,
-          border: "2px solid rgba(147,197,253,0.3)", borderTopColor: "#93C5FD",
-          animation: "spin 0.8s linear infinite", flexShrink: 0,
-        }} />
+          {role === "collaborator" && (
+            <button
+              onClick={onLeave}
+              title="Leave collaboration and return to view-only"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "transparent", color: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(255,255,255,0.16)", borderRadius: 999,
+                padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              <LogOut size={12} strokeWidth={2.4} /> Leave
+            </button>
+          )}
+        </span>
       )}
     </motion.div>
   );
@@ -3746,14 +3806,16 @@ export default function Home() {
     const fresh = await res.json() as AppNotification[];
     setNotifications(fresh);
 
-    // Auto-acquire lock when a takeover request we sent gets accepted
+    // Auto-acquire lock when a takeover request we sent gets accepted.
+    // Works for both viewers and collaborators requesting full control.
     const takeoverAccepted = fresh.find(
       (n) => n.type === "takeover_request" && n.fromSessionId === sessionId.current && n.status === "accepted",
     );
-    if (takeoverAccepted && readOnly && activeLangRef.current === takeoverAccepted.lang) {
+    if (takeoverAccepted && (readOnly || isCollaborator) && activeLangRef.current === takeoverAccepted.lang) {
       const acquisition = await postLockAction("acquire", takeoverAccepted.lang);
       if (acquisition.ok) {
         setReadOnly(false);
+        setIsCollaborator(false);
         await loadLanguage(takeoverAccepted.lang);
         await refreshLanguageStatus();
       }
@@ -3763,7 +3825,7 @@ export default function Home() {
     const joinAccepted = fresh.find(
       (n) => n.type === "join_request" && n.fromSessionId === sessionId.current && n.status === "accepted",
     );
-    if (joinAccepted && activeLangRef.current === joinAccepted.lang) {
+    if (joinAccepted && readOnly && activeLangRef.current === joinAccepted.lang) {
       await fetch("/api/locks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3772,15 +3834,8 @@ export default function Home() {
       setIsCollaborator(true);
       setReadOnly(false);
     }
-
-    // Auto-open notification panel when a request we sent gets declined
-    const declined = fresh.find(
-      (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId.current && n.status === "declined",
-    );
-    if (declined) {
-      setNotifPanelOpen(true);
-    }
-  }, [loadLanguage, postLockAction, readOnly, refreshLanguageStatus]);
+    // Declined requests surface inline on the AccessControlBar — no forced panel.
+  }, [loadLanguage, postLockAction, readOnly, isCollaborator, refreshLanguageStatus]);
 
   useEffect(() => {
     pollNotifications();
@@ -4127,6 +4182,42 @@ export default function Home() {
     await pollNotifications();
   };
 
+  // Fire an access request from the persistent AccessControlBar (no panel auto-open).
+  const sendAccessRequest = async (type: "takeover_request" | "join_request") => {
+    const holder = locks[activeLang];
+    if (!holder) return;
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type,
+        lang: activeLang,
+        fromSessionId: sessionId.current,
+        fromUserName: presenceMyNameRef.current || "Editor",
+        targetSessionId: holder.sessionId,
+      }),
+    });
+    await pollNotifications();
+  };
+
+  // Withdraw a pending request I sent.
+  const cancelAccessRequest = async (id: string) => {
+    await fetch("/api/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, sessionId: sessionId.current }),
+    });
+    await pollNotifications();
+  };
+
+  // Leave collaboration — drop back to view-only without closing the tab.
+  const leaveCollaboration = async () => {
+    await postLockAction("release", activeLang); // removes me from the lock's collaborators
+    setIsCollaborator(false);
+    setReadOnly(true);
+    await refreshLanguageStatus();
+  };
+
   const grantLockAccess = async (notif: AppNotification) => {
     if (notif.type === "join_request") {
       // Add requester as collaborator — don't release own lock
@@ -4141,8 +4232,12 @@ export default function Home() {
         }),
       });
     } else {
-      // takeover_request — release own lock
+      // takeover_request — release own lock and drop to read-only for that language
       await postLockAction("release", notif.lang);
+      if (notif.lang === activeLangRef.current) {
+        setReadOnly(true);
+        setIsCollaborator(false);
+      }
     }
     await fetch("/api/notifications", {
       method: "PATCH",
@@ -4430,41 +4525,19 @@ export default function Home() {
         />
       )}
 
-      {/* Persistent retry bar — visible whenever the user is in read-only mode */}
+      {/* Persistent access bar — viewers and collaborators can request more access anytime */}
       <AnimatePresence>
-        {readOnly && locks[activeLang] && !lockConflict && (
-          <ReadOnlyAccessBar
+        {(readOnly || isCollaborator) && locks[activeLang] && locks[activeLang]!.sessionId !== sessionId.current && !lockConflict && (
+          <AccessControlBar
+            role={isCollaborator ? "collaborator" : "viewer"}
             lock={locks[activeLang]!}
             language={activeLang}
             notifications={notifications}
             sessionId={sessionId.current}
-            myName={presenceMyName}
-            onRequestTakeover={() => {
-              void fetch("/api/notifications", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  type: "takeover_request",
-                  lang: activeLang,
-                  fromSessionId: sessionId.current,
-                  fromUserName: presenceMyNameRef.current || "Editor",
-                  targetSessionId: locks[activeLang]!.sessionId,
-                }),
-              }).then(() => pollNotifications());
-            }}
-            onRequestJoin={() => {
-              void fetch("/api/notifications", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  type: "join_request",
-                  lang: activeLang,
-                  fromSessionId: sessionId.current,
-                  fromUserName: presenceMyNameRef.current || "Editor",
-                  targetSessionId: locks[activeLang]!.sessionId,
-                }),
-              }).then(() => pollNotifications());
-            }}
+            onRequestTakeover={() => sendAccessRequest("takeover_request")}
+            onRequestJoin={() => sendAccessRequest("join_request")}
+            onLeave={leaveCollaboration}
+            onCancelRequest={cancelAccessRequest}
           />
         )}
       </AnimatePresence>

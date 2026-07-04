@@ -106,6 +106,18 @@ export async function POST(request: Request) {
   return NextResponse.json(notification, { status: 201 });
 }
 
+// DELETE /api/notifications — a sender withdraws their own pending request
+export async function DELETE(request: Request) {
+  const { id, sessionId } = await request.json() as { id: string; sessionId: string };
+  if (!id || !sessionId) {
+    return NextResponse.json({ error: "id and sessionId required" }, { status: 400 });
+  }
+  const notifications = read();
+  const next = notifications.filter((n) => !(n.id === id && n.fromSessionId === sessionId));
+  write(next);
+  return NextResponse.json({ ok: true });
+}
+
 // PATCH /api/notifications — update status (accept / decline / dismiss)
 export async function PATCH(request: Request) {
   const { id, status, sessionId } = await request.json() as {
