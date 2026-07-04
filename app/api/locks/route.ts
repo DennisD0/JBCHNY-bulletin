@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { NextResponse } from "next/server";
 import {
   BULLETIN_LANGUAGES,
@@ -8,22 +9,47 @@ import {
   type LanguageLocks,
 } from "@/lib/bulletin-languages";
 
-const LOCKS_PATH = join(process.cwd(), "data", "locks.json");
-const LOCK_TIMEOUT_MS = 3 * 60 * 1000; // 3 min; heartbeat fires every 45s so 2 missed = lock reclaimed
+const LOCKS_PATH = join(tmpdir(), "bulletin-locks.json");
+const PRESENCE_PATH = join(tmpdir(), "bulletin-presence.json");
+const LOCK_TIMEOUT_MS = 3 * 60 * 1000;
+const PRESENCE_STALE_MS = 45_000; // must match presence/route.ts
+
+const EMPTY_LOCKS: LanguageLocks = { en: null, ko: null, es: null, zh: null, ru: null };
 
 function readLocks(): LanguageLocks {
-  return JSON.parse(readFileSync(LOCKS_PATH, "utf-8")) as LanguageLocks;
+  try {
+    return JSON.parse(readFileSync(LOCKS_PATH, "utf-8")) as LanguageLocks;
+  } catch {
+    return { ...EMPTY_LOCKS };
+  }
 }
 
 function writeLocks(locks: LanguageLocks) {
   writeFileSync(LOCKS_PATH, `${JSON.stringify(locks, null, 2)}\n`, "utf-8");
 }
 
+// Returns session IDs that are currently active in the presence file.
+function activePresenceIds(): Set<string> {
+  try {
+    if (!existsSync(PRESENCE_PATH)) return new Set();
+    const users = JSON.parse(readFileSync(PRESENCE_PATH, "utf-8")) as Array<{ sessionId: string; lastSeen: number }>;
+    const cutoff = Date.now() - PRESENCE_STALE_MS;
+    return new Set(users.filter((u) => u.lastSeen >= cutoff).map((u) => u.sessionId));
+  } catch {
+    return new Set();
+  }
+}
+
 function removeExpiredLocks(locks: LanguageLocks) {
   const now = Date.now();
+  const presentIds = activePresenceIds();
   let changed = false;
   for (const language of BULLETIN_LANGUAGES) {
-    if (locks[language] && now - locks[language].acquiredAt > LOCK_TIMEOUT_MS) {
+    if (!locks[language]) continue;
+    const timedOut = now - locks[language]!.acquiredAt > LOCK_TIMEOUT_MS;
+    // If the holder is no longer in the active presence list, the tab is gone — release immediately.
+    const holderGone = !presentIds.has(locks[language]!.sessionId);
+    if (timedOut || holderGone) {
       locks[language] = null;
       changed = true;
     }

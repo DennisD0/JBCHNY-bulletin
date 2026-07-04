@@ -15,47 +15,54 @@ function getSessionId(): string {
   return id;
 }
 
-interface PresenceUser { name: string; sessionId: string; lastSeen: number; }
-
-// Soft pastel colours cycled by first char of name
-const COLORS = [
-  { bg: "#DBEAFE", text: "#1E40AF" },
-  { bg: "#DCF5E4", text: "#166534" },
-  { bg: "#FEF3C7", text: "#92400E" },
-  { bg: "#F3E8FF", text: "#6B21A8" },
-  { bg: "#FFE4E6", text: "#9F1239" },
-  { bg: "#CCFBF1", text: "#0F766E" },
-];
-function colorFor(name: string) {
-  const idx = (name.charCodeAt(0) || 0) % COLORS.length;
-  return COLORS[idx];
-}
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/);
-  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
+export interface PresenceUser {
+  name: string;
+  sessionId: string;
+  lastSeen: number;
+  language?: string;
+  section?: string;
 }
 
-export default function PresenceModal() {
+export default function PresenceModal({
+  currentLanguage,
+  currentSection,
+  onUsersChange,
+}: {
+  currentLanguage?: string;
+  currentSection?: string;
+  onUsersChange?: (all: PresenceUser[], myName: string, mySessionId: string) => void;
+}) {
   const [userName, setUserName] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [others, setOthers] = useState<PresenceUser[]>([]);
   const sessionId = useRef(getSessionId());
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // On mount: check localStorage for saved name
+  // Use refs so the interval closure always sees the latest values
+  const onUsersChangeRef = useRef(onUsersChange);
+  const currentLanguageRef = useRef(currentLanguage);
+  const currentSectionRef = useRef(currentSection);
+  useEffect(() => { onUsersChangeRef.current = onUsersChange; }, [onUsersChange]);
+  useEffect(() => { currentLanguageRef.current = currentLanguage; }, [currentLanguage]);
+  useEffect(() => { currentSectionRef.current = currentSection; }, [currentSection]);
+
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setUserName(saved);
-    }
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) setUserName(saved);
   }, []);
 
   const register = useCallback(async (name: string) => {
-    await fetch("/api/presence", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, sessionId: sessionId.current }),
-    });
+    try {
+      await fetch("/api/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          sessionId: sessionId.current,
+          language: currentLanguageRef.current,
+          section: currentSectionRef.current,
+        }),
+      });
+    } catch { /* ignore */ }
   }, []);
 
   const fetchOthers = useCallback(async (myName: string) => {
@@ -63,22 +70,25 @@ export default function PresenceModal() {
       const res = await fetch("/api/presence");
       if (!res.ok) return;
       const all = (await res.json()) as PresenceUser[];
-      setOthers(all.filter((u) => u.sessionId !== sessionId.current));
-    } catch {
-      // ignore
-    }
+      onUsersChangeRef.current?.(all, myName, sessionId.current);
+    } catch { /* ignore */ }
   }, []);
 
-  // Once we have a name: register, poll, and heartbeat
+  // Re-register immediately when language/section changes so others see the update
   useEffect(() => {
     if (!userName) return;
-    register(userName);
-    fetchOthers(userName);
-    const interval = setInterval(() => {
-      register(userName);
-      fetchOthers(userName);
-    }, PING_MS);
+    void register(userName).then(() => fetchOthers(userName));
+  }, [currentLanguage, currentSection, userName, register, fetchOthers]);
 
+  // Heartbeat loop
+  useEffect(() => {
+    if (!userName) return;
+    void register(userName);
+    void fetchOthers(userName);
+    const interval = setInterval(() => {
+      void register(userName);
+      void fetchOthers(userName);
+    }, PING_MS);
     const leave = () => {
       navigator.sendBeacon?.("/api/presence", JSON.stringify({ sessionId: sessionId.current }));
     };
@@ -89,7 +99,6 @@ export default function PresenceModal() {
     };
   }, [userName, register, fetchOthers]);
 
-  // Focus input when modal opens
   useEffect(() => {
     if (!userName) setTimeout(() => inputRef.current?.focus(), 60);
   }, [userName]);
@@ -97,15 +106,11 @@ export default function PresenceModal() {
   const submit = () => {
     const name = draft.trim();
     if (!name) return;
-    localStorage.setItem(STORAGE_KEY, name);
+    sessionStorage.setItem(STORAGE_KEY, name);
     setUserName(name);
   };
 
-  const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") submit();
-  };
-
-  // ── Name prompt modal ──────────────────────────────────────────────────────
+  // Name prompt modal
   if (!userName) {
     return (
       <div style={{
@@ -121,18 +126,16 @@ export default function PresenceModal() {
           display: "flex", flexDirection: "column", gap: 20,
         }}>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 6 }}>
-              Welcome
-            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 6 }}>Welcome</div>
             <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.5 }}>
-              Enter your name so others can see who&apos;s currently editing the bulletin.
+              Enter your name so others can see who&apos;s editing the bulletin.
             </div>
           </div>
           <input
             ref={inputRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKey}
+            onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
             placeholder="Your name"
             style={{
               width: "100%", boxSizing: "border-box",
@@ -164,42 +167,6 @@ export default function PresenceModal() {
     );
   }
 
-  // ── Active-users pill bar (top-right) ────────────────────────────────────
-  const all = [{ name: userName, sessionId: sessionId.current, lastSeen: Date.now() }, ...others];
-  return (
-    <div style={{
-      position: "fixed", top: 12, right: 16, zIndex: 9000,
-      display: "flex", alignItems: "center", gap: 6,
-      pointerEvents: "none",
-    }}>
-      {all.map((u) => {
-        const isMe = u.sessionId === sessionId.current;
-        const { bg, text } = colorFor(u.name);
-        return (
-          <div
-            key={u.sessionId}
-            title={isMe ? `${u.name} (you)` : u.name}
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: bg, color: text,
-              border: `1.5px solid ${text}33`,
-              borderRadius: 99, padding: "4px 10px 4px 6px",
-              fontSize: 12, fontWeight: 700,
-              boxShadow: isMe ? `0 0 0 2px ${text}44` : "none",
-            }}
-          >
-            <div style={{
-              width: 22, height: 22, borderRadius: "50%",
-              background: text, color: bg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 9, fontWeight: 900, flexShrink: 0,
-            }}>
-              {initials(u.name)}
-            </div>
-            {u.name}{isMe ? " ✏️" : ""}
-          </div>
-        );
-      })}
-    </div>
-  );
+  // After name is set: heartbeat runs in effects above; parent handles all display
+  return null;
 }

@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { NextResponse } from "next/server";
 
-const PATH = join(process.cwd(), "data", "comments.json");
+const PATH = join(tmpdir(), "bulletin-comments.json");
 
 export type CommentReply = {
   id: string;

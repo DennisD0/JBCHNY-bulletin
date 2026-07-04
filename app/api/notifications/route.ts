@@ -1,10 +1,11 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { NextResponse } from "next/server";
 import { isBulletinLanguage, type BulletinLanguage, type LanguageLocks } from "@/lib/bulletin-languages";
 
-const PATH = join(process.cwd(), "data", "notifications.json");
-const LOCKS_PATH = join(process.cwd(), "data", "locks.json");
+const PATH = join(tmpdir(), "bulletin-notifications.json");
+const LOCKS_PATH = join(tmpdir(), "bulletin-locks.json");
 const MAX_AGE_MS = 60 * 60 * 1000; // prune notifications older than 1 hour
 
 function readLocks(): LanguageLocks {

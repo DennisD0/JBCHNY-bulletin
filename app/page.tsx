@@ -2030,24 +2030,24 @@ function FloatingToolbar({
     }}>
       {/* Main pill — layered frosted glass */}
       <div style={{ position: "relative", display: "inline-flex", borderRadius: 14 }}>
-        {/* Blur + tint layer */}
+        {/* Frosted white glass base */}
         <div style={{
           position: "absolute", inset: 0, borderRadius: 14,
-          backdropFilter: "blur(28px) saturate(2) brightness(1.08)",
-          WebkitBackdropFilter: "blur(28px) saturate(2) brightness(1.08)",
-          background: "rgba(18,20,36,0.52)",
+          backdropFilter: "blur(20px) saturate(1.6)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.6)",
+          background: "rgba(255,255,255,0.95)",
         }} />
-        {/* Top highlight gradient — simulates glass surface */}
+        {/* Top-edge sheen */}
         <div style={{
           position: "absolute", inset: 0, borderRadius: 14,
-          background: "linear-gradient(175deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 45%, transparent 100%)",
+          background: "linear-gradient(175deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.0) 55%)",
           pointerEvents: "none",
         }} />
         {/* Border + shadow */}
         <div style={{
           position: "absolute", inset: 0, borderRadius: 14,
-          border: "1px solid rgba(255,255,255,0.18)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22)",
+          border: "1px solid rgba(0,0,0,0.07)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.05)",
           pointerEvents: "none",
         }} />
         <div className="floating-main-pill" style={pillStyle}>
@@ -2058,7 +2058,7 @@ function FloatingToolbar({
             <ToolbarTooltip key={id} text={`${label}  ${shortcut}`}>
               <button
                 onClick={() => onMode(id)}
-                style={{ ...btnBase, color: active ? "#fff" : "rgba(255,255,255,0.45)" }}
+                style={{ ...btnBase, color: active ? "#fff" : "#64748B" }}
                 aria-label={label}
                 aria-pressed={active}
               >
@@ -2069,8 +2069,8 @@ function FloatingToolbar({
                     style={{
                       position: "absolute", inset: 0,
                       borderRadius: 9,
-                      background: "rgba(68,114,196,0.85)",
-                      boxShadow: "0 2px 8px rgba(68,114,196,0.4)",
+                      background: "#4472C4",
+                      boxShadow: "0 2px 8px rgba(68,114,196,0.35)",
                     }}
                   />
                 )}
@@ -2079,7 +2079,7 @@ function FloatingToolbar({
                   position: "relative", zIndex: 1,
                   fontSize: 9, fontWeight: 700,
                   letterSpacing: "0.04em", lineHeight: 1,
-                  color: active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.35)",
+                  color: active ? "rgba(255,255,255,0.9)" : "#94A3B8",
                 }}>
                   {shortcut}
                 </span>
@@ -2089,13 +2089,13 @@ function FloatingToolbar({
         })}
 
         {/* Separator */}
-        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px", flexShrink: 0 }} />
+        <div style={{ width: 1, height: 24, background: "#E2E8F0", margin: "0 4px", flexShrink: 0 }} />
 
         {/* Fit to screen */}
         <ToolbarTooltip text="Fit to Screen  ⌃0">
           <button
             onClick={onFit}
-            style={{ ...btnBase, color: "rgba(255,255,255,0.45)", width: 36 }}
+            style={{ ...btnBase, color: "#64748B", width: 36 }}
             aria-label="Fit to screen"
           >
             <Maximize2 size={15} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
@@ -2103,14 +2103,14 @@ function FloatingToolbar({
         </ToolbarTooltip>
 
         {/* Separator */}
-        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px", flexShrink: 0 }} />
+        <div style={{ width: 1, height: 24, background: "#E2E8F0", margin: "0 4px", flexShrink: 0 }} />
 
         {/* Undo */}
         <ToolbarTooltip text="Undo  Ctrl+Z">
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            style={{ ...btnBase, color: canUndo ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", width: 36, cursor: canUndo ? "pointer" : "not-allowed" }}
+            style={{ ...btnBase, color: canUndo ? "#475569" : "#CBD5E1", width: 36, cursor: canUndo ? "pointer" : "not-allowed" }}
             aria-label="Undo"
           >
             <Undo2 size={15} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
@@ -2122,20 +2122,20 @@ function FloatingToolbar({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            style={{ ...btnBase, color: canRedo ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", width: 36, cursor: canRedo ? "pointer" : "not-allowed" }}
+            style={{ ...btnBase, color: canRedo ? "#475569" : "#CBD5E1", width: 36, cursor: canRedo ? "pointer" : "not-allowed" }}
             aria-label="Redo"
           >
             <Redo2 size={15} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
           </button>
         </ToolbarTooltip>
         {/* Separator */}
-        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px", flexShrink: 0 }} />
+        <div style={{ width: 1, height: 24, background: "#E2E8F0", margin: "0 4px", flexShrink: 0 }} />
 
         {/* Notifications bell */}
         <ToolbarTooltip text="Notifications">
           <button
             onClick={onBell}
-            style={{ ...btnBase, color: notifCount > 0 ? "#FCD34D" : "rgba(255,255,255,0.45)", width: 40, position: "relative" }}
+            style={{ ...btnBase, color: notifCount > 0 ? "#F59E0B" : "#64748B", width: 40, position: "relative" }}
             aria-label="Notifications"
           >
             <Bell size={16} strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
@@ -2443,12 +2443,16 @@ function LanguageTabBar({
   locks,
   sessionId,
   onSelect,
+  presenceUsers,
+  mySessionId,
 }: {
   activeLanguage: BulletinLanguage;
   metaByLanguage: Record<BulletinLanguage, BulletinMeta>;
   locks: LanguageLocks;
   sessionId: string;
   onSelect: (language: BulletinLanguage) => void;
+  presenceUsers: Array<{ name: string; sessionId: string; language?: string }>;
+  mySessionId: string;
 }) {
   return (
     <div className="language-tab-bar" aria-label="Bulletin languages">
@@ -2456,8 +2460,11 @@ function LanguageTabBar({
         const config = LANGUAGE_CONFIG[language];
         const active = activeLanguage === language;
         const pendingCount = Object.values(metaByLanguage[language].sections)
-          .filter((section) => section.status === "pending").length;
+          .filter((s) => s.status === "pending").length;
         const lockedByOther = Boolean(locks[language] && locks[language]?.sessionId !== sessionId);
+        const editorsHere = presenceUsers.filter((u) => u.language === language);
+        const shownEditors = editorsHere.slice(0, 5);
+        const extraCount = editorsHere.length - shownEditors.length;
         return (
           <button
             type="button"
@@ -2469,31 +2476,84 @@ function LanguageTabBar({
               height: 38,
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
-              padding: "0 11px",
+              gap: 5,
+              padding: "0 10px",
               borderRadius: 999,
-              border: active ? "1px solid rgba(147,197,253,0.45)" : "1px solid transparent",
-              background: active ? "rgba(68,114,196,0.85)" : "transparent",
-              color: active ? "#fff" : "rgba(255,255,255,0.55)",
-              boxShadow: active ? "0 2px 8px rgba(68,114,196,0.4)" : "none",
-              backdropFilter: "none",
-              WebkitBackdropFilter: "none",
-              opacity: 1,
+              border: "none",
+              background: "transparent",
+              color: active ? "#fff" : "#64748B",
               cursor: "pointer",
               fontSize: 11.5,
               fontWeight: 800,
               whiteSpace: "nowrap",
+              transition: "color 0.18s",
             }}
           >
-            <span aria-hidden>{config.flag}</span>
-            <span>{config.code}</span>
-            {language === "ko" && <Lock size={11} aria-label="Korean is isolated" />}
+            {active && (
+              <motion.div
+                layoutId="lang-active-pill"
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                style={{
+                  position: "absolute", inset: 0, borderRadius: 999,
+                  background: "#4472C4",
+                  boxShadow: "0 2px 10px rgba(68,114,196,0.35)",
+                }}
+              />
+            )}
+            <span aria-hidden style={{ position: "relative", zIndex: 1 }}>{config.flag}</span>
+            <span style={{ position: "relative", zIndex: 1 }}>{config.code}</span>
+            {language === "ko" && (
+              <Lock size={10} aria-label="Korean is isolated" style={{ position: "relative", zIndex: 1 }} />
+            )}
             {language !== "en" && language !== "ko" && pendingCount > 0 && (
-              <span style={{ minWidth:16, height:16, padding:"0 4px", display:"grid", placeItems:"center", borderRadius:99, background:"#F59E0B", color:"#111827", fontSize:9, fontWeight:900 }}>
+              <span style={{ position: "relative", zIndex: 1, minWidth: 15, height: 15, padding: "0 4px", display: "grid", placeItems: "center", borderRadius: 99, background: "#F59E0B", color: "#111827", fontSize: 9, fontWeight: 900 }}>
                 {pendingCount}
               </span>
             )}
-            {lockedByOther && <span aria-label="Locked by another editor" style={{ width:7, height:7, borderRadius:99, background:"#EF4444", boxShadow:"0 0 0 2px rgba(239,68,68,0.2)" }} />}
+            {lockedByOther && (
+              <span aria-label="Locked by another editor" style={{ position: "relative", zIndex: 1, width: 6, height: 6, borderRadius: 99, background: "#EF4444", boxShadow: "0 0 0 2px rgba(239,68,68,0.2)" }} />
+            )}
+            {/* Editor avatars */}
+            {shownEditors.length > 0 && (
+              <div style={{ position: "relative", zIndex: 1, display: "flex", marginLeft: 2 }}>
+                {shownEditors.map((u, i) => {
+                  const isSelf = u.sessionId === mySessionId;
+                  const c = presenceColorFor(u.name);
+                  return (
+                    <div
+                      key={u.sessionId}
+                      title={isSelf ? `${u.name} (you)` : u.name}
+                      style={{
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: c.bg,
+                        color: c.text,
+                        border: `2px solid ${active ? "#4472C4" : "#fff"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 7, fontWeight: 900,
+                        marginLeft: i > 0 ? -6 : 0,
+                        zIndex: shownEditors.length - i,
+                        position: "relative",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {presenceInitials(u.name)}
+                    </div>
+                  );
+                })}
+                {extraCount > 0 && (
+                  <div style={{
+                    width: 18, height: 18, borderRadius: "50%", marginLeft: -6, flexShrink: 0,
+                    background: "#F1F5F9",
+                    color: "#64748B",
+                    border: `2px solid ${active ? "#4472C4" : "#fff"}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 7, fontWeight: 900,
+                    position: "relative", zIndex: 0,
+                  }}>+{extraCount}</div>
+                )}
+              </div>
+            )}
           </button>
         );
       })}
@@ -2665,6 +2725,206 @@ function SyncPreviewModal({
   );
 }
 
+// ── Presence colour / initials helpers ────────────────────────────────────────
+const PRESENCE_COLORS = [
+  { bg: "#DBEAFE", text: "#1E40AF" },
+  { bg: "#DCF5E4", text: "#166534" },
+  { bg: "#FEF3C7", text: "#92400E" },
+  { bg: "#F3E8FF", text: "#6B21A8" },
+  { bg: "#FFE4E6", text: "#9F1239" },
+  { bg: "#CCFBF1", text: "#0F766E" },
+];
+function presenceColorFor(name: string) {
+  return PRESENCE_COLORS[(name.charCodeAt(0) || 0) % PRESENCE_COLORS.length];
+}
+function presenceInitials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+// ── Persistent read-only access bar ───────────────────────────────────────────
+function ReadOnlyAccessBar({
+  lock, language, notifications, sessionId, myName, onRequestTakeover, onRequestJoin,
+}: {
+  lock: LanguageLock;
+  language: BulletinLanguage;
+  notifications: AppNotification[];
+  sessionId: string;
+  myName: string;
+  onRequestTakeover: () => void;
+  onRequestJoin: () => void;
+}) {
+  const myPending = notifications.find(
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.lang === language && n.status === "pending",
+  );
+  const lastDeclined = notifications.find(
+    (n) => isAccessRequestNotification(n) && n.fromSessionId === sessionId && n.lang === language && n.status === "declined",
+  );
+  const config = LANGUAGE_CONFIG[language];
+
+  return (
+    <motion.div
+      initial={{ y: 24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 24, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 420, damping: 36 }}
+      style={{
+        position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)",
+        zIndex: 70, display: "flex", alignItems: "center", gap: 10,
+        background: "rgba(10,15,30,0.88)",
+        backdropFilter: "blur(18px) saturate(1.6)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.6)",
+        border: "1px solid rgba(255,255,255,0.13)",
+        borderRadius: 999, padding: "8px 8px 8px 16px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.40)",
+        maxWidth: "calc(100vw - 32px)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {/* Status */}
+      <Eye size={13} color="rgba(255,255,255,0.45)" strokeWidth={2} />
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+        Viewing {config.flag} {config.name} —{" "}
+        <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>{lock.userName}</strong> is editing
+        {lastDeclined && !myPending && (
+          <span style={{ color: "#FCA5A5", marginLeft: 6 }}>· Request declined</span>
+        )}
+        {myPending && (
+          <span style={{ color: "#93C5FD", marginLeft: 6 }}>· Request sent…</span>
+        )}
+      </span>
+
+      {/* Action buttons */}
+      {!myPending && (
+        <>
+          <button
+            onClick={onRequestTakeover}
+            style={{
+              background: "rgba(239,68,68,0.18)", color: "#FCA5A5",
+              border: "1px solid rgba(239,68,68,0.35)", borderRadius: 999,
+              padding: "5px 12px", fontSize: 11.5, fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            Take Over
+          </button>
+          <button
+            onClick={onRequestJoin}
+            style={{
+              background: "rgba(68,114,196,0.22)", color: "#93C5FD",
+              border: "1px solid rgba(68,114,196,0.4)", borderRadius: 999,
+              padding: "5px 12px", fontSize: 11.5, fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap", marginRight: 4,
+            }}
+          >
+            Collaborate
+          </button>
+        </>
+      )}
+      {myPending && (
+        <div style={{
+          width: 13, height: 13, borderRadius: "50%", marginRight: 8,
+          border: "2px solid rgba(147,197,253,0.3)", borderTopColor: "#93C5FD",
+          animation: "spin 0.8s linear infinite", flexShrink: 0,
+        }} />
+      )}
+    </motion.div>
+  );
+}
+
+// ── Floating toast for incoming access requests ────────────────────────────────
+function NotificationToast({
+  notifications,
+  sessionId,
+  dismissedToastIds,
+  onGrant,
+  onDecline,
+  onDismissToast,
+}: {
+  notifications: AppNotification[];
+  sessionId: string;
+  dismissedToastIds: string[];
+  onGrant: (n: AppNotification) => void;
+  onDecline: (n: AppNotification) => void;
+  onDismissToast: (id: string) => void;
+}) {
+  const dismissedSet = new Set(dismissedToastIds);
+  const toasts = notifications.filter(
+    (n) => isAccessRequestNotification(n) && n.targetSessionId === sessionId && n.status === "pending" && !dismissedSet.has(n.id),
+  );
+  if (toasts.length === 0) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 80, right: 20, zIndex: 55, display: "flex", flexDirection: "column-reverse", gap: 8 }}>
+      <AnimatePresence>
+        {toasts.map((n) => (
+          <motion.div
+            key={n.id}
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97, transition: { duration: 0.15 } }}
+            transition={{ type: "spring", stiffness: 480, damping: 36 }}
+            style={{
+              width: 300,
+              background: "#fff",
+              borderRadius: 14,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+              border: "1px solid #E2E8F0",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header row */}
+            <div style={{ padding: "12px 14px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+                  background: presenceColorFor(n.fromUserName).bg,
+                  color: presenceColorFor(n.fromUserName).text,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 900,
+                }}>
+                  {presenceInitials(n.fromUserName)}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{n.fromUserName}</div>
+                  <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.4, marginTop: 1 }}>
+                    {n.type === "join_request" ? "wants to collaborate on" : "wants to take over"}{" "}
+                    {LANGUAGE_CONFIG[n.lang].flag} {LANGUAGE_CONFIG[n.lang].name}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onDismissToast(n.id)}
+                aria-label="Dismiss"
+                style={{ background: "none", border: "none", color: "#94A3B8", cursor: "pointer", fontSize: 20, lineHeight: 1, padding: "0 2px", flexShrink: 0 }}
+              >
+                ×
+              </button>
+            </div>
+            {/* Action buttons */}
+            <div style={{ padding: "8px 14px 12px", display: "flex", gap: 6 }}>
+              <button
+                type="button"
+                onClick={() => { onGrant(n); onDismissToast(n.id); }}
+                style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+              >
+                <CheckCircle size={13} /> {n.type === "join_request" ? "Allow" : "Grant"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { onDecline(n); onDismissToast(n.id); }}
+                style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #E2E8F0", background: "transparent", color: "#64748B", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+              >
+                <XCircle size={13} /> Decline
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function NotificationPanel({
   notifications,
   metaByLanguage,
@@ -2714,15 +2974,17 @@ function NotificationPanel({
   const hasNothing = incomingRequests.length === 0 && myPendingRequests.length === 0 && myAccepted.length === 0 && myDeclined.length === 0 && sectionUpdates.length === 0;
 
   return (
-    <div style={{
-      position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 60,
+    <div className="notification-panel" style={{
+      position: "fixed", top: 62, right: 0, bottom: 80, zIndex: 60,
       display: "flex", flexDirection: "column",
       width: "min(360px, 100vw)",
       background: "rgba(10,15,30,0.72)",
       backdropFilter: "blur(24px) saturate(1.8)",
       WebkitBackdropFilter: "blur(24px) saturate(1.8)",
       borderLeft: "1px solid rgba(255,255,255,0.10)",
+      borderRadius: "16px 0 0 16px",
       boxShadow: "-8px 0 32px rgba(0,0,0,0.45)",
+      overflow: "hidden",
     }}>
       {/* Header */}
       <div style={{ flexShrink:0, height:60, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 18px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
@@ -2853,6 +3115,8 @@ function SectionEditorPanel({
   onPreviewSync,
   onApplySync,
   onDismissSync,
+  presenceUsers,
+  mySessionId,
 }: {
   activeTab: TabId;
   data: BulletinData;
@@ -2865,6 +3129,8 @@ function SectionEditorPanel({
   onPreviewSync: (sectionKey: string) => void;
   onApplySync: (sectionKey: string) => void;
   onDismissSync: (sectionKey: string) => void;
+  presenceUsers: Array<{ name: string; sessionId: string; language?: string }>;
+  mySessionId: string;
 }) {
   const section = SECTIONS.find((item) => item.id === activeTab);
   const sectionKey = TAB_SECTION_KEY[activeTab];
@@ -2976,6 +3242,28 @@ function SectionEditorPanel({
           }}
         >×</button>
       </div>
+      {/* Presence viewers bar — shows others on this language */}
+      {(() => {
+        const viewers = presenceUsers.filter((u) => u.language === language && u.sessionId !== mySessionId);
+        if (viewers.length === 0) return null;
+        return (
+          <div style={{ flexShrink: 0, padding: "5px 18px", background: "#EFF6FF", borderBottom: "1px solid #DBEAFE", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <Eye size={11} color="#60A5FA" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 10.5, color: "#3B82F6", fontWeight: 600 }}>Also here:</span>
+            {viewers.map((u) => {
+              const c = presenceColorFor(u.name);
+              return (
+                <div key={u.sessionId} style={{ display: "flex", alignItems: "center", gap: 4, background: c.bg, color: c.text, borderRadius: 99, padding: "2px 8px 2px 4px", fontSize: 10.5, fontWeight: 700 }}>
+                  <div style={{ width: 15, height: 15, borderRadius: "50%", background: c.text, color: c.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 900, flexShrink: 0 }}>
+                    {presenceInitials(u.name)}
+                  </div>
+                  {u.name}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "16px", background: "#F2F5FB" }}>
         {readOnly && (
           <div style={{ position:"sticky", top:0, zIndex:3, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, padding:"10px 12px", borderRadius:10, background:"rgba(30,58,138,0.92)", color:"#fff", boxShadow:"0 8px 24px rgba(15,23,42,0.18)" }}>
@@ -3200,6 +3488,13 @@ export default function Home() {
   const [seenSectionNotifications, setSeenSectionNotifications] = useState<string[]>([]);
   const [seenDeclinedIds, setSeenDeclinedIds] = useState<string[]>([]);
 
+  // Presence: list of all active users (including self), updated via PresenceModal callback
+  const [presenceUsers, setPresenceUsers] = useState<Array<{ name: string; sessionId: string; language?: string; section?: string }>>([]);
+  const [presenceMyName, setPresenceMyName] = useState("");
+  const presenceMyNameRef = useRef("");
+  // Track which incoming-request toasts the user has dismissed from view (not from notifications)
+  const [dismissedToastIds, setDismissedToastIds] = useState<string[]>([]);
+
   // Comment system state
   const [comments, setComments] = useState<BulletinComment[]>([]);
   const [draftPin, setDraftPin] = useState<{ rx: number; ry: number } | null>(null);
@@ -3253,7 +3548,7 @@ export default function Home() {
     const response = await fetch("/api/locks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, lang:language, sessionId:sessionId.current, userName:"Editor" }),
+      body: JSON.stringify({ action, lang:language, sessionId:sessionId.current, userName:presenceMyNameRef.current || "Editor" }),
       keepalive: action === "release",
     });
     return response.json() as Promise<{ ok: boolean; lock?: LanguageLock }>;
@@ -3332,7 +3627,10 @@ export default function Home() {
     setSeenSectionNotifications((current) => (current.includes(notificationId) ? current : [...current, notificationId]));
   }, []);
 
+  // Wait for presence name before acquiring lock — presence POST evicts old same-name
+  // sessions and releases their locks, so acquiring before that causes a false conflict.
   useEffect(() => {
+    if (!presenceMyName) return;
     let cancelled = false;
     (async () => {
       const acquisition = await postLockAction("acquire", "en");
@@ -3342,7 +3640,7 @@ export default function Home() {
       await refreshLanguageStatus();
     })().catch(() => setSavedMsg("Unable to load bulletin"));
     return () => { cancelled = true; };
-  }, [loadLanguage, postLockAction, refreshLanguageStatus]);
+  }, [presenceMyName, loadLanguage, postLockAction, refreshLanguageStatus]);
 
   useEffect(() => {
     const interval = window.setInterval(refreshLanguageStatus, 30_000);
@@ -3445,7 +3743,17 @@ export default function Home() {
 
   useEffect(() => {
     const handlePageExit = () => {
-      releaseActiveAccess();
+      // sendBeacon is guaranteed to fire even as the tab closes; fetch/keepalive is not.
+      const payload = JSON.stringify({
+        action: "release",
+        lang: activeLangRef.current,
+        sessionId: sessionId.current,
+      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/locks", new Blob([payload], { type: "application/json" }));
+      } else {
+        void fetch("/api/locks", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true });
+      }
     };
     window.addEventListener("beforeunload", handlePageExit);
     window.addEventListener("pagehide", handlePageExit);
@@ -3453,7 +3761,7 @@ export default function Home() {
       window.removeEventListener("beforeunload", handlePageExit);
       window.removeEventListener("pagehide", handlePageExit);
     };
-  }, [releaseActiveAccess]);
+  }, []);
 
   // Load auto-fill management data
   const loadMgmt = useCallback(async () => {
@@ -3602,7 +3910,7 @@ export default function Home() {
     const res = await fetch("/api/comments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rx: draftPin.rx, ry: draftPin.ry, author: "Editor", text: commentDraftText }),
+      body: JSON.stringify({ rx: draftPin.rx, ry: draftPin.ry, author: presenceMyName || "Editor", text: commentDraftText }),
     });
     if (res.ok) {
       const created = await res.json() as BulletinComment;
@@ -3617,7 +3925,7 @@ export default function Home() {
     const res = await fetch("/api/comments", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: commentId, reply: { author: "Editor", text } }),
+      body: JSON.stringify({ id: commentId, reply: { author: presenceMyName || "Editor", text } }),
     });
     if (res.ok) {
       const updated = await res.json() as BulletinComment;
@@ -3714,7 +4022,7 @@ export default function Home() {
         type: "takeover_request",
         lang: language,
         fromSessionId: sessionId.current,
-        fromUserName: "Editor",
+        fromUserName: presenceMyName || "Editor",
         targetSessionId: lock.sessionId,
       }),
     });
@@ -3731,7 +4039,7 @@ export default function Home() {
         type: "join_request",
         lang: language,
         fromSessionId: sessionId.current,
-        fromUserName: "Editor",
+        fromUserName: presenceMyName || "Editor",
         targetSessionId: lock.sessionId,
       }),
     });
@@ -3988,7 +4296,30 @@ export default function Home() {
         </defs>
       </svg>
 
-      <PresenceModal />
+      <PresenceModal
+        currentLanguage={activeLang}
+        currentSection={activeTab ?? ""}
+        onUsersChange={(all, myName, mySessionId) => {
+          // Deduplicate by name — prefer the current session's own entry so self is always shown once
+          const self = all.filter(u => u.sessionId === mySessionId);
+          const others = all.filter(u => u.sessionId !== mySessionId);
+          const seen = new Set<string>(self.map(u => u.name));
+          const deduped = [...self, ...others.filter(u => !seen.has(u.name) && seen.add(u.name))];
+          setPresenceUsers(deduped);
+          setPresenceMyName(myName);
+          presenceMyNameRef.current = myName;
+        }}
+      />
+
+      {/* Floating request toasts — visible without opening the notification panel */}
+      <NotificationToast
+        notifications={notifications}
+        sessionId={sessionId.current}
+        dismissedToastIds={dismissedToastIds}
+        onGrant={grantLockAccess}
+        onDecline={declineTakeover}
+        onDismissToast={(id) => setDismissedToastIds((prev) => [...prev, id])}
+      />
 
       {uploadTarget && (
         <UploadModal
@@ -4006,6 +4337,8 @@ export default function Home() {
         locks={locks}
         sessionId={sessionId.current}
         onSelect={switchLanguage}
+        presenceUsers={presenceUsers}
+        mySessionId={sessionId.current}
       />
 
       {lockConflict && (
@@ -4017,6 +4350,45 @@ export default function Home() {
           onRequestJoin={() => requestJoin(lockConflict.language, lockConflict.lock)}
         />
       )}
+
+      {/* Persistent retry bar — visible whenever the user is in read-only mode */}
+      <AnimatePresence>
+        {readOnly && locks[activeLang] && !lockConflict && (
+          <ReadOnlyAccessBar
+            lock={locks[activeLang]!}
+            language={activeLang}
+            notifications={notifications}
+            sessionId={sessionId.current}
+            myName={presenceMyName}
+            onRequestTakeover={() => {
+              void fetch("/api/notifications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  type: "takeover_request",
+                  lang: activeLang,
+                  fromSessionId: sessionId.current,
+                  fromUserName: presenceMyNameRef.current || "Editor",
+                  targetSessionId: locks[activeLang]!.sessionId,
+                }),
+              }).then(() => pollNotifications());
+            }}
+            onRequestJoin={() => {
+              void fetch("/api/notifications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  type: "join_request",
+                  lang: activeLang,
+                  fromSessionId: sessionId.current,
+                  fromUserName: presenceMyNameRef.current || "Editor",
+                  targetSessionId: locks[activeLang]!.sessionId,
+                }),
+              }).then(() => pollNotifications());
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {notifPanelOpen && (
         <NotificationPanel
@@ -4098,14 +4470,43 @@ export default function Home() {
         overflow: "hidden", zIndex: 30,
       }}>
         {/* Logo header */}
-        <div style={{ flexShrink: 0, height: 60, borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", padding: "0 16px", gap: 11 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
-            <div style={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
+        <div style={{ flexShrink: 0, borderBottom: "1px solid #F1F5F9" }}>
+          <div style={{ height: 60, display: "flex", alignItems: "center", padding: "0 16px", gap: 11 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
+              <div style={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
+            </div>
+            <button type="button" className="mobile-setup-close" onClick={() => setMobileSetupOpen(false)} aria-label="Close setup">×</button>
           </div>
-          <button type="button" className="mobile-setup-close" onClick={() => setMobileSetupOpen(false)} aria-label="Close setup">×</button>
+          {/* Online users strip */}
+          {presenceUsers.length > 0 && (
+            <div style={{ padding: "5px 16px 8px", display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+              {presenceUsers.map((u) => {
+                const isSelf = u.sessionId === sessionId.current;
+                const c = presenceColorFor(u.name);
+                return (
+                  <div
+                    key={u.sessionId}
+                    title={isSelf ? `${u.name} (you)` : u.name}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      background: c.bg, color: c.text,
+                      border: `1.5px solid ${isSelf ? c.text + "55" : "transparent"}`,
+                      borderRadius: 99, padding: "3px 8px 3px 4px",
+                      fontSize: 11, fontWeight: 700,
+                    }}
+                  >
+                    <div style={{ width: 16, height: 16, borderRadius: "50%", background: c.text, color: c.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 900, flexShrink: 0 }}>
+                      {presenceInitials(u.name)}
+                    </div>
+                    {u.name}{isSelf ? " ✏" : ""}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Layers nav */}
@@ -4319,6 +4720,8 @@ export default function Home() {
           onPreviewSync={setSyncPreviewSection}
           onApplySync={applyEnglishSection}
           onDismissSync={dismissEnglishSection}
+          presenceUsers={presenceUsers}
+          mySessionId={sessionId.current}
         />
       )}
 
@@ -4503,12 +4906,12 @@ export default function Home() {
           align-items: center;
           gap: 4px;
           padding: 5px;
-          border: 1px solid rgba(255,255,255,0.18);
+          border: 1px solid #E2E8F0;
           border-radius: 999px;
-          background: rgba(18,20,36,0.52);
-          box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.22);
-          backdrop-filter: blur(28px) saturate(2) brightness(1.08);
-          -webkit-backdrop-filter: blur(28px) saturate(2) brightness(1.08);
+          background: #fff;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
 
         .multilang-modal-backdrop {
@@ -4596,6 +4999,12 @@ export default function Home() {
           .editor-shell {
             height: 100dvh !important;
             flex-direction: column !important;
+          }
+
+          .notification-panel {
+            top: 165px !important;
+            bottom: 90px !important;
+            border-radius: 12px 0 0 12px !important;
           }
 
           .mobile-toolbar {
