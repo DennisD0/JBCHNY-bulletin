@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { spawn } from "child_process";
-import { writeFileSync, mkdirSync, existsSync, rmSync } from "fs";
+import { mkdirSync, existsSync, rmSync } from "fs";
 import { join } from "path";
-
-const DEBUG_PORT = 9333;
 
 interface DevToolsTab {
   webSocketDebuggerUrl: string;
@@ -46,12 +44,12 @@ function getPrintUrl(request: Request, lang?: string): string {
   return url.toString();
 }
 
-function waitForChrome(timeoutMs = 10_000): Promise<void> {
+function waitForChrome(debugPort: number, timeoutMs = 10_000): Promise<void> {
   const start = Date.now();
   return new Promise((resolve, reject) => {
     const tick = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:${DEBUG_PORT}/json/version`);
+        const res = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
         if (res.ok) return resolve();
       } catch {
         // not up yet
@@ -67,9 +65,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang") ?? "en";
 
+  // Per-request identifiers so concurrent exports can't collide on the debug port,
+  // Chrome profile directory, or output filename.
+  const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const debugPort = 9200 + Math.floor(Math.random() * 700);
+
   const tmpDir = join(process.cwd(), ".next", "tmp");
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
-  const profileDir = join(tmpDir, "chrome-pdf-profile");
+  const profileDir = join(tmpDir, `chrome-pdf-profile-${runId}`);
   // Fresh profile each run avoids Chrome forwarding the request into an existing
   // user session (which silently ignores headless/devtools flags).
   if (existsSync(profileDir)) rmSync(profileDir, { recursive: true, force: true });
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
     "--headless=new",
     "--disable-gpu",
     "--no-sandbox",
-    `--remote-debugging-port=${DEBUG_PORT}`,
+    `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${profileDir}`,
   ], {
     stdio: "ignore",
@@ -101,10 +104,10 @@ export async function GET(request: Request) {
   });
 
   try {
-    await Promise.race([waitForChrome(), chromeStartError]);
+    await Promise.race([waitForChrome(debugPort), chromeStartError]);
 
     const newTabRes = await fetch(
-      `http://127.0.0.1:${DEBUG_PORT}/json/new?${encodeURIComponent(printUrl)}`,
+      `http://127.0.0.1:${debugPort}/json/new?${encodeURIComponent(printUrl)}`,
       { method: "PUT" }
     );
     if (!newTabRes.ok) {
@@ -219,9 +222,8 @@ export async function GET(request: Request) {
     });
 
     ws.close();
-    const outPath = join(tmpDir, "bulletin-export.pdf");
-    writeFileSync(outPath, Buffer.from(pdfBase64, "base64"));
-
+    // The response streams the buffer directly; no need to persist a shared
+    // bulletin-export.pdf (which concurrent requests would clobber).
     return new NextResponse(Buffer.from(pdfBase64, "base64"), {
       headers: {
         "Content-Type": "application/pdf",
@@ -242,5 +244,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   } finally {
     chrome.kill();
+    // Remove this run's throwaway Chrome profile so they don't accumulate on disk.
+    if (existsSync(profileDir)) rmSync(profileDir, { recursive: true, force: true });
   }
 }

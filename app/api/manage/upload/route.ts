@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 
 export const maxDuration = 60;
+
+// Guardrails so one upload can't exhaust memory or the 60s OCR budget.
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_PDF_PAGES = 10;
 
 // ── Korean Bible abbreviation → English name ──────────────────
 // Short forms, matching the convention already used throughout the existing
@@ -223,6 +227,9 @@ function parseKoreanReadingPlan(lines: string[], year: number): Record<string, s
 function parseEnglishReadingPlan(text: string, year: number): Record<string, string | null> {
   const result: Record<string, string | null> = {};
 
+  const daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
+  if (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) daysInMonth[1] = 29;
+
   // Pattern: [month] [day] [sep] [book] [chapters]
   const lineRe = /(?:([A-Za-z]+)\s+(\d{1,2})\s*[:\-–]\s*)?([1-9A-Za-z][A-Za-z]*)\s+(\d[\d\-–,]+)/g;
   let month = 0, day = 0;
@@ -233,7 +240,7 @@ function parseEnglishReadingPlan(text: string, year: number): Record<string, str
       const idx = EN_MONTHS.indexOf(monStr.slice(0,3).toLowerCase());
       if (idx >= 0) { month = idx + 1; day = Number(dayStr); }
     }
-    if (!month) continue;
+    if (!month || day < 1) continue;
     const bookLower = bookRaw.toLowerCase().replace(/\./g,"");
     let book = EN_BOOK_ALIAS[bookLower] ?? bookRaw;
     // Capitalize first letter of each word if not found
@@ -244,7 +251,11 @@ function parseEnglishReadingPlan(text: string, year: number): Record<string, str
     }
     const key = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
     result[key] = `${book} ${chapters}`;
+    // Advance to the next calendar day, rolling into the next month so we never emit
+    // an impossible date like -02-30. Stop after December.
     day++;
+    if (day > daysInMonth[month - 1]) { day = 1; month++; }
+    if (month > 12) break;
   }
 
   return result;
@@ -398,12 +409,16 @@ async function runOCR(imageBuffers: Buffer[], langs: string): Promise<string> {
   const { createWorker } = require("tesseract.js") as typeof import("tesseract.js");
   const worker = await createWorker(langs);
   const parts: string[] = [];
-  for (const buf of imageBuffers) {
-    const { data: { text } } = await worker.recognize(buf);
-    parts.push(text);
+  try {
+    for (const buf of imageBuffers) {
+      const { data: { text } } = await worker.recognize(buf);
+      parts.push(text);
+    }
+    return parts.join("\n");
+  } finally {
+    // Always terminate — a throw mid-recognition would otherwise leak the worker.
+    await worker.terminate();
   }
-  await worker.terminate();
-  return parts.join("\n");
 }
 
 // ── POST handler ────────────────────────────────────────────
@@ -417,6 +432,14 @@ export async function POST(request: NextRequest) {
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
     if (!uploadType) return NextResponse.json({ error: "No type provided" }, { status: 400 });
 
+    // Reject oversized uploads before reading them into memory / spending the 60s OCR budget.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `File too large (max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB)` },
+        { status: 400 }
+      );
+    }
+
     const year       = Number(yearStr) || new Date().getFullYear();
     const buffer     = Buffer.from(await file.arrayBuffer());
     const isPdf      = file.type === "application/pdf" || file.name.endsWith(".pdf");
@@ -426,6 +449,12 @@ export async function POST(request: NextRequest) {
     let imageBuffers: Buffer[];
     if (isPdf) {
       imageBuffers = await renderPdfToImages(buffer);
+      if (imageBuffers.length > MAX_PDF_PAGES) {
+        return NextResponse.json(
+          { error: `PDF has too many pages (max ${MAX_PDF_PAGES})` },
+          { status: 400 }
+        );
+      }
     } else {
       imageBuffers = [buffer];
     }
@@ -467,7 +496,19 @@ export async function POST(request: NextRequest) {
     // Step 4: Optionally save immediately (controlled by "save" flag)
     const shouldSave = formData.get("save") === "true";
     if (shouldSave) {
-      writeFileSync(outputPath, JSON.stringify(parsedData, null, 2));
+      let toWrite = parsedData;
+      // Reading plans are a flat {date: passage} map — merge onto the existing file so a
+      // partial upload doesn't wipe the rest of the year. (Schedule is a coherent snapshot,
+      // so it's replaced wholesale.)
+      if (uploadType === "reading" && existsSync(outputPath)) {
+        try {
+          const existing = JSON.parse(readFileSync(outputPath, "utf8")) as Record<string, string | null>;
+          toWrite = { ...existing, ...(parsedData as Record<string, string | null>) };
+        } catch {
+          // Existing file unreadable — fall back to writing the fresh data.
+        }
+      }
+      writeFileSync(outputPath, JSON.stringify(toWrite, null, 2));
     }
 
     return NextResponse.json({

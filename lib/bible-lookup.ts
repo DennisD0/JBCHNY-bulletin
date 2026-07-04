@@ -61,6 +61,9 @@ async function loadBible(lang: BulletinLanguage): Promise<BibleData | null> {
       raw = await res.text();
       // Remove BOM if present, then save locally for future calls
       if (raw.startsWith("﻿")) raw = raw.slice(1);
+      // Validate BEFORE writing so a truncated/HTML error response can't poison the
+      // on-disk cache permanently (the next call would keep reading the bad file).
+      JSON.parse(raw);
       writeFileSync(localPath, raw, "utf-8");
     } catch {
       return null;
@@ -179,12 +182,23 @@ function parseReference(ref: string): ParsedRef | null {
 const VERSE_CACHE_PATH = join(process.cwd(), "data", "bible_verse_cache.json");
 type VerseCache = Partial<Record<BulletinLanguage, Record<string, string>>>;
 
+// Keep the parsed cache in memory (like memoryBibles) so we don't re-read/parse the
+// whole JSON on every call, and so a disk-write failure can't break a lookup.
+let memoryVerseCache: VerseCache | null = null;
+
 function readVerseCache(): VerseCache {
-  try { return JSON.parse(readFileSync(VERSE_CACHE_PATH, "utf-8")) as VerseCache; }
-  catch { return {}; }
+  if (memoryVerseCache) return memoryVerseCache;
+  try { memoryVerseCache = JSON.parse(readFileSync(VERSE_CACHE_PATH, "utf-8")) as VerseCache; }
+  catch { memoryVerseCache = {}; }
+  return memoryVerseCache;
 }
 function writeVerseCache(cache: VerseCache) {
-  writeFileSync(VERSE_CACHE_PATH, `${JSON.stringify(cache, null, 2)}\n`, "utf-8");
+  memoryVerseCache = cache;
+  try {
+    writeFileSync(VERSE_CACHE_PATH, `${JSON.stringify(cache, null, 2)}\n`, "utf-8");
+  } catch {
+    // Best-effort persistence; the in-memory cache still serves this process.
+  }
 }
 
 /**

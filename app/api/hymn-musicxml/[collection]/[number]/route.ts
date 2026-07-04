@@ -66,10 +66,16 @@ export async function GET(
   const objectPath = `musicxml/${collection}/${n}.mxl`;
   const gcsUrl = `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(objectPath)}?alt=media`;
 
-  const gcsRes = await fetch(gcsUrl, {
-    headers: { Authorization: `Bearer ${token}` },
-    signal: AbortSignal.timeout(15000),
-  });
+  let gcsRes: Response;
+  try {
+    gcsRes = await fetch(gcsUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch {
+    // Network error / abort — treat as "no preset" so the caller falls through to OMR.
+    return NextResponse.json({ error: "No preset available" }, { status: 404 });
+  }
 
   if (!gcsRes.ok) {
     return NextResponse.json({ error: "No preset available" }, { status: 404 });
@@ -79,7 +85,8 @@ export async function GET(
   return new NextResponse(body, {
     status: 200,
     headers: {
-      "Content-Type": "application/vnd.recordare.musicxml+xml",
+      // .mxl is the ZIP-compressed MusicXML archive (not the uncompressed +xml form).
+      "Content-Type": "application/vnd.recordare.musicxml",
       "Content-Disposition": `attachment; filename="${n}.mxl"`,
       "Cache-Control": "public, max-age=86400",
     },

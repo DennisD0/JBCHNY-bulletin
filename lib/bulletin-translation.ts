@@ -76,7 +76,9 @@ async function translateText(text: string, target: string) {
   });
   if (!response.ok) throw new Error(`Translation service returned ${response.status}`);
   const payload = await response.json() as unknown[][];
-  const segments = payload[0] as unknown[][];
+  const segments = payload?.[0] as unknown[][] | undefined;
+  // Malformed/empty response — fall back to the original text rather than throwing.
+  if (!Array.isArray(segments)) return text;
   return segments.map((segment) => String(segment[0] ?? "")).join("") || text;
 }
 
@@ -163,7 +165,13 @@ export async function translateBulletinContent<T>(value: T, language: Exclude<Bu
       const index = nextIndex;
       nextIndex += 1;
       const text = queue[index];
-      translations.set(text, await translateText(text, TARGET_LANGUAGE[language]));
+      try {
+        translations.set(text, await translateText(text, TARGET_LANGUAGE[language]));
+      } catch {
+        // One failed string shouldn't abort the whole bulletin translation —
+        // keep the original text and continue with the rest of the queue.
+        translations.set(text, text);
+      }
     }
   }
 

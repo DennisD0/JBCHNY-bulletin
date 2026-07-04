@@ -19,8 +19,13 @@ export async function POST(request: Request, { params }: Context) {
   const { lang } = await params;
   if (!isBulletinLanguage(lang)) return languageError();
 
-  const body = await request.json() as { data?: BulletinData; sectionKey?: string };
-  if (!body.data) {
+  let body: { data?: BulletinData; sectionKey?: string };
+  try {
+    body = await request.json() as { data?: BulletinData; sectionKey?: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  if (!body.data || typeof body.data !== "object" || Array.isArray(body.data)) {
     return NextResponse.json({ error: "Bulletin data is required" }, { status: 400 });
   }
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+import { notFound } from "next/navigation";
 import BulletinPreview from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import type { BulletinData } from "@/lib/bulletin-types";
@@ -18,9 +19,15 @@ export default async function PrintPage({
   const language: BulletinLanguage = VALID_LANGS.has(lang as BulletinLanguage)
     ? (lang as BulletinLanguage)
     : "en";
-  const data = JSON.parse(
-    readFileSync(join(process.cwd(), "data", `bulletin.${language}.json`), "utf-8")
-  ) as BulletinData;
+  let data: BulletinData;
+  try {
+    data = JSON.parse(
+      readFileSync(join(process.cwd(), "data", `bulletin.${language}.json`), "utf-8")
+    ) as BulletinData;
+  } catch {
+    // Missing or malformed bulletin file — show a 404 rather than an unhandled 500.
+    notFound();
+  }
 
   return (
     <>

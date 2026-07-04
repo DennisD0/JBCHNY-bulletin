@@ -104,7 +104,6 @@ function UploadModal({ name, uploadType, onClose, onSaved }: {
   const [error, setError]       = useState("");
   const [showRaw, setShowRaw]   = useState(false);
   const [year, setYear]         = useState(new Date().getFullYear());
-  const inputRef = useState<HTMLInputElement | null>(null);
 
   const ACCEPT = ".pdf,.png,.jpg,.jpeg";
 

@@ -13,7 +13,13 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: "Sync apply is not available for this language" }, { status: 400 });
   }
 
-  const { sectionKey, action } = await request.json() as { sectionKey?: string; action?: string };
+  let body: { sectionKey?: string; action?: string };
+  try {
+    body = await request.json() as { sectionKey?: string; action?: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const { sectionKey, action } = body;
   if (!sectionKey || !SECTION_FIELD_MAP[sectionKey]) {
     return NextResponse.json({ error: "Unknown section" }, { status: 400 });
   }
@@ -22,6 +28,10 @@ export async function POST(request: Request, { params }: Context) {
   const sync = bulletin.meta.sections[sectionKey];
 
   if (action === "dismiss") {
+    // Match dismiss/route.ts: don't write a partial entry when there's nothing to dismiss.
+    if (!sync) {
+      return NextResponse.json({ error: "No sync notification for this section" }, { status: 404 });
+    }
     bulletin.meta.sections[sectionKey] = { ...sync, status: "dismissed" };
     writeBulletin(lang, bulletin.data, bulletin.meta);
     return NextResponse.json({ meta: bulletin.meta });

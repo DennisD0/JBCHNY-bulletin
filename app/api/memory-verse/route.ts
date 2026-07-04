@@ -203,7 +203,11 @@ export async function GET(request: Request) {
   const verses = getVerseList();
   let idx: number;
   if (indexParam !== null) {
-    idx = ((parseInt(indexParam) % verses.length) + verses.length) % verses.length;
+    const parsed = parseInt(indexParam, 10);
+    if (Number.isNaN(parsed)) {
+      return NextResponse.json({ error: "Invalid index" }, { status: 400 });
+    }
+    idx = ((parsed % verses.length) + verses.length) % verses.length;
   } else if (dateParam) {
     idx = weekIndexForDate(parseBulletinDate(dateParam), verses.length);
   } else {
@@ -237,7 +241,11 @@ export async function POST(request: Request) {
 
   // ── setIndex ──
   if (body.action === "setIndex") {
-    const idx = ((parseInt(body.index ?? 0)) % verses.length + verses.length) % verses.length;
+    const parsed = parseInt(body.index ?? 0, 10);
+    if (Number.isNaN(parsed)) {
+      return NextResponse.json({ error: "Invalid index" }, { status: 400 });
+    }
+    const idx = (parsed % verses.length + verses.length) % verses.length;
     saveNextWeekIndex(idx);
     const cache = getTextCache();
     return NextResponse.json({ nextWeekIndex: idx, total: verses.length, entry: verses[idx], ...buildStats(verses, idx, cache) });

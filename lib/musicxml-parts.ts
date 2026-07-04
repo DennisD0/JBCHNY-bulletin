@@ -158,17 +158,19 @@ function isChordal(notes: RawNote[]): boolean {
   return perOnset.size > 0 && chords / perOnset.size >= 0.25;
 }
 
-/** Drop notes that repeat the same pitch at the same onset. */
+/** Drop notes that repeat the same pitch at the same onset, keeping the longest. */
 function dedupe(notes: NoteEvent[]): NoteEvent[] {
-  const seen = new Set<string>();
-  const out: NoteEvent[] = [];
+  const byKey = new Map<string, NoteEvent>();
   for (const note of notes) {
     const key = `${note.onsetTicks}:${note.pitch}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(note);
+    const existing = byKey.get(key);
+    // Prefer the longest-sustained note for each onset/pitch rather than whichever
+    // happened to come first, so a held note isn't replaced by a shorter duplicate.
+    if (!existing || note.durationTicks > existing.durationTicks) {
+      byKey.set(key, note);
+    }
   }
-  return out;
+  return [...byKey.values()];
 }
 
 /**

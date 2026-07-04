@@ -143,11 +143,23 @@ export class AudioEngine {
     }
 
     // Resolve when every sample buffer has loaded, with a safety timeout so a
-    // stuck/duplicate load can never hang the player indefinitely.
-    await Promise.race([
-      Tone.loaded(),
-      new Promise<void>((resolve) => setTimeout(resolve, 20000)),
-    ]);
+    // stuck/duplicate load can never hang the player indefinitely. A timeout is a
+    // real failure (missing buffers → silent playback), so surface it instead of
+    // reporting a false 100% via onLoadProgress.
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        Tone.loaded(),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error("Timed out loading piano samples")),
+            20000
+          );
+        }),
+      ]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
     onLoadProgress?.(total, total);
   }
 

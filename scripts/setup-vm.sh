@@ -3,7 +3,7 @@
 # Church Bulletin – GCE e2-micro one-time setup
 # Run this once after SSH-ing into a fresh Debian/Ubuntu VM.
 # ============================================================
-set -e
+set -eo pipefail
 
 echo ""
 echo "╔══════════════════════════════════════════╗"

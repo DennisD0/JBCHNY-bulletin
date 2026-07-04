@@ -69,15 +69,14 @@ export async function POST(req: NextRequest) {
   const jobDir = path.join(DATA_DIR, jobId);
   const inputDir = path.join(jobDir, "input");
   const outputDir = path.join(jobDir, "output");
-  await fs.mkdir(inputDir, { recursive: true });
-  await fs.mkdir(outputDir, { recursive: true });
-
   const originalBuffer = Buffer.from(await file.arrayBuffer());
   const originalExt = path.extname(file.name).toLowerCase() || ".bin";
   const originalPath = path.join(inputDir, `score-original${originalExt}`);
-  await fs.writeFile(originalPath, originalBuffer);
 
   if (preset) {
+    await fs.mkdir(inputDir, { recursive: true });
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(originalPath, originalBuffer);
     const resultPath = path.join(outputDir, `hymn-${hymnNumber}.mxl`);
     await fs.writeFile(resultPath, preset);
     createJob({
@@ -93,7 +92,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Recognition is serialized and slow (minutes each). Reject once the queue is
-  // full rather than letting it be stuffed with more work than it can clear.
+  // full — BEFORE writing any files — so a rejected request never leaves an
+  // orphaned job directory behind.
   const slot = tryReserveSlot();
   if (!slot.ok) {
     return NextResponse.json(
@@ -102,35 +102,47 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Photos/scans try the cleaned image first, but retain the original crop as
-  // a fallback because aggressive enhancement can trigger Audiveris bugs.
-  const attempts: Array<{ path: string; label: string }> = [];
-  if (isImageFile(file.name)) {
-    const variants = await preprocessImageVariants(originalBuffer);
-    for (let index = 0; index < variants.length; index++) {
-      const variantPath = path.join(inputDir, `score-notes-${index + 1}.png`);
-      await fs.writeFile(variantPath, variants[index].buffer);
-      attempts.push({ path: variantPath, label: variants[index].label });
+  try {
+    await fs.mkdir(inputDir, { recursive: true });
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(originalPath, originalBuffer);
+
+    // Photos/scans try the cleaned image first, but retain the original crop as
+    // a fallback because aggressive enhancement can trigger Audiveris bugs.
+    const attempts: Array<{ path: string; label: string }> = [];
+    if (isImageFile(file.name)) {
+      const variants = await preprocessImageVariants(originalBuffer);
+      for (let index = 0; index < variants.length; index++) {
+        const variantPath = path.join(inputDir, `score-notes-${index + 1}.png`);
+        await fs.writeFile(variantPath, variants[index].buffer);
+        attempts.push({ path: variantPath, label: variants[index].label });
+      }
     }
+    attempts.push({ path: originalPath, label: "original image" });
+    const inputPath = attempts[0].path;
+
+    createJob({
+      id: jobId,
+      status: "pending",
+      message: "Queued for note recognition...",
+      inputPath,
+      outputDir,
+      createdAt: Date.now(),
+    });
+
+    // Audiveris is memory-heavy. Queue jobs in the background while the client
+    // polls /api/omr/status/[jobId]. Free the queue slot once the job settles,
+    // however it settles, so the global in-flight cap stays accurate.
+    void enqueueOmr(() => processJob(jobId, attempts, outputDir)).finally(
+      releaseSlot
+    );
+  } catch (err) {
+    // Setup failed before the job was queued — release the slot we reserved and
+    // clean up the partial job directory so nothing is orphaned.
+    releaseSlot();
+    await fs.rm(jobDir, { recursive: true, force: true }).catch(() => {});
+    throw err;
   }
-  attempts.push({ path: originalPath, label: "original image" });
-  const inputPath = attempts[0].path;
-
-  createJob({
-    id: jobId,
-    status: "pending",
-    message: "Queued for note recognition...",
-    inputPath,
-    outputDir,
-    createdAt: Date.now(),
-  });
-
-  // Audiveris is memory-heavy. Queue jobs in the background while the client
-  // polls /api/omr/status/[jobId]. Free the queue slot once the job settles,
-  // however it settles, so the global in-flight cap stays accurate.
-  void enqueueOmr(() => processJob(jobId, attempts, outputDir)).finally(
-    releaseSlot
-  );
 
   return NextResponse.json({ jobId });
 }

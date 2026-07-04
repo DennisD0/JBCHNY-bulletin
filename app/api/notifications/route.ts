@@ -129,10 +129,19 @@ export async function PATCH(request: Request) {
   if (!id || !status || !sessionId) {
     return NextResponse.json({ error: "id, status, sessionId required" }, { status: 400 });
   }
+  if (status !== "accepted" && status !== "declined" && status !== "pending") {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
 
   const notifications = read();
   const index = notifications.findIndex((n) => n.id === id);
   if (index === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Only the request's target (the editor being asked) or its sender may change status.
+  const target = notifications[index];
+  if (target.targetSessionId !== sessionId && target.fromSessionId !== sessionId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   notifications[index] = { ...notifications[index], status };
   write(notifications);

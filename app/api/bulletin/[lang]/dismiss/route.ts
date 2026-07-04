@@ -11,7 +11,13 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: "Sync dismiss is not available for this language" }, { status: 400 });
   }
 
-  const { sectionKey } = await request.json() as { sectionKey?: string };
+  let body: { sectionKey?: string };
+  try {
+    body = await request.json() as { sectionKey?: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const { sectionKey } = body;
   if (!sectionKey || !SECTION_FIELD_MAP[sectionKey]) {
     return NextResponse.json({ error: "Unknown section" }, { status: 400 });
   }

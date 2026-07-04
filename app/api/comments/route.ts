@@ -23,6 +23,11 @@ export type BulletinComment = {
   resolved: boolean;
 };
 
+// NOTE: read()/write() are a non-atomic read-modify-write on a single JSON file.
+// This is safe only because the app deploys to Cloud Run / a single VM with one
+// Node process (--max-instances 1), so mutations are effectively serialized by the
+// single-threaded event loop between awaits. Do NOT scale to multiple instances
+// without moving comments to an atomic store.
 function read(): BulletinComment[] {
   try { return JSON.parse(readFileSync(PATH, "utf-8")); } catch { return []; }
 }
@@ -35,7 +40,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json() as Partial<BulletinComment>;
+  let body: Partial<BulletinComment>;
+  try {
+    body = await req.json() as Partial<BulletinComment>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   if (typeof body.rx !== "number" || typeof body.ry !== "number" || !body.text?.trim() || !body.author) {
     return NextResponse.json({ error: "rx, ry, text, author required" }, { status: 400 });
   }
@@ -55,12 +65,20 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const body = await req.json() as { id: string; reply?: { author: string; text: string }; resolved?: boolean };
+  let body: { id: string; reply?: { author: string; text: string }; resolved?: boolean };
+  try {
+    body = await req.json() as { id: string; reply?: { author: string; text: string }; resolved?: boolean };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const all = read();
   const idx = all.findIndex(c => c.id === body.id);
   if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (body.reply) {
+    if (!body.reply.author || !body.reply.text?.trim()) {
+      return NextResponse.json({ error: "reply.author and reply.text required" }, { status: 400 });
+    }
     all[idx].replies.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2,6)}`, author: body.reply.author, text: body.reply.text.trim(), createdAt: Date.now() });
   }
   if (typeof body.resolved === "boolean") all[idx].resolved = body.resolved;
@@ -69,7 +87,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { id } = await req.json() as { id: string };
+  let id: string | undefined;
+  try { ({ id } = await req.json() as { id: string }); } catch { /* malformed/empty body */ }
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const all = read().filter(c => c.id !== id);
   write(all);
   return NextResponse.json({ ok: true });

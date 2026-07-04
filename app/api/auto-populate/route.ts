@@ -43,8 +43,17 @@ export async function GET(request: Request) {
 
   let base: Date;
   if (dateStr) {
-    const [m, d, y] = dateStr.split("/").map(Number);
+    const parts = dateStr.split("/").map(Number);
+    const [m, d, y] = parts;
+    if (parts.length !== 3 || parts.some(Number.isNaN) || m < 1 || m > 12 || d < 1 || d > 31) {
+      return NextResponse.json({ error: "Invalid date — expected MM/DD/YYYY" }, { status: 400 });
+    }
     base = new Date(y, m - 1, d);
+    // Reject impossible dates like 02/30 — JS Date silently rolls them over, so
+    // confirm the constructed month still matches what was requested.
+    if (Number.isNaN(base.getTime()) || base.getMonth() !== m - 1) {
+      return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+    }
   } else {
     base = new Date();
   }

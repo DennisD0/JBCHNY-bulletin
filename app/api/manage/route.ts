@@ -44,10 +44,16 @@ export interface ScheduleSource {
 function getPlanCoverage(planFile: string) {
   const p = join(process.cwd(), "data", planFile);
   if (!existsSync(p)) return { start: null, end: null, total: 0 };
-  const plan: Record<string, string | null> = JSON.parse(readFileSync(p, "utf8"));
-  const keys = Object.keys(plan).filter((k) => plan[k] !== null).sort();
-  if (!keys.length) return { start: null, end: null, total: 0 };
-  return { start: keys[0], end: keys[keys.length - 1], total: keys.length };
+  try {
+    const plan: Record<string, string | null> = JSON.parse(readFileSync(p, "utf8"));
+    const keys = Object.keys(plan).filter((k) => plan[k] !== null).sort();
+    if (!keys.length) return { start: null, end: null, total: 0 };
+    return { start: keys[0], end: keys[keys.length - 1], total: keys.length };
+  } catch (error) {
+    // Malformed or partially-written plan file — degrade to "missing" rather than 500.
+    console.error(`Failed to read/parse ${planFile}`, error);
+    return { start: null, end: null, total: 0 };
+  }
 }
 
 function computeSourceStatus(
@@ -71,7 +77,8 @@ function computeSourceStatus(
     const startDate_ = new Date(startDate);
     const elapsed = today.getTime() - startDate_.getTime();
     const coveredDays = Math.ceil(elapsed / 86400000);
-    const percentUsed = Math.round((coveredDays / totalDays) * 100);
+    // totalDays can be 0 for a single-day coverage window (start === end) — avoid NaN/Infinity.
+    const percentUsed = totalDays > 0 ? Math.round((coveredDays / totalDays) * 100) : 100;
     const status = daysRemaining < 60 ? "warning" : "active";
     return { coveredDays, daysRemaining, percentUsed, status: status as "active" | "warning" };
   }
@@ -122,12 +129,22 @@ export async function GET() {
   const schedulePath = join(process.cwd(), "data", scheduleFile);
   let scheduleSrc: ScheduleSource;
 
+  let scheduleRaw: { coverageStart?: string; coverageEnd?: string; quarter?: string; events?: ScheduleEvent[] } | null = null;
   if (existsSync(schedulePath)) {
-    const raw = JSON.parse(readFileSync(schedulePath, "utf8"));
-    const { coverageStart, coverageEnd, quarter, events } = raw;
-    const totalDays = Math.ceil(
-      (new Date(coverageEnd).getTime() - new Date(coverageStart).getTime()) / 86400000
-    );
+    try {
+      scheduleRaw = JSON.parse(readFileSync(schedulePath, "utf8"));
+    } catch (error) {
+      console.error("Failed to read/parse monthly_schedule.json", error);
+    }
+  }
+
+  if (scheduleRaw) {
+    const coverageStart = scheduleRaw.coverageStart ?? null;
+    const coverageEnd = scheduleRaw.coverageEnd ?? null;
+    const { quarter, events } = scheduleRaw;
+    const totalDays = coverageStart && coverageEnd
+      ? Math.max(0, Math.ceil((new Date(coverageEnd).getTime() - new Date(coverageStart).getTime()) / 86400000))
+      : 0;
     const s = computeSourceStatus(coverageStart, coverageEnd, today, todayStr, totalDays);
     scheduleSrc = {
       id: "monthly-schedule",

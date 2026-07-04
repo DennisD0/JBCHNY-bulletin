@@ -4060,13 +4060,15 @@ export default function Home() {
         setIsCollaborator(false);
         await loadLanguage(editorGranted.lang);
         await refreshLanguageStatus();
+        // Only mark consumed once the lock is actually held — otherwise a failed
+        // acquisition would silently swallow the transfer. Leaving it pending lets
+        // the next poll retry the handoff.
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editorGranted.id, status: "accepted", sessionId: sessionId.current }),
+        });
       }
-      // Mark consumed so it isn't reprocessed on the next poll.
-      await fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editorGranted.id, status: "accepted", sessionId: sessionId.current }),
-      });
     }
 
     // Declined requests surface inline on the AccessControlBar — no forced panel.

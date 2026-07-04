@@ -17,12 +17,22 @@ export function bulletinPath(language: BulletinLanguage) {
 }
 
 export function readBulletin(language: BulletinLanguage): { data: BulletinData; meta: BulletinMeta } {
-  const stored = JSON.parse(readFileSync(bulletinPath(language), "utf-8")) as StoredBulletin;
+  let stored: StoredBulletin;
+  try {
+    stored = JSON.parse(readFileSync(bulletinPath(language), "utf-8")) as StoredBulletin;
+  } catch {
+    // Missing or malformed file — return a safe default so callers (e.g.
+    // notifySoftSyncLanguages) don't crash for a language that isn't populated yet.
+    return { data: {} as BulletinData, meta: defaultBulletinMeta(language) };
+  }
   const { _meta, ...data } = stored;
-  return {
-    data: data as BulletinData,
-    meta: _meta ?? defaultBulletinMeta(language),
-  };
+  const base = defaultBulletinMeta(language);
+  // Deep-merge so a legacy/partial _meta always has a defined `sections` map
+  // before the section-update logic writes into meta.sections[sectionKey].
+  const meta: BulletinMeta = _meta
+    ? { ...base, ..._meta, sections: { ...base.sections, ...(_meta.sections ?? {}) } }
+    : base;
+  return { data: data as BulletinData, meta };
 }
 
 export function writeBulletin(language: BulletinLanguage, data: BulletinData, meta?: BulletinMeta) {

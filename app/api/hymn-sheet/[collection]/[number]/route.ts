@@ -90,9 +90,26 @@ function renderPage(
       { windowsHide: true }
     );
     let stderr = "";
+    let settled = false;
+    // Bound the renderer: a hung mupdf process would otherwise leave this Promise
+    // pending forever and orphan the child.
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      proc.kill("SIGKILL");
+      reject(new Error("Renderer timed out"));
+    }, 30_000);
     proc.stderr?.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
-    proc.on("error", (err) => reject(new Error(`Failed to start renderer: ${err.message}`)));
+    proc.on("error", (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(new Error(`Failed to start renderer: ${err.message}`));
+    });
     proc.on("close", (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
       if (code === 0) resolve();
       else reject(new Error(`Renderer exited ${code}: ${stderr.trim()}`));
     });

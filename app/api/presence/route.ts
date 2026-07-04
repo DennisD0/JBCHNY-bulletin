@@ -60,7 +60,15 @@ export async function GET() {
 // Also handles tab-close "leave" beacons: sendBeacon can only POST, so a body
 // with a sessionId but no name is treated as a leave (remove entry + release locks).
 export async function POST(req: Request) {
-  const { name, sessionId, language, section } = (await req.json()) as { name?: string; sessionId: string; language?: string; section?: string };
+  // sendBeacon can fire an empty body on tab close — parse defensively so it
+  // doesn't throw "Unexpected end of JSON input" and 500.
+  let body: { name?: string; sessionId?: string; language?: string; section?: string };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+  const { name, sessionId, language, section } = body;
   if (!sessionId) return NextResponse.json({ ok: false }, { status: 400 });
 
   // Leave signal (no name) — remove this session and release any locks it holds.
@@ -73,16 +81,17 @@ export async function POST(req: Request) {
   const trimmedName = name.trim().toLowerCase();
   const users = read();
 
-  // Evict any previous sessions with the same name (e.g. old tab) and release their locks
+  // Evict any previous sessions with the same name (e.g. old tab) and release their locks.
+  // Guard u.name — a malformed persisted entry without a name must not crash the heartbeat.
   const evictedIds = users
-    .filter((u) => u.name.trim().toLowerCase() === trimmedName && u.sessionId !== sessionId)
+    .filter((u) => u.name?.trim().toLowerCase() === trimmedName && u.sessionId !== sessionId)
     .map((u) => u.sessionId);
 
   releaseLocksFor(evictedIds);
 
   // Remove evicted sessions from presence list
   const filtered = users.filter(
-    (u) => u.sessionId === sessionId || u.name.trim().toLowerCase() !== trimmedName,
+    (u) => u.sessionId === sessionId || u.name?.trim().toLowerCase() !== trimmedName,
   );
 
   const idx = filtered.findIndex((u) => u.sessionId === sessionId);
@@ -95,9 +104,12 @@ export async function POST(req: Request) {
 
 // DELETE — leave  { sessionId }
 export async function DELETE(req: Request) {
-  const { sessionId } = (await req.json()) as { sessionId: string };
+  let sessionId: string | undefined;
+  try { ({ sessionId } = (await req.json()) as { sessionId: string }); } catch { /* empty/malformed body */ }
   if (!sessionId) return NextResponse.json({ ok: false }, { status: 400 });
   const users = read().filter((u) => u.sessionId !== sessionId);
   write(users);
+  // Mirror the POST leave-beacon path: releasing presence must also drop any locks held.
+  releaseLocksFor([sessionId]);
   return NextResponse.json({ ok: true });
 }
