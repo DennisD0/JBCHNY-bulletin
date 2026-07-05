@@ -79,19 +79,19 @@ function TH({ children, center, w, grid }: { children?: React.ReactNode; center?
 
 /** Table data cell */
 function TD({
-  children, center, top, bold, color, noWrap, span, xs, grid, pr = 4,
+  children, center, top, bold, color, noWrap, span, xs, grid, pr = 4, noBorder,
 }: {
   children?: React.ReactNode;
   center?: boolean; top?: boolean; bold?: boolean;
   color?: string; noWrap?: boolean;
-  span?: number; xs?: boolean; grid?: boolean; pr?: number;
+  span?: number; xs?: boolean; grid?: boolean; pr?: number; noBorder?: boolean;
 }) {
   return (
     <td rowSpan={span} style={{
       fontSize: xs ? F.small : F.body,
       lineHeight: 1.3,
       padding: `1.5px ${pr}px 1.5px 0`,
-      borderBottom: `0.75px solid ${LG}`,
+      borderBottom: noBorder ? "none" : `0.75px solid ${LG}`,
       borderLeft: grid ? `${RULE}px solid ${BL}` : undefined,
       textAlign: center ? "center" : "left",
       verticalAlign: top ? "top" : "middle",
@@ -606,7 +606,25 @@ export default function BulletinPreview({
   };
   // Reading 2 is always already exactly the (up to) two "\n"-joined blocks
   // computed by the auto-populate route — one line per block, shown as-is.
-  const formatSecondaryReading = (value: string) => value;
+  // If both blocks share the same book and the chapter ranges are consecutive
+  // (e.g. "Gen 20-23\nGen 24-25"), collapse them into one line ("Gen 20-25").
+  const formatSecondaryReading = (value: string): string => {
+    const parts = value.split("\n");
+    if (parts.length < 2) return value;
+    const parse = (s: string) => {
+      const m = s.trim().match(/^(.+?)\s+(\d+)(?:-(\d+))?$/);
+      if (!m) return null;
+      const start = parseInt(m[2], 10);
+      const end = m[3] ? parseInt(m[3], 10) : start;
+      return { book: m[1].trim(), start, end };
+    };
+    const a = parse(parts[0]);
+    const b = parse(parts[1]);
+    if (a && b && a.book.toLowerCase() === b.book.toLowerCase() && a.end + 1 === b.start) {
+      return `${a.book} ${a.start}-${b.end}`;
+    }
+    return value;
+  };
 
   const page: React.CSSProperties = {
     ...BASE_STYLE,
@@ -1111,7 +1129,9 @@ export default function BulletinPreview({
               </thead>
               <tbody>
                 {data.weekSchedule.flatMap((day,di) =>
-                  day.items.map((item,ii) => (
+                  day.items.map((item,ii) => {
+                    const isLast = ii === day.items.length - 1;
+                    return (
                     <tr key={`${di}-${ii}`}>
                       {ii===0 && (
                         <td rowSpan={day.items.length} style={{
@@ -1123,11 +1143,12 @@ export default function BulletinPreview({
                           <E value={day.date} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, date:v} : d) }) : undefined} />
                         </td>
                       )}
-                      <TD xs><E value={item.name}     onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, name:v} : it)} : d) }) : undefined} /></TD>
-                      <TD xs><E value={item.location} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, location:v} : it)} : d) }) : undefined} /></TD>
-                      <TD xs noWrap><E value={item.time} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, time:v} : it)} : d) }) : undefined} /></TD>
+                      <TD xs noBorder={!isLast}><E value={item.name}     onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, name:v} : it)} : d) }) : undefined} /></TD>
+                      <TD xs noBorder={!isLast}><E value={item.location} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, location:v} : it)} : d) }) : undefined} /></TD>
+                      <TD xs noWrap noBorder={!isLast}><E value={item.time} onSave={onUpdate ? (v) => onUpdate({ weekSchedule: data.weekSchedule.map((d,x) => x===di ? {...d, items: d.items.map((it,y) => y===ii ? {...it, time:v} : it)} : d) }) : undefined} /></TD>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -1213,64 +1234,80 @@ export default function BulletinPreview({
             <div style={{ position: "relative", flex:1, minHeight:0 }}>
             <PendingBadge sectionKey="retreatInfo" enContent={pendingDiffs?.["retreatInfo"]} show={!!pendingDiffs?.["retreatInfo"]} onDismiss={onDismissPending ? () => onDismissPending("retreatInfo") : undefined} />
             <div data-fit-section="retreat-info" style={{ height:"100%", overflow:"hidden" }}>
-              <SecHead title={data.labels?.headRetreats ?? "Retreat Schedule"} />
+              <SecHead title={data.labels?.headRetreats ?? "Retreat Information"} />
               <div data-fit-body>
-              <div style={{ padding:"2px 0 4px" }}>
-                <p style={{
-                  textAlign:"center", fontWeight:700, color:BL,
-                  fontSize:13, margin:"0 0 5px", paddingBottom:4,
-                  lineHeight:1.3, borderBottom:`${RULE}px solid ${BL}`,
-                }}>
+
+                {/* ── Title (centred, no flanking rules) ── */}
+                <div style={{ textAlign:"center", fontWeight:700, color:BL, fontSize:F.body, lineHeight:1.25, padding:"1px 0", marginBottom:4 }}>
                   <E value={data.retreatInfo.title} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, title: v, enabled: true } }) : undefined} />
-                </p>
-                <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                </div>
+
+                {/* ── DATE / LOCATION stacked key-value rows ── */}
+                <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:2 }}>
                   <tbody>
-                    <tr>
-                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, width:56, whiteSpace:"nowrap", verticalAlign:"middle" }}>Date</td>
-                      <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
-                        <E value={data.retreatInfo.date} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, date: v, enabled: true } }) : undefined} />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:3, whiteSpace:"nowrap", verticalAlign:"middle" }}>Location</td>
-                      <td style={{ fontSize:F.body, color:GR, paddingBottom:3 }}>
-                        <E value={data.retreatInfo.location} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, location: v, enabled: true } }) : undefined} />
-                      </td>
-                    </tr>
-                    {(data.retreatInfo.fees?.length ?? 0) > 0 && (
-                      <tr>
-                        <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, whiteSpace:"nowrap", verticalAlign:"top", paddingTop:2 }}>Fee</td>
-                        <td style={{ paddingBottom:2 }}>
-                          <table style={{ width:"100%", borderCollapse:"collapse", border:`${RULE}px solid ${BL}` }}>
-                            <tbody>
-                              {Array.from({ length: Math.ceil((data.retreatInfo.fees?.length ?? 0) / 2) }, (_, row) => {
-                                const L = data.retreatInfo.fees?.[row * 2];
-                                const R = data.retreatInfo.fees?.[row * 2 + 1];
-                                return (
-                                  <tr key={row} style={{ borderBottom:`${RULE}px solid ${BL}` }}>
-                                    <td style={{ fontSize:F.small, padding:"2px 5px", borderRight:`${RULE}px solid ${BL}`, color:GR }}>
-                                      {L ? <E value={L.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
-                                    </td>
-                                    <td style={{ fontSize:F.small, padding:"2px 5px", fontWeight:700, color:BL, borderRight:`${RULE}px solid ${BL}`, whiteSpace:"nowrap" }}>
-                                      {L ? <E value={L.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
-                                    </td>
-                                    <td style={{ fontSize:F.small, padding:"2px 5px", borderRight:`${RULE}px solid ${BL}`, color:GR }}>
-                                      {R ? <E value={R.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
-                                    </td>
-                                    <td style={{ fontSize:F.small, padding:"2px 5px", fontWeight:700, color:BL, whiteSpace:"nowrap" }}>
-                                      {R ? <E value={R.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                    {([
+                      ["DATE",     data.retreatInfo.date,     "date"],
+                      ["LOCATION", data.retreatInfo.location, "location"],
+                    ] as [string, string, "date"|"location"][]).map(([lbl, val, field]) => (
+                      <tr key={lbl}>
+                        <td style={{ color:BL, fontWeight:700, fontSize:F.small, whiteSpace:"nowrap", paddingRight:8, paddingBottom:2, width:54 }}>{lbl}</td>
+                        <td style={{ fontSize:F.small, color:GR, paddingBottom:2 }}>
+                          <E value={val} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, [field]: v, enabled: true } }) : undefined} />
                         </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
-              </div>
+
+                {/* ── Fee table: full border box, centered symmetrical columns ── */}
+                {(data.retreatInfo.fees?.length ?? 0) > 0 && (
+                  <table style={{
+                    width:"100%", borderCollapse:"collapse",
+                    border:`${RULE}px solid ${BL}`,
+                  }}>
+                    <colgroup>
+                      <col style={{ width:"30%" }} /><col style={{ width:"20%" }} />
+                      <col style={{ width:"30%" }} /><col style={{ width:"20%" }} />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        {(["Category","Amount","Category","Amount"] as const).map((h,hi) => (
+                          <th key={hi} style={{
+                            color:BL, fontWeight:700, fontSize:F.small,
+                            textAlign: hi===1||hi===3 ? "center" : "left",
+                            whiteSpace:"nowrap",
+                            padding:"2px 4px",
+                            paddingLeft: hi===0||hi===2 ? 12 : 4,
+                            borderBottom:`${RULE}px solid ${BL}`,
+                            borderLeft: hi===2 ? `${RULE}px solid ${BL}` : undefined,
+                          }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: Math.ceil((data.retreatInfo.fees?.length ?? 0) / 2) }, (_, row) => {
+                        const L = data.retreatInfo.fees?.[row * 2];
+                        const R = data.retreatInfo.fees?.[row * 2 + 1];
+                        return (
+                          <tr key={row}>
+                            <td style={{ fontSize:F.small, padding:"1.5px 4px", paddingLeft:12, color:GR, textAlign:"left", borderBottom:`0.75px solid ${LG}` }}>
+                              {L ? <E value={L.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
+                            </td>
+                            <td style={{ fontSize:F.small, padding:"1.5px 4px", fontWeight:700, color:BL, textAlign:"center", borderBottom:`0.75px solid ${LG}` }}>
+                              {L ? <E value={L.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
+                            </td>
+                            <td style={{ fontSize:F.small, padding:"1.5px 4px", paddingLeft:12, color:GR, textAlign:"left", borderLeft:`${RULE}px solid ${BL}`, borderBottom:`0.75px solid ${LG}` }}>
+                              {R ? <E value={R.label} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, label:v} : f), enabled:true } }) : undefined} /> : null}
+                            </td>
+                            <td style={{ fontSize:F.small, padding:"1.5px 4px", fontWeight:700, color:BL, textAlign:"center", borderBottom:`0.75px solid ${LG}` }}>
+                                {R ? <E value={R.amount} onSave={onUpdate ? (v) => onUpdate({ retreatInfo: { ...data.retreatInfo, fees: data.retreatInfo.fees.map((f,i) => i===row*2+1 ? {...f, amount:v} : f), enabled:true } }) : undefined} /> : null}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                )}
               </div>
             </div>
             </div>

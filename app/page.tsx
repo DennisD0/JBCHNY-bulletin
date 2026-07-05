@@ -2214,6 +2214,22 @@ const TAB_SECTION_KEY: Record<TabId, string> = {
   retreat: "retreatInfo",
 };
 
+const FIELD_TO_TAB: Partial<Record<keyof BulletinData, TabId>> = {
+  bulletinTitle: "header", labels: "header", number: "header", date: "header",
+  quote: "header", quoteRef: "header", pastor: "header",
+  phone: "header", email: "header", address: "header",
+  sermonTitle: "sermon", sermonVerse: "sermon", sermonSpeaker: "sermon", sermonEndingPraise: "sermon",
+  services: "services", eastCoastSeminar: "services", fellowship: "services",
+  bibleReadingDates: "bible", bibleReading1: "bible", bibleReading2: "bible",
+  memoryVerses: "memory",
+  cleaningAreas: "cleaning",
+  calendarMonth: "calendar", calendarEvents: "calendar", calendarBanners: "calendar", weeklyRecurring: "calendar",
+  weekSchedule: "schedule",
+  news: "news", jointPrayer: "news", seminarInfo: "news",
+  prayerRequests: "prayer",
+  retreatInfo: "retreat",
+};
+
 const LANGUAGE_CONFIG: Record<BulletinLanguage, { code: string; flag: string; name: string }> = {
   en: { code: "EN", flag: "🇺🇸", name: "English" },
   es: { code: "ES", flag: "🇪🇸", name: "Spanish" },
@@ -2367,22 +2383,27 @@ function usageColor(percentUsed: number, status?: string) {
 // single shared-layout element (framer-motion layoutId) that slides smoothly
 // between rows instead of popping instantly when the selection changes.
 function NavItem({
-  icon: Icon, label, isActive, onClick,
+  icon: Icon, label, isActive, onClick, collapsed, dirty,
 }: {
   icon: LucideIcon;
   label: string;
   isActive: boolean;
   onClick: () => void;
+  collapsed?: boolean;
+  dirty?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
       onClick={onClick}
+      title={collapsed ? label : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position: "relative", display: "flex", alignItems: "center", gap: 11,
-        width: "100%", padding: "10px 16px 10px 22px",
+        position: "relative", display: "flex", alignItems: "center",
+        justifyContent: collapsed ? "center" : "flex-start",
+        gap: 11,
+        width: "100%", padding: collapsed ? "10px 0" : "10px 16px 10px 22px",
         background: isActive ? "transparent" : hovered ? "#F8FAFC" : "transparent",
         border: "none", cursor: "pointer", textAlign: "left",
         transition: "background-color 150ms ease-out",
@@ -2422,27 +2443,58 @@ function NavItem({
           }} />
         </motion.div>
       )}
-      <Icon
-        size={17} strokeWidth={2} style={{
-          position: "relative", flexShrink: 0,
-          color: isActive ? "#1E3A8A" : "#64748B",
-          transition: "color 150ms ease-out",
-        }}
-      />
-      <span style={{
-        position: "relative", fontSize: 14,
-        fontWeight: isActive ? 700 : 500,
-        color: isActive ? "#1E3A8A" : "#334155",
-        transition: "color 150ms ease-out",
-      }}>
-        {label}
-      </span>
+      <div style={{ position: "relative", flexShrink: 0, display: "flex" }}>
+        <Icon
+          size={17} strokeWidth={2} style={{
+            color: isActive ? "#1E3A8A" : "#64748B",
+            transition: "color 150ms ease-out",
+          }}
+        />
+        <AnimatePresence>
+          {dirty && (
+            <motion.span
+              key="dirty-badge"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 600, damping: 28 }}
+              style={{
+                position: "absolute", top: -4, right: -5,
+                width: 8, height: 8, borderRadius: 99,
+                background: "#EF4444",
+                border: "1.5px solid #fff",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.span
+            key="label"
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -6 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{
+              position: "relative", fontSize: 14,
+              fontWeight: isActive ? 700 : 500,
+              color: isActive ? "#1E3A8A" : "#334155",
+              transition: "color 150ms ease-out",
+              whiteSpace: "nowrap", overflow: "hidden",
+            }}
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 }
 
 function SidebarSourceProgress({
-  icon: Icon, label, detail, percentUsed, status, daysRemaining, onClick,
+  icon: Icon, label, detail, percentUsed, status, daysRemaining, onClick, collapsed,
 }: {
   icon: LucideIcon;
   label: string;
@@ -2451,10 +2503,33 @@ function SidebarSourceProgress({
   status?: string;
   daysRemaining: number;
   onClick: () => void;
+  collapsed?: boolean;
 }) {
   const color = usageColor(percentUsed, status);
   const missing = status === "missing";
   const [hovered, setHovered] = useState(false);
+
+  if (collapsed) {
+    return (
+      <button
+        onClick={onClick}
+        title={label}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display:"flex", alignItems:"center", justifyContent:"center",
+          width:36, height:36, margin:"0 auto 6px", borderRadius:10,
+          background: hovered ? "#EEF3FB" : "#F8FAFC",
+          border:`1px solid ${hovered ? "#4472C4" : "#E2E8F0"}`,
+          cursor:"pointer", color: missing ? "#DC2626" : "#64748B",
+          transition:"background 150ms ease-out, border-color 150ms ease-out",
+        }}
+      >
+        <Icon size={16} strokeWidth={2} style={{ color: missing ? "#DC2626" : color }} />
+      </button>
+    );
+  }
+
   return (
     <button
       onClick={onClick}
@@ -3835,8 +3910,10 @@ export default function Home() {
   const [draftPin, setDraftPin] = useState<{ rx: number; ry: number } | null>(null);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [commentDraftText, setCommentDraftText] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
+  const [changedSections, setChangedSections] = useState<Set<TabId>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [generatingWeek, setGeneratingWeek] = useState(false);
@@ -4302,6 +4379,14 @@ export default function Home() {
       historyPos.current = historyStack.current.length - 1;
       return next;
     });
+    setChangedSections((prev) => {
+      const next = new Set(prev);
+      for (const key of Object.keys(p) as (keyof BulletinData)[]) {
+        const tab = FIELD_TO_TAB[key];
+        if (tab) next.add(tab);
+      }
+      return next;
+    });
     setHistoryStamp(s => s + 1);
   }, [readOnly]);
 
@@ -4602,7 +4687,10 @@ export default function Home() {
     });
     setSaving(false);
     setSavedMsg(res.ok ? "Saved!" : "Error saving");
-    if (res.ok) await refreshLanguageStatus();
+    if (res.ok) {
+      setChangedSections(new Set());
+      await refreshLanguageStatus();
+    }
     setTimeout(() => setSavedMsg(""), 2500);
   };
 
@@ -4902,26 +4990,74 @@ export default function Home() {
         </div>
       </div>
 
-      <div className={mobileSetupOpen ? "editor-sidebar mobile-setup-open" : "editor-sidebar"} style={{
-        width: 264, flexShrink: 0, height: "100%",
-        background: "#fff",
-        borderRight: "1px solid #E2E8F0",
-        display: "flex", flexDirection: "column",
-        overflow: "hidden", zIndex: 30,
-      }}>
+      {/* ── Retractable sidebar wrapper ── */}
+      <div style={{ position: "relative", flexShrink: 0, height: "100%" }}>
+        {/* Collapse / expand tab — sticks to right edge, always reachable */}
+        <motion.button
+          type="button"
+          onClick={() => setSidebarCollapsed((c) => !c)}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          whileHover={{ x: sidebarCollapsed ? 2 : -2 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ duration: 0.15 }}
+          style={{
+            position: "absolute", right: -13, top: 22, zIndex: 35,
+            width: 13, height: 40,
+            background: "#fff",
+            border: "1px solid #E2E8F0", borderLeft: "none",
+            borderRadius: "0 6px 6px 0",
+            cursor: "pointer", display: "flex",
+            alignItems: "center", justifyContent: "center",
+            color: "#94A3B8",
+            boxShadow: "2px 2px 6px rgba(15,23,42,0.07)",
+            padding: 0,
+          }}
+        >
+          <motion.div
+            animate={{ rotate: sidebarCollapsed ? 0 : 180 }}
+            transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <ChevronRight size={10} strokeWidth={2.5} />
+          </motion.div>
+        </motion.button>
+
+        <motion.div
+          className={mobileSetupOpen ? "editor-sidebar mobile-setup-open" : "editor-sidebar"}
+          initial={false}
+          animate={{ width: sidebarCollapsed ? 52 : 264 }}
+          transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+          style={{
+            height: "100%",
+            background: "#fff",
+            borderRight: "1px solid #E2E8F0",
+            display: "flex", flexDirection: "column",
+            overflow: "hidden", zIndex: 30,
+          }}
+        >
         {/* Logo header */}
         <div style={{ flexShrink: 0, borderBottom: "1px solid #F1F5F9" }}>
-          <div style={{ height: 60, display: "flex", alignItems: "center", padding: "0 16px", gap: 11 }}>
+          <div style={{ height: 60, display: "flex", alignItems: "center", padding: "0 10px 0 14px", gap: 10 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
-              <div style={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
-            </div>
+            <img src="/logo.png" alt="New York Church" style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }} />
+            <AnimatePresence initial={false}>
+              {!sidebarCollapsed && (
+                <motion.div
+                  key="header-text"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "#1E3A8A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>NEW YORK CHURCH</div>
+                  <div style={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>Bulletin Editor</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <button type="button" className="mobile-setup-close" onClick={() => setMobileSetupOpen(false)} aria-label="Close setup">×</button>
           </div>
-          {/* Online users strip */}
-          {presenceUsers.length > 0 && (
+          {/* Online users strip — hidden when collapsed */}
+          {presenceUsers.length > 0 && !sidebarCollapsed && (
             <div style={{ padding: "5px 16px 8px", display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
               {presenceUsers.map((u) => {
                 const isSelf = u.sessionId === sessionId.current;
@@ -4952,8 +5088,8 @@ export default function Home() {
         {/* Layers nav */}
         <nav style={{ flex: 1, overflowY: "auto", padding: "10px 0", scrollbarWidth: "none" }}>
 
-          {/* Bulletin date generator */}
-          <div style={{ padding:"4px 12px 12px", borderBottom:"1px solid #F1F5F9", marginBottom:7 }}>
+          {/* Bulletin date generator — hidden when collapsed */}
+          <div style={{ display: sidebarCollapsed ? "none" : undefined, padding:"4px 12px 12px", borderBottom:"1px solid #F1F5F9", marginBottom:7 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
             <span style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>
               Bulletin date
@@ -5067,10 +5203,12 @@ export default function Home() {
           </div>
 
           {/* ── Page 1 group ── */}
-          <div style={{ padding: "8px 16px 4px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 6 }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-            Page 1
-          </div>
+          {!sidebarCollapsed && (
+            <div style={{ padding: "8px 16px 4px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 6 }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              Page 1
+            </div>
+          )}
           {SECTIONS.filter((sec) => sec.page === 1).map((sec) => (
             <div key={sec.id}>
               <NavItem
@@ -5078,15 +5216,19 @@ export default function Home() {
                 label={sec.label}
                 isActive={activeTab === sec.id}
                 onClick={() => handleSectionClick(sec.id)}
+                collapsed={sidebarCollapsed}
+                dirty={changedSections.has(sec.id)}
               />
             </div>
           ))}
 
           {/* ── Page 2 group ── */}
+          {!sidebarCollapsed && (
           <div style={{ padding: "12px 16px 4px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 6 }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
             Page 2
           </div>
+          )}
           {SECTIONS.filter((sec) => sec.page === 2).map((sec) => (
             <div key={sec.id}>
               <NavItem
@@ -5094,6 +5236,8 @@ export default function Home() {
                 label={sec.label}
                 isActive={activeTab === sec.id}
                 onClick={() => handleSectionClick(sec.id)}
+                collapsed={sidebarCollapsed}
+                dirty={changedSections.has(sec.id)}
               />
             </div>
           ))}
@@ -5102,9 +5246,11 @@ export default function Home() {
           <div style={{ height: 1, background: "#F1F5F9", margin: "12px 0" }} />
 
           {/* ── Auto-fill group ── */}
-          <div style={{ padding: "0 16px 6px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Auto-fill
-          </div>
+          {!sidebarCollapsed && (
+            <div style={{ padding: "0 16px 6px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Auto-fill
+            </div>
+          )}
           <SidebarSourceProgress
             icon={BookMarked}
             label="Reading Plan"
@@ -5113,6 +5259,7 @@ export default function Home() {
             status={reading?.status ?? "missing"}
             daysRemaining={reading?.daysRemaining ?? 0}
             onClick={() => setUploadTarget("reading")}
+            collapsed={sidebarCollapsed}
           />
           <SidebarSourceProgress
             icon={CalendarRange}
@@ -5122,10 +5269,13 @@ export default function Home() {
             status={schedule?.status ?? "missing"}
             daysRemaining={schedule?.daysRemaining ?? 0}
             onClick={() => setUploadTarget("schedule")}
+            collapsed={sidebarCollapsed}
           />
-          <div style={{ padding:"0 13px 6px", fontSize:9.5, color:"#94A3B8", lineHeight:1.4 }}>
-            Usage: <span style={{ color:"#16A34A", fontWeight:700 }}>green</span> → <span style={{ color:"#D6A400", fontWeight:700 }}>yellow</span> → <span style={{ color:"#EA580C", fontWeight:700 }}>orange</span> → <span style={{ color:"#DC2626", fontWeight:700 }}>red</span>
-          </div>
+          {!sidebarCollapsed && (
+            <div style={{ padding:"0 13px 6px", fontSize:9.5, color:"#94A3B8", lineHeight:1.4 }}>
+              Usage: <span style={{ color:"#16A34A", fontWeight:700 }}>green</span> → <span style={{ color:"#D6A400", fontWeight:700 }}>yellow</span> → <span style={{ color:"#EA580C", fontWeight:700 }}>orange</span> → <span style={{ color:"#DC2626", fontWeight:700 }}>red</span>
+            </div>
+          )}
         </nav>
 
         {/* Footer: save */}
@@ -5133,17 +5283,30 @@ export default function Home() {
           <motion.button
             onClick={save}
             disabled={saving || !data || readOnly}
+            title={sidebarCollapsed ? (savedMsg || (saving ? "Saving…" : "Save")) : undefined}
             whileHover={!saving && data ? { scale: 1.015 } : undefined}
             whileTap={!saving && data ? { scale: 0.98 } : undefined}
             transition={{ duration: 0.15, ease: "easeOut" }}
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, width: "100%", padding: "11px 10px", borderRadius: 8, background: "#1E3A8A", color: "#fff", border: "none", cursor: "pointer", opacity: saving || !data ? 0.5 : 1 }}
           >
             <SaveIcon size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 14, fontWeight: 800 }}>
-              {savedMsg || (saving ? "Saving…" : "Save")}
-            </span>
+            <AnimatePresence initial={false}>
+              {!sidebarCollapsed && (
+                <motion.span
+                  key="save-label"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  style={{ fontSize: 14, fontWeight: 800, overflow: "hidden", whiteSpace: "nowrap" }}
+                >
+                  {savedMsg || (saving ? "Saving…" : "Save")}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.button>
         </div>
+        </motion.div>
       </div>
 
       {/* ── PDF canvas — Miro-like pan & zoom ── */}
