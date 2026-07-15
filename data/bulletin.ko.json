@@ -5,81 +5,81 @@
     "initializedFromEn": true,
     "sections": {}
   },
-  "number": "2026-25",
+  "number": "2026-26",
   "date": "06/28/2026",
   "quote": "나는 죽지 않고 살 것이다.\n그리고 여호와께서 하신 일을 선포하라.",
   "quoteRef": "시 118:17",
-  "pastor": "Chong Kyung Park",
-  "sermonTitle": "내가 당신을 향한 그토록 풍성한 사랑을",
-  "sermonVerse": "2 Corinthians 2:4",
-  "sermonSpeaker": "p.Chongkyung Park (New York Church)",
-  "sermonEndingPraise": "찬송가 274장 \"나는 이야기를 하고 싶어요\"",
+  "pastor": "박종경",
+  "sermonTitle": "너희를 향하여 넘치는 사랑 (2)",
+  "sermonVerse": "고린도후서 2장 4절",
+  "sermonSpeaker": "박종경 목사 (뉴욕 교회)",
+  "sermonEndingPraise": "찬송가 274장 \"주 예수 넓은 사랑\"",
   "services": [
     {
-      "date": "6/28",
-      "usherSun": "Andrew Kim",
-      "lunchDuty": "Yufen Jiang\nHua Za Jin",
-      "childCare": "Jean Seo",
-      "usherWed": "John Park"
+      "date": "7/5",
+      "usherSun": "호세",
+      "lunchDuty": "김미정\n김희원",
+      "childCare": "강옥분",
+      "usherWed": "장지욱"
     },
     {
-      "date": "7/5",
-      "usherSun": "Jose H.",
-      "lunchDuty": "Jinxian Liu\nConnie Liu",
-      "childCare": "Minkyung Jung",
-      "usherWed": "Jiwook Jang"
+      "date": "7/12",
+      "usherSun": "박정호",
+      "lunchDuty": "류금선\n류칭샹",
+      "childCare": "정민경",
+      "usherWed": "박재민"
     }
   ],
   "eastCoastSeminar": [
     {
       "date": "7/6-12",
-      "church": "Michigan",
-      "speaker": "p.John Kweon",
-      "language": "한국인"
+      "church": "미시간",
+      "speaker": "권종안목사",
+      "language": "한국어"
     },
     {
       "date": "7/6-12",
-      "church": "s.Illinois",
-      "speaker": "p.Joshua Lee",
-      "language": "한국인"
+      "church": "남일리노이",
+      "speaker": "이지은목사",
+      "language": "한국어"
     },
     {
       "date": "7/13-19",
-      "church": "s.Virginia",
-      "speaker": "p.Jacob Jeong",
+      "church": "남버지니아",
+      "speaker": "정성호목사",
       "language": "영어"
     }
   ],
   "fellowship": [
     {
-      "name": "일요일 예배",
-      "day": "일요일",
-      "time": "오전 11시",
-      "location": "정당"
+      "name": "주일집회",
+      "day": "주일",
+      "time": "오전11시",
+      "location": "대강당"
     },
     {
       "name": "교회학교",
-      "day": "일요일",
-      "time": "오전 9시",
-      "location": "중등 홀"
+      "day": "주일",
+      "time": "오전9시",
+      "location": "중강당"
     },
     {
-      "name": "수요일설교",
+      "name": "수요말씀",
       "day": "수요일",
-      "time": "오후 8시",
-      "location": "정당"
+      "time": "오후8시",
+      "location": "대강당"
     },
     {
-      "name": "YA 펠로우십",
+      "name": "청년회",
       "day": "토요일",
-      "time": "오후 7시",
-      "location": "친목회관"
+      "time": "오후7시",
+      "location": "교제실"
     },
     {
-      "name": "모두 함께 펠로우십",
-      "day": "지난 일요일",
-      "time": "오후 2시",
-      "location": "정당"
+      "name": "모두회",
+      "day": "마지막주일",
+      "time": "오후2시",
+      "location": "대강당"
     }
   ],
   "phone": "917-783-5970",
@@ -95,33 +95,33 @@
     "7/4"
   ],
   "bibleReading1": [
-    "시 73-77",
-    "시 78-83",
-    "시 84-89",
-    "시 90-99",
-    "시 100-105",
-    "시 106-110",
-    "시 111-118"
+    "Psalms 73-77",
+    "Psalms 78-83",
+    "Psalms 84-89",
+    "Psalms 90-99",
+    "Psalms 100-105",
+    "Psalms 106-110",
+    "Psalms 111-118"
   ],
   "bibleReading2": [
-    "벧전 1-5\n벧후 1-3",
-    "요일 1-5\n요 2,3 / 유 1",
-    "계 1-4\n계 5-9",
-    "계 10-14\n계 15-18",
-    "계 19-22\n창 1-3",
-    "창 4-7\n창 8-11",
-    "창 12-16\n창 17-19"
+    "1 Pet 1-5\n2 Pet 1-3",
+    "1 John 1-5\nJohn 2,3 / Jude 1",
+    "Rev 1-4\nRev 5-9",
+    "Rev 10-14\nRev 15-18",
+    "Rev 19-22\nGen 1-3",
+    "Gen 4-7\nGen 8-11",
+    "Gen 12-16\nGen 17-19"
   ],
   "memoryVerses": [
     {
-      "label": "지난주",
+      "label": "지난 주",
       "date": "6/21",
       "reference": "고후 4:17-18",
       "theme": "희망",
       "text": "우리의 잠시 받는 환난의 경(輕)한 것이 지극히 크고 영원한 영광의 중(重)한 것을 우리에게 이루게 함이니 우리의 돌아보는 것은 보이는 것이 아니요, 보이지 않는 것이니 보이는 것은 잠간이요, 보이지 않는 것은 영원함이니라"
     },
     {
-      "label": "이번주",
+      "label": "이번 주",
       "date": "6/28",
       "reference": "벧전 1:3-4",
       "theme": "희망",
@@ -137,112 +137,112 @@
   ],
   "cleaningAreas": [
     {
-      "location": "정당",
-      "group": "아버지그룹, YA그룹"
+      "location": "대강당",
+      "group": "봉사회, 청년회"
     },
     {
-      "location": "2층",
-      "group": "야그룹"
+      "location": "2층 전체",
+      "group": "청년회"
     },
     {
-      "location": "전체 계단",
-      "group": "아버지의 그룹"
+      "location": "전체계단",
+      "group": "봉사회"
     },
     {
-      "location": "밖의",
-      "group": "아버지의 그룹"
+      "location": "야외",
+      "group": "봉사회"
     },
     {
-      "location": "1층 로비(엔하코레)",
-      "group": "어머니의 그룹"
+      "location": "1층로비(엔학고레)",
+      "group": "어머니회"
     },
     {
-      "location": "지하층",
-      "group": "어머니의 그룹"
+      "location": "지하층전체",
+      "group": "어머니회"
     }
   ],
   "calendarMonth": "07/2026",
   "calendarEvents": {
     "6/28": [
-      "눈금",
+      "졸업식",
       "설교",
-      "전부"
+      "모두회"
     ],
     "6/29": [
-      "지역 2"
+      "구역2"
     ],
     "7/1": [
-      "수요일 설교"
+      "수요말씀"
     ],
     "7/4": [
-      "번역가'",
-      "당신'"
+      "통역자'",
+      "YA'"
     ],
     "7/5": [
       "설교",
       "임원'",
-      "어머니 장교 '"
+      "어머니회임원'"
     ],
     "7/6": [
-      "마더 그룹"
+      "어머니회"
     ],
     "7/8": [
-      "수요일 설교"
+      "수요말씀"
     ],
     "7/9": [
-      "선생님의"
+      "교사'"
     ],
     "7/10": [
-      "YA 임원'"
+      "YA임원'"
     ],
     "7/11": [
-      "번역가'",
-      "당신'"
+      "통역자'",
+      "YA'"
     ],
     "7/12": [
       "설교",
-      "지역 3",
-      "펠. 작성자: 랭"
+      "구역3",
+      "언어별교제"
     ],
     "7/15": [
-      "수요일 설교"
+      "수요말씀"
     ],
     "7/16": [
-      "선생님의"
+      "교사'"
     ],
     "7/19": [
       "설교",
-      "새로운 신자들의",
-      "합창단'"
+      "새신자'",
+      "성가대'"
     ],
     "7/20": [
-      "지역 2"
+      "구역2"
     ],
     "7/21": [
-      "지역 1"
+      "구역1"
     ],
     "7/22": [
-      "수요일 설교"
+      "수요말씀"
     ],
     "7/23": [
-      "선생님의"
+      "교사'"
     ],
     "7/25": [
-      "번역가'",
-      "당신'"
+      "통역자'",
+      "YA'"
     ],
     "7/26": [
       "설교"
     ],
     "7/29": [
-      "수요일 설교"
+      "수요말씀"
     ],
     "7/30": [
-      "선생님의"
+      "교사'"
     ],
     "8/1": [
-      "번역가'",
-      "당신'"
+      "통역자'",
+      "YA'"
     ]
   },
   "weeklyRecurring": [
@@ -252,135 +252,155 @@
     },
     {
       "dayOfWeek": 3,
-      "label": "수요일 설교"
+      "label": "수요말씀"
     },
     {
       "dayOfWeek": 4,
-      "label": "선생님의"
+      "label": "교사'"
     },
     {
       "dayOfWeek": 6,
-      "label": "번역가'"
+      "label": "통역자'"
     },
     {
       "dayOfWeek": 6,
-      "label": "당신'"
+      "label": "YA'"
     }
   ],
   "calendarBanners": [
     {
-      "label": "EC 청소년 캠프",
+      "label": "EC Youth Camp",
       "startDate": "7/1",
       "endDate": "7/4"
     },
     {
-      "label": "대성경세미나 (p.박)",
-      "startDate": "7/13",
-      "endDate": "7/19"
+      "label": "Grand Bible Seminar",
+      "startDate": "7/6",
+      "endDate": "7/12"
     },
     {
-      "label": "YA 장교 후퇴",
+      "label": "YA Officer Retreat",
       "startDate": "7/24",
-      "endDate": "7/25"
+      "endDate": "7/26"
     }
   ],
   "weekSchedule": [
     {
-      "date": "6/28(Sun)",
+      "date": "7/5(일)",
       "items": [
         {
-          "name": "교회학교 졸업",
-          "location": "정당",
-          "time": "오전 9시"
+          "name": "임원모임",
+          "location": "교제실",
+          "time": "오후2시30분"
         },
         {
-          "name": "일요일 설교",
-          "location": "정당",
-          "time": "오전 11시"
+          "name": "어머니회임원모임",
+          "location": "교제실",
+          "time": "오후4시"
         },
         {
-          "name": "모두 함께 펠로우십",
-          "location": "정당",
-          "time": "오후 2시"
+          "name": "주일말씀",
+          "location": "대강당",
+          "time": "오전11시"
         }
       ]
     },
     {
-      "date": "6/29(Mon)",
+      "date": "7/6(월)",
       "items": [
         {
-          "name": "지역 2 펠로우십",
-          "location": "s.류진시안",
-          "time": "오후 8시"
+          "name": "어머니회월례회",
+          "location": "",
+          "time": "오후8시"
         }
       ]
     },
     {
-      "date": "7/1(Wed)",
+      "date": "7/8(수)",
       "items": [
         {
-          "name": "수요일 설교",
-          "location": "정당",
-          "time": "오후 8시"
+          "name": "수요말씀",
+          "location": "대강당",
+          "time": "오후8시"
         }
       ]
     },
     {
-      "date": "7/4(Sat)",
+      "date": "7/9(목)",
       "items": [
         {
-          "name": "번역가 모임",
-          "location": "상담 2",
-          "time": "오후 5시"
+          "name": "교사훈련",
+          "location": "상담실2",
+          "time": "오후8시"
+        }
+      ]
+    },
+    {
+      "date": "7/10(금)",
+      "items": [
+        {
+          "name": "번역가모임",
+          "location": "상담실2",
+          "time": "오후5시"
         },
+        {
+          "name": "YA임원모임",
+          "location": "상담실1",
+          "time": "오후8시"
+        }
+      ]
+    },
+    {
+      "date": "7/11(토)",
+      "items": [
         {
           "name": "청년회",
-          "location": "친목회관",
-          "time": "오후 7시"
+          "location": "교제실",
+          "time": "오후7시"
         }
       ]
     },
     {
-      "date": "7/5(Sun)",
+      "date": "7/12(일)",
       "items": [
         {
-          "name": "교회학교 졸업",
-          "location": "중등 홀",
-          "time": "오전 9시"
+          "name": "주일말씀",
+          "location": "대강당",
+          "time": "오전11시"
         },
         {
-          "name": "일요일 설교",
-          "location": "정당",
-          "time": "오전 11시"
+          "name": "3구역모임",
+          "location": "교제실",
+          "time": "오후2시"
         },
         {
-          "name": "모두 함께 펠로우십",
-          "location": "정당",
-          "time": "오후 2시"
+          "name": "언어별교제",
+          "location": "",
+          "time": "오후2시"
         }
       ]
     }
   ],
   "news": [
     {
-      "title": "동해안 청소년캠프(7월 1~4일)",
-      "body": "이번주 수요일부터 4일간 켄터키 수련회 센터에서 동해안 청소년 캠프가 진행됩니다. 참석한 모든 교사, 학생, 자원봉사자들을 위해 기도해 주십시오."
+      "title": "대전도집회 (7월 13-19일)",
+      "body": "7월 13일 월요일부터 7일간 뉴욕교회당에서 대전도집회가 진행이 됩니다. 말씀을 전하시는 담임목사 박종경 목사님을 비롯해 기도부탁에 올라온 모든 영혼들을 위해 기도해 주세요."
     },
     {
-      "title": "7월 새신자훈련 : 거룩 (7월 19일)",
-      "body": "그리스도인의 삶에 꼭 필요한 것이 무엇인지 함께 배우고 교제하는 시간입니다. 여러분의 참여를 기대합니다. (문의 : b.앤드류)"
+      "title": "7월 새신자 교육: 거룩 (7월 19일)",
+      "body": "신앙생활에서 꼭 알아야 할 중요한 12가지 주제를 배우는 시간입니다. 많은 참여 부탁드립니다. (문의: 김종엽B)"
     },
     {
-      "title": "교회에서의 봉사",
-      "body": "구원받은 지 1년이 넘었고, 교회 봉사에 참여하고 싶으신 분은 담임목사에게 연락주시기 바랍니다."
+      "title": "봉사자 모집",
+      "body": "구원받고 1년 넘은 성도 중 교회 안의 봉사에 참여하시고 싶은 분은 담임목사님께 연락하여 주십시오."
     },
     {
-      "title": "상담 및 방문",
-      "body": "전도상담, 신앙생활상담, 방문상담이 필요하신 분은 목사님께 연락주세요."
+      "title": "상담 및 심방",
+      "body": "전도상담 및 신앙상담, 심방이 필요하신 분은 담임목사님께 연락하여 주십시오."
     },
     {
-      "title": "교회청정관리 : 음료수, 음식물쓰레기 처리",
-      "body": "쾌적한 교회 환경을 위해 음료수, 음식물 쓰레기 처리에 주의해 주시기 바랍니다.\n- 남은 음료수와 얼음은 별도로 분리하여 배출하시고, 컵은 쓰레기통에 버리시기 바랍니다. 또한, 음식물 쓰레기를 최소화하는 데에도 유의하시기 바랍니다. 음식물 쓰레기를 처리해야 할 경우, 노출되지 않도록 단단히 밀봉해 주세요."
+      "title": "교회당 청결관리: 음료 및 음식물 쓰레기 처리 관련",
+      "body": "쾌적한 교회당 환경을 위해 음료 및 음식물 쓰레기 처리에 신경 써 주시길 부탁드립니다.\n- 남은 음료와 얼음은 별도로 처리한 후에 컵만 쓰레기통에 버려주세요. 그리고 음식물 쓰레기가 발생되지 않도록 최대한 신경 써 주시길 부탁드립니다. 만약 버려야 될 상황에는 음식물이 노출되지 않도록 잘 밀봉해서 버려주십시오."
     }
   ],
   "prayerRequests": [
@@ -397,12 +417,12 @@
     {
       "who": "Cathy Kwon",
       "whom": "Brianna",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Cathy Kwon",
       "whom": "Yubin Won",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "John Park",
@@ -412,22 +432,22 @@
     {
       "who": "Rong Xue",
       "whom": "Maggy",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Rong Xue",
       "whom": "Zhengjian Cai",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Rong Xue",
       "whom": "Lin Qicao",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Rong Xue",
       "whom": "Li Shuzhen",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Joseph Lee",
@@ -437,7 +457,7 @@
     {
       "who": "Sookhee Kim",
       "whom": "Carol",
-      "relation": "Acqu."
+      "relation": "지인"
     },
     {
       "who": "Sue Kim",
@@ -457,18 +477,18 @@
   ],
   "jointPrayer": [
     {
-      "title": "뉴욕교회 언어 기반 전도",
-      "body": "교회에는 다양한 언어 그룹이 있습니다. 언어그룹별 활발한 전도를 위해 기도해주세요."
+      "title": "뉴욕교회 언어권별 전도",
+      "body": "교회에 다양한 언어권이 있습니다. 언어권별로 전도가 활발하게 진행되도록 함께 기도해주세요."
     },
     {
-      "title": "켄터키 휴양 센터",
-      "body": "수련관 내 숙박시설을 확장 및 보수하고 있습니다. YA 센터(Unity Hall) 건립을 위해 특별히 기도해 주십시오."
+      "title": "켄터키 수양관",
+      "body": "수양관 숙소시설 확충 및 보수가 계속 진행되고 있습니다. 특별히 청년회관(Unity Hall) 건축을 위해 함께 기도해주세요."
     }
   ],
   "seminarInfo": {
-    "title": "7월 대성경세미나",
-    "date": "July 13-18: 8PM / July19: 11AM",
-    "speaker": "p.Chongkyung Park"
+    "title": "7월대전도집회",
+    "date": "7월13-18일오후8시/ 7월19일오전11시",
+    "speaker": "박종경P"
   },
   "retreatInfo": {
     "enabled": false,
@@ -496,38 +516,42 @@
   },
   "bulletinTitle": "교회소식",
   "labels": {
-    "headSermon": "주일 설교",
-    "headServices": "서비스",
-    "headSeminar": "미국 동부해안 성경세미나",
-    "headFellowship": "서비스 및 친교",
-    "lblTitle": "제목",
-    "lblMainVerse": "주요 구절",
-    "lblSpeaker": "스피커",
-    "lblEndingPraise": "칭찬을 끝내다",
-    "colSunday": "일요일",
-    "colUsherSun": "어셔(SUN)",
-    "colLunchDuty": "점심 근무",
-    "colChildCare": "보육",
-    "colUsherWed": "어셔(수)",
-    "colDate": "날짜",
+    "headSermon": "주일설교안내",
+    "headServices": "봉사",
+    "headSeminar": "미주동부교회전도집회",
+    "headFellowship": "집회및교제",
+    "lblTitle": "주제",
+    "lblMainVerse": "본문말씀",
+    "lblSpeaker": "설교자",
+    "lblEndingPraise": "마침찬송",
+    "colSunday": "주일",
+    "colUsherSun": "안내(주일)",
+    "colLunchDuty": "식사봉사",
+    "colChildCare": "유아봉사",
+    "colUsherWed": "안내(수)",
+    "colDate": "기간",
     "colChurchName": "교회",
-    "colSemSpeaker": "스피커",
+    "colSemSpeaker": "강사",
     "colLanguage": "언어",
-    "lblPastor": "목사",
-    "lblAddress": "주소",
+    "lblPastor": "담임목사",
+    "lblAddress": "교회주소",
     "headBibleReading": "성경읽기",
-    "headMemoryVerses": "기억 구절",
-    "headCleaning": "주일 청소 구역",
-    "headCalendar": "월간 일정",
-    "headSeminarInfo": "성경세미나 정보",
-    "headWeekSchedule": "이번주 일정",
-    "headChurchNews": "뉴욕교회 소식",
-    "headPrayer": "기도요청",
-    "headJointPrayer": "합동기도",
-    "headRetreats": "수련회 일정",
+    "headMemoryVerses": "성구암송",
+    "headCleaning": "회별 주일 청소 구역",
+    "headCalendar": "월간계획",
+    "headSeminarInfo": "집회안내",
+    "headWeekSchedule": "이번주교제안내",
+    "headChurchNews": "교회소식",
+    "headPrayer": "기도부탁",
+    "headJointPrayer": "합심기도",
+    "headRetreats": "수련회 정보",
     "colWeekDate": "날짜",
     "colWeekEvent": "이벤트",
     "colWeekLocation": "위치",
-    "colWeekTime": "시간"
+    "colWeekTime": "시간",
+    "colCleanLocation": "장소",
+    "colCleanGroup": "담당부서&회",
+    "seminarInfoLabelDate": "기간",
+    "seminarInfoLabelSpeaker": "강사"
   }
 }

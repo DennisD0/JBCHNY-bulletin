@@ -1,27 +1,27 @@
 {
-  "number": "2026-25",
-  "date": "06/28/2026",
+  "number": "2026-26",
+  "date": "07/12/2026",
   "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
-  "sermonTitle": "The love which I have so abundantly for you",
+  "sermonTitle": "The love which I have so abundantly for you (2)",
   "sermonVerse": "2 Corinthians 2:4",
   "sermonSpeaker": "p.Chongkyung Park (New York Church)",
   "sermonEndingPraise": "Hymnal 274 \"I Love to Tell the Story\"",
   "services": [
     {
-      "date": "6/28",
-      "usherSun": "Andrew Kim",
-      "lunchDuty": "Yufen Jiang\nHua Za Jin",
-      "childCare": "Jean Seo",
-      "usherWed": "John Park"
-    },
-    {
       "date": "7/5",
       "usherSun": "Jose H.",
-      "lunchDuty": "Jinxian Liu\nConnie Liu",
-      "childCare": "Minkyung Jung",
+      "lunchDuty": "Mijung Kim\nHeewon Kim",
+      "childCare": "Yufen Jiang",
       "usherWed": "Jiwook Jang"
+    },
+    {
+      "date": "7/12",
+      "usherSun": "Jungho Park",
+      "lunchDuty": "Jinxian Liu\nAnnie Liu",
+      "childCare": "Minkyung Jung",
+      "usherWed": "John Park"
     }
   ],
   "eastCoastSeminar": [
@@ -80,53 +80,53 @@
   "email": "prayer910124@gmail.com",
   "address": "167 Willis Ave, Mineola, NY 11501",
   "bibleReadingDates": [
-    "6/28",
-    "6/29",
-    "6/30",
-    "7/1",
-    "7/2",
-    "7/3",
-    "7/4"
+    "7/12",
+    "7/13",
+    "7/14",
+    "7/15",
+    "7/16",
+    "7/17",
+    "7/18"
   ],
   "bibleReading1": [
-    "Psalms 73-77",
-    "Psalms 78-83",
-    "Psalms 84-89",
-    "Psalms 90-99",
-    "Psalms 100-105",
-    "Psalms 106-110",
-    "Psalms 111-118"
+    "Prov 14-17",
+    "Prov 18-21",
+    "Prov 22-25",
+    "Prov 26-28",
+    "Prov 29-31",
+    "Eccl 1-4",
+    "Eccl 5-8"
   ],
   "bibleReading2": [
-    "1 Pet 1-5\n2 Pet 1-3",
-    "1 John 1-5\nJohn 2,3 / Jude 1",
-    "Rev 1-4\nRev 5-9",
-    "Rev 10-14\nRev 15-18",
-    "Rev 19-22\nGen 1-3",
-    "Gen 4-7\nGen 8-11",
-    "Gen 12-16\nGen 17-19"
+    "Ex 7-8\nEx 9-11",
+    "Ex 12-14\nEx 15-17",
+    "Ex 18-20\nEx 21-23",
+    "Ex 24-27\nEx 28-29",
+    "Ex 30-32\nEx 33-35",
+    "Ex 36-38\nEx 39-40",
+    "Lev 1-4\nLev 5-7"
   ],
   "memoryVerses": [
     {
       "label": "Last week",
-      "date": "6/21",
-      "reference": "2 Corinthians 4:17-18",
-      "theme": "Hope",
-      "text": "For our light affliction, which is but for a moment, is working for us a far more exceeding and eternal weight of glory, while we do not look at the things which are seen, but at the things which are not seen. For the things which are seen are temporary, but the things which are not seen are eternal."
-    },
-    {
-      "label": "This week",
-      "date": "6/28",
-      "reference": "1 Peter 1:3-4",
-      "theme": "Hope",
-      "text": "Blessed be the God and Father of our Lord Jesus Christ, who according to His abundant mercy has begotten us again to a living hope through the resurrection of Jesus Christ from the dead, to an inheritance incorruptible and undefiled and that does not fade away, reserved in heaven for you,"
-    },
-    {
-      "label": "Next week",
       "date": "7/5",
       "reference": "1 Peter 3:15-16",
       "theme": "Hope",
       "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
+    },
+    {
+      "label": "This week",
+      "date": "7/12",
+      "reference": "1 John 3:1-3",
+      "theme": "Hope",
+      "text": "Behold what manner of love the Father has bestowed on us, that we should be called children of God! Therefore the world does not know us, because it did not know Him. Beloved, now we are children of God; and it has not yet been revealed what we shall be, but we know that when He is revealed, we shall be like Him, for we shall see Him as He is. And everyone who has this hope in Him purifies himself, just as He is pure."
+    },
+    {
+      "label": "Next week",
+      "date": "7/19",
+      "reference": "Romans 15:4",
+      "theme": "Hope",
+      "text": "For whatever things were written before were written for our learning, that we through the patience and comfort of the Scriptures might have hope."
     }
   ],
   "cleaningAreas": [
@@ -268,49 +268,49 @@
       "endDate": "7/4"
     },
     {
-      "label": "Grand Bible Seminar (p.Park)",
-      "startDate": "7/13",
-      "endDate": "7/19"
+      "label": "Grand Bible Seminar",
+      "startDate": "7/6",
+      "endDate": "7/12"
     },
     {
       "label": "YA Officer Retreat",
       "startDate": "7/24",
-      "endDate": "7/25"
+      "endDate": "7/26"
     }
   ],
   "weekSchedule": [
     {
-      "date": "6/28(Sun)",
+      "date": "7/5(Sun)",
       "items": [
         {
-          "name": "Church School Graduation",
-          "location": "Main Hall",
-          "time": "9 AM"
+          "name": "Officer Meeting",
+          "location": "Fellowship Hall",
+          "time": "2:30 PM"
+        },
+        {
+          "name": "Mother Officer Meeting",
+          "location": "Fellowship Hall",
+          "time": "4:00 PM"
         },
         {
           "name": "Sunday Sermon",
           "location": "Main Hall",
           "time": "11 AM"
-        },
-        {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
-          "time": "2 PM"
         }
       ]
     },
     {
-      "date": "6/29(Mon)",
+      "date": "7/6(Mon)",
       "items": [
         {
-          "name": "Region 2 fellowship",
-          "location": "s.Jinxian Liu",
+          "name": "Mother Monthly Meeting",
+          "location": "",
           "time": "8 PM"
         }
       ]
     },
     {
-      "date": "7/1(Wed)",
+      "date": "7/8(Wed)",
       "items": [
         {
           "name": "Wednesday Sermon",
@@ -320,13 +320,33 @@
       ]
     },
     {
-      "date": "7/4(Sat)",
+      "date": "7/9(Thu)",
+      "items": [
+        {
+          "name": "Teacher Training",
+          "location": "Counseling 2",
+          "time": "8 PM"
+        }
+      ]
+    },
+    {
+      "date": "7/10(Fri)",
       "items": [
         {
           "name": "Translator Meeting",
           "location": "Counseling 2",
           "time": "5 PM"
         },
+        {
+          "name": "YA Officer Meeting",
+          "location": "Counseling 1",
+          "time": "8 PM"
+        }
+      ]
+    },
+    {
+      "date": "7/11(Sat)",
+      "items": [
         {
           "name": "Young Adult Fellowship",
           "location": "Fellowship Hall",
@@ -335,21 +355,21 @@
       ]
     },
     {
-      "date": "7/5(Sun)",
+      "date": "7/12(Sun)",
       "items": [
-        {
-          "name": "Church School Graduation",
-          "location": "Secondary Hall",
-          "time": "9 AM"
-        },
         {
           "name": "Sunday Sermon",
           "location": "Main Hall",
           "time": "11 AM"
         },
         {
-          "name": "Altogether Fellowship",
-          "location": "Main Hall",
+          "name": "Region 3 Meeting",
+          "location": "Fellowship Hall",
+          "time": "2 PM"
+        },
+        {
+          "name": "Fellowship by Language",
+          "location": "",
           "time": "2 PM"
         }
       ]
@@ -357,8 +377,8 @@
   ],
   "news": [
     {
-      "title": "East Coast Youth Camp (July 1-4th)",
-      "body": "The East Coast Youth Camp will be held at the Kentucky Retreat Center for four days, starting this Wednesday. Please pray for all the teachers, students, and volunteers attending."
+      "title": "Grand Bible Seminar (July 13-19)",
+      "body": "The July Grand Bible Seminar will be held at our church with speaker p.Chongkyung Park.\n- July 13-18 (Mon-Sat): 8 PM\n- July 19 (Sun): 11 AM\nPlease invite your friends and family to this special event."
     },
     {
       "title": "July New Believer Training: Holy (July 19th)",
@@ -465,7 +485,7 @@
     "speaker": "p.Chongkyung Park"
   },
   "retreatInfo": {
-    "enabled": false,
+    "enabled": true,
     "title": "",
     "date": "",
     "location": "",
@@ -518,10 +538,14 @@
     "headChurchNews": "NY Church News",
     "headPrayer": "Prayer Request",
     "headJointPrayer": "Joint Prayer",
-    "headRetreats": "Retreat Schedule",
+    "headRetreats": "Retreat Information",
     "colWeekDate": "Date",
     "colWeekEvent": "Event",
     "colWeekLocation": "Location",
-    "colWeekTime": "Time"
+    "colWeekTime": "Time",
+    "colCleanLocation": "Location",
+    "colCleanGroup": "Group",
+    "seminarInfoLabelDate": "DATE",
+    "seminarInfoLabelSpeaker": "SPEAKER"
   }
 }

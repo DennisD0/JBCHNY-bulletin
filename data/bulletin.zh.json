@@ -3,149 +3,392 @@
     "language": "zh",
     "isolated": false,
     "initializedFromEn": true,
-    "sections": {}
+    "sections": {
+      "bibleReading": {
+        "status": "pending",
+        "enContentHash": "ddd608e6b2602424a5598ac6904f88855ff47d42791f3a84f6b96b3e1b868060",
+        "pendingEnContent": {
+          "bibleReadingDates": [
+            "7/12",
+            "7/13",
+            "7/14",
+            "7/15",
+            "7/16",
+            "7/17",
+            "7/18"
+          ],
+          "bibleReading1": [
+            "Prov 14-17",
+            "Prov 18-21",
+            "Prov 22-25",
+            "Prov 26-28",
+            "Prov 29-31",
+            "Eccl 1-4",
+            "Eccl 5-8"
+          ],
+          "bibleReading2": [
+            "Ex 7-8\nEx 9-11",
+            "Ex 12-14\nEx 15-17",
+            "Ex 18-20\nEx 21-23",
+            "Ex 24-27\nEx 28-29",
+            "Ex 30-32\nEx 33-35",
+            "Ex 36-38\nEx 39-40",
+            "Lev 1-4\nLev 5-7"
+          ]
+        }
+      },
+      "header": {
+        "status": "pending",
+        "enContentHash": "28db6e5c8bed75a7636d881bed6e47bc003c478d3c87ea5f646e2d999af43a59",
+        "pendingEnContent": {
+          "bulletinTitle": "Church Bulletin",
+          "labels": {
+            "headSermon": "Lord's Day Sermon",
+            "headServices": "Services",
+            "headSeminar": "US East Coast Bible Seminar",
+            "headFellowship": "Services & Fellowship",
+            "lblTitle": "Title",
+            "lblMainVerse": "Main verse",
+            "lblSpeaker": "Speaker",
+            "lblEndingPraise": "Ending praise",
+            "colSunday": "Sunday",
+            "colUsherSun": "Usher (SUN)",
+            "colLunchDuty": "Lunch Duty",
+            "colChildCare": "Child Care",
+            "colUsherWed": "Usher (WED)",
+            "colDate": "Date",
+            "colChurchName": "Church",
+            "colSemSpeaker": "Speaker",
+            "colLanguage": "Language",
+            "lblPastor": "Pastor",
+            "lblAddress": "Address",
+            "headBibleReading": "Bible Reading",
+            "headMemoryVerses": "Memory Verses",
+            "headCleaning": "Lord's Day Cleaning Area",
+            "headCalendar": "Monthly Schedule",
+            "headSeminarInfo": "Bible Seminar Info",
+            "headWeekSchedule": "This week's schedule",
+            "headChurchNews": "NY Church News",
+            "headPrayer": "Prayer Request",
+            "headJointPrayer": "Joint Prayer",
+            "headRetreats": "Retreat Information",
+            "colWeekDate": "Date",
+            "colWeekEvent": "Event",
+            "colWeekLocation": "Location",
+            "colWeekTime": "Time",
+            "colCleanLocation": "Location",
+            "colCleanGroup": "Group",
+            "seminarInfoLabelDate": "DATE",
+            "seminarInfoLabelSpeaker": "SPEAKER"
+          },
+          "number": "2026-26",
+          "date": "07/12/2026",
+          "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
+          "quoteRef": "Psalms 118:17",
+          "pastor": "Chong Kyung Park"
+        }
+      },
+      "calendar": {
+        "status": "pending",
+        "enContentHash": "0f70621294fcc3e5351e62cf1c3ac29ecc6a0544387c37c557d6eebcbb27f440",
+        "pendingEnContent": {
+          "calendarMonth": "07/2026",
+          "calendarEvents": {
+            "6/28": [
+              "Graduation",
+              "Sermon",
+              "Altogether"
+            ],
+            "6/29": [
+              "Region 2"
+            ],
+            "7/1": [
+              "Wed sermon"
+            ],
+            "7/4": [
+              "Translators'",
+              "YA'"
+            ],
+            "7/5": [
+              "Sermon",
+              "Officers'",
+              "Mothers Officers'"
+            ],
+            "7/6": [
+              "Mother Group"
+            ],
+            "7/8": [
+              "Wed sermon"
+            ],
+            "7/9": [
+              "Teachers'"
+            ],
+            "7/10": [
+              "YA Officers'"
+            ],
+            "7/11": [
+              "Translators'",
+              "YA'"
+            ],
+            "7/12": [
+              "Sermon",
+              "Region 3",
+              "Fel. by Lang"
+            ],
+            "7/15": [
+              "Wed sermon"
+            ],
+            "7/16": [
+              "Teachers'"
+            ],
+            "7/19": [
+              "Sermon",
+              "New believers'",
+              "Choirs'"
+            ],
+            "7/20": [
+              "Region 2"
+            ],
+            "7/21": [
+              "Region 1"
+            ],
+            "7/22": [
+              "Wed sermon"
+            ],
+            "7/23": [
+              "Teachers'"
+            ],
+            "7/25": [
+              "Translators'",
+              "YA'"
+            ],
+            "7/26": [
+              "Sermon"
+            ],
+            "7/29": [
+              "Wed sermon"
+            ],
+            "7/30": [
+              "Teachers'"
+            ],
+            "8/1": [
+              "Translators'",
+              "YA'"
+            ]
+          },
+          "calendarBanners": [
+            {
+              "label": "EC Youth Camp",
+              "startDate": "7/1",
+              "endDate": "7/4"
+            },
+            {
+              "label": "Grand Bible Seminar",
+              "startDate": "7/6",
+              "endDate": "7/12"
+            },
+            {
+              "label": "YA Officer Retreat",
+              "startDate": "7/24",
+              "endDate": "7/26"
+            }
+          ],
+          "weeklyRecurring": [
+            {
+              "dayOfWeek": 0,
+              "label": "Sermon"
+            },
+            {
+              "dayOfWeek": 3,
+              "label": "Wed sermon"
+            },
+            {
+              "dayOfWeek": 4,
+              "label": "Teachers'"
+            },
+            {
+              "dayOfWeek": 6,
+              "label": "Translators'"
+            },
+            {
+              "dayOfWeek": 6,
+              "label": "YA'"
+            }
+          ]
+        }
+      },
+      "memoryVerses": {
+        "status": "pending",
+        "enContentHash": "e32d997d9adbd0c508b3bb950927b15143b24d7c870cb918998a341c07aa339a",
+        "pendingEnContent": {
+          "memoryVerses": [
+            {
+              "label": "Last week",
+              "date": "7/5",
+              "reference": "1 Peter 3:15-16",
+              "theme": "Hope",
+              "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
+            },
+            {
+              "label": "This week",
+              "date": "7/12",
+              "reference": "1 John 3:1-3",
+              "theme": "Hope",
+              "text": "Behold what manner of love the Father has bestowed on us, that we should be called children of God! Therefore the world does not know us, because it did not know Him. Beloved, now we are children of God; and it has not yet been revealed what we shall be, but we know that when He is revealed, we shall be like Him, for we shall see Him as He is. And everyone who has this hope in Him purifies himself, just as He is pure."
+            },
+            {
+              "label": "Next week",
+              "date": "7/19",
+              "reference": "Romans 15:4",
+              "theme": "Hope",
+              "text": "For whatever things were written before were written for our learning, that we through the patience and comfort of the Scriptures might have hope."
+            }
+          ]
+        }
+      }
+    }
   },
-  "number": "2026-25",
-  "date": "06/28/2026",
+  "number": "2026-26",
+  "date": "07/05/2026",
   "quote": "我 必 不 致 死 ， 仍 要 存 活 ， 並 要 傳 揚 耶 和 華 的 作 為 。",
   "quoteRef": "诗 118:17",
-  "pastor": "Chong Kyung Park",
-  "sermonTitle": "我对你的爱如此丰富",
-  "sermonVerse": "2 Corinthians 2:4",
-  "sermonSpeaker": "p.Chongkyung Park (New York Church)",
-  "sermonEndingPraise": "赞美诗 274 “我喜欢讲故事”",
+  "pastor": "朴钟泾",
+  "sermonTitle": "我对你的爱如此丰富 (2)",
+  "sermonVerse": "哥林多后书 2:4",
+  "sermonSpeaker": "朴钟泾牧师（纽约教会）",
+  "sermonEndingPraise": "赞美诗 274",
   "services": [
-    {
-      "date": "6/28",
-      "usherSun": "Andrew Kim",
-      "lunchDuty": "Yufen Jiang\nHua Za Jin",
-      "childCare": "Jean Seo",
-      "usherWed": "John Park"
-    },
     {
       "date": "7/5",
       "usherSun": "Jose H.",
-      "lunchDuty": "Jinxian Liu\nConnie Liu",
-      "childCare": "Minkyung Jung",
+      "lunchDuty": "Mijung Kim\nHeewon Kim",
+      "childCare": "Yufen Jiang",
       "usherWed": "Jiwook Jang"
+    },
+    {
+      "date": "7/12",
+      "usherSun": "Jungho Park",
+      "lunchDuty": "Jinxian Liu\nAnnie Liu",
+      "childCare": "Minkyung Jung",
+      "usherWed": "John Park"
     }
   ],
   "eastCoastSeminar": [
     {
       "date": "7/6-12",
-      "church": "Michigan",
-      "speaker": "p.John Kweon",
-      "language": "韩国人"
+      "church": "密歇根",
+      "speaker": "权约翰 牧师",
+      "language": "韩文"
     },
     {
       "date": "7/6-12",
-      "church": "s.Illinois",
-      "speaker": "p.Joshua Lee",
-      "language": "韩国人"
+      "church": "南伊利诺伊",
+      "speaker": "李约书亚 牧师",
+      "language": "韩文"
     },
     {
       "date": "7/13-19",
-      "church": "s.Virginia",
-      "speaker": "p.Jacob Jeong",
-      "language": "英语"
+      "church": "南弗吉尼亚",
+      "speaker": "郑雅各 牧师",
+      "language": "英文"
     }
   ],
   "fellowship": [
     {
-      "name": "周日服务",
-      "day": "星期日",
-      "time": "上午 11 点",
-      "location": "正殿"
+      "name": "主日话语",
+      "day": "周日",
+      "time": "上午11点",
+      "location": "大讲堂"
     },
     {
       "name": "教会学校",
-      "day": "星期日",
-      "time": "上午 9 点",
-      "location": "副厅"
+      "day": "周日",
+      "time": "上午9点",
+      "location": "次厅"
     },
     {
-      "name": "周三讲道",
+      "name": "周三话语",
       "day": "周三",
-      "time": "晚上 8 点",
-      "location": "正殿"
+      "time": "下午8点",
+      "location": "大讲堂"
     },
     {
-      "name": "青少年奖学金",
+      "name": "青年会",
       "day": "周六",
-      "time": "晚上 7 点",
-      "location": "联谊会堂"
+      "time": "下午7点",
+      "location": "交际室"
     },
     {
-      "name": "共团契",
-      "day": "上周日",
-      "time": "下午 2 点",
-      "location": "正殿"
+      "name": "全体会",
+      "day": "每月最后一个周日",
+      "time": "下午2点",
+      "location": "大讲堂"
     }
   ],
   "phone": "917-783-5970",
   "email": "prayer910124@gmail.com",
   "address": "167 Willis Ave, Mineola, NY 11501",
   "bibleReadingDates": [
-    "6/28",
-    "6/29",
-    "6/30",
-    "7/1",
-    "7/2",
-    "7/3",
-    "7/4"
+    "7/5",
+    "7/6",
+    "7/7",
+    "7/8",
+    "7/9",
+    "7/10",
+    "7/11"
   ],
   "bibleReading1": [
-    "诗 73-77",
-    "诗 78-83",
-    "诗 84-89",
-    "诗 90-99",
-    "诗 100-105",
-    "诗 106-110",
-    "诗 111-118"
+    "诗 119",
+    "诗 120-135",
+    "诗 136-143",
+    "诗 144-150",
+    "箴 1-4",
+    "箴 5-8",
+    "箴 9-13"
   ],
   "bibleReading2": [
-    "彼前 1-5\n彼后 1-3",
-    "约一 1-5\n约 2,3 / 犹 1",
-    "启 1-4\n启 5-9",
-    "启 10-14\n启 15-18",
-    "启 19-22\n创 1-3",
-    "创 4-7\n创 8-11",
-    "创 12-16\n创 17-19"
+    "创 20-25",
+    "创 26-30",
+    "创 31-35",
+    "创 36-40",
+    "创 41-44",
+    "创 45-50",
+    "出 1-6"
   ],
   "memoryVerses": [
     {
-      "label": "上星期",
-      "date": "6/21",
-      "reference": "林后 4:17-18",
-      "theme": "希望",
-      "text": "我 們 這 至 暫 至 輕 的 苦 楚 ， 要 為 我 們 成 就 極 重 無 比 、 永 遠 的 榮 耀 。 原 來 我 們 不 是 顧 念 所 見 的 ， 乃 是 顧 念 所 不 見 的 ； 因 為 所 見 的 是 暫 時 的 ， 所 不 見 的 是 永 遠 的 。"
-    },
-    {
-      "label": "本星期",
+      "label": "上周",
       "date": "6/28",
       "reference": "彼前 1:3-4",
       "theme": "希望",
       "text": "願 頌 讚 歸 與 我 們 主 耶 穌 基 督 的 父 神 ！ 他 曾 照 自 己 的 大 憐 憫 ， 藉 耶 穌 基 督 從 死 裡 復 活 ， 重 生 了 我 們 ， 叫 我 們 有 活 潑 的 盼 望 ， 可 以 得 著 不 能 朽 壞 、 不 能 玷 污 、 不 能 衰 殘 、 為 你 們 存 留 在 天 上 的 基 業 。"
     },
     {
-      "label": "下周",
+      "label": "本周",
       "date": "7/5",
       "reference": "彼前 3:15-16",
       "theme": "希望",
       "text": "只 要 心 裡 尊 主 基 督 為 聖 。 有 人 問 你 們 心 中 盼 望 的 緣 由 ， 就 要 常 作 準 備 ， 以 溫 柔 、 敬 畏 的 心 回 答 各 人 ； 存 著 無 虧 的 良 心 ， 叫 你 們 在 何 事 上 被 毀 謗 ， 就 在 何 事 上 可 以 叫 那 誣 賴 你 們 在 基 督 裡 有 好 品 行 的 人 自 覺 羞 愧 。"
+    },
+    {
+      "label": "下周",
+      "date": "7/12",
+      "reference": "约一 3:1-3",
+      "theme": "希望",
+      "text": "你 看 父 賜 給 我 們 是 何 等 的 慈 愛 ， 使 我 們 得 稱 為 神 的 兒 女 ； 我 們 也 真 是 他 的 兒 女 。 世 人 所 以 不 認 識 我 們 ， 是 因 未 曾 認 識 他 。 親 愛 的 弟 兄 啊 ， 我 們 現 在 是 神 的 兒 女 ， 將 來 如 何 ， 還 未 顯 明 ； 但 我 們 知 道 ， 主 若 顯 現 ， 我 們 必 要 像 他 ， 因 為 必 得 見 他 的 真 體 。 凡 向 他 有 這 指 望 的 ， 就 潔 淨 自 己 ， 像 他 潔 淨 一 樣 。"
     }
   ],
   "cleaningAreas": [
     {
-      "location": "正殿",
-      "group": "父亲组、YA组"
+      "location": "大讲堂",
+      "group": "父亲组，青年组"
     },
     {
-      "location": "二楼",
-      "group": "亚亚集团"
+      "location": "2楼",
+      "group": "青年组"
     },
     {
-      "location": "整个楼梯",
+      "location": "全部台阶",
       "group": "父亲组"
     },
     {
@@ -153,12 +396,12 @@
       "group": "父亲组"
     },
     {
-      "location": "1楼大厅（园八古）",
-      "group": "妈妈组"
+      "location": "1楼大厅",
+      "group": "母亲组"
     },
     {
-      "location": "地下室层",
-      "group": "妈妈组"
+      "location": "地下",
+      "group": "母亲组"
     }
   ],
   "calendarMonth": "07/2026",
@@ -166,7 +409,7 @@
     "6/28": [
       "毕业",
       "讲道",
-      "共"
+      "全体会"
     ],
     "6/29": [
       "区域2"
@@ -176,12 +419,12 @@
     ],
     "7/4": [
       "译者的",
-      "呀'"
+      "YA'"
     ],
     "7/5": [
       "讲道",
-      "军官的",
-      "母亲军官"
+      "执事会",
+      "母亲执事会"
     ],
     "7/6": [
       "母组"
@@ -197,12 +440,12 @@
     ],
     "7/11": [
       "译者的",
-      "呀'"
+      "YA'"
     ],
     "7/12": [
       "讲道",
       "区域3",
-      "菲尔。通过郎"
+      "语言别团契"
     ],
     "7/15": [
       "周三讲道"
@@ -229,7 +472,7 @@
     ],
     "7/25": [
       "译者的",
-      "呀'"
+      "YA'"
     ],
     "7/26": [
       "讲道"
@@ -242,7 +485,7 @@
     ],
     "8/1": [
       "译者的",
-      "呀'"
+      "YA'"
     ]
   },
   "weeklyRecurring": [
@@ -264,7 +507,7 @@
     },
     {
       "dayOfWeek": 6,
-      "label": "呀'"
+      "label": "YA'"
     }
   ],
   "calendarBanners": [
@@ -274,113 +517,133 @@
       "endDate": "7/4"
     },
     {
-      "label": "圣经大研讨会（p.Park）",
+      "label": "圣经讲演会（朴钟泾 牧师）",
       "startDate": "7/13",
       "endDate": "7/19"
     },
     {
-      "label": "青年官员撤退",
+      "label": "青年官员退修会",
       "startDate": "7/24",
       "endDate": "7/25"
     }
   ],
   "weekSchedule": [
     {
-      "date": "6/28(Sun)",
+      "date": "7/5(日)",
       "items": [
         {
-          "name": "教会学校毕业",
-          "location": "正殿",
-          "time": "上午 9 点"
+          "name": "执事会议",
+          "location": "交际室",
+          "time": "下午2时30分"
+        },
+        {
+          "name": "母亲执事会议",
+          "location": "交际室",
+          "time": "下午4时"
         },
         {
           "name": "主日讲道",
-          "location": "正殿",
-          "time": "上午 11 点"
-        },
-        {
-          "name": "共团契",
-          "location": "正殿",
-          "time": "下午 2 点"
+          "location": "大讲堂",
+          "time": "上午11点"
         }
       ]
     },
     {
-      "date": "6/29(Mon)",
+      "date": "7/6(一)",
       "items": [
         {
-          "name": "2区奖学金",
-          "location": "刘进贤",
-          "time": "晚上 8 点"
+          "name": "母亲月例会",
+          "location": "",
+          "time": "晚上8点"
         }
       ]
     },
     {
-      "date": "7/1(Wed)",
+      "date": "7/8(三)",
       "items": [
         {
           "name": "周三讲道",
-          "location": "正殿",
-          "time": "晚上 8 点"
+          "location": "大讲堂",
+          "time": "晚上8点"
         }
       ]
     },
     {
-      "date": "7/4(Sat)",
+      "date": "7/9(四)",
+      "items": [
+        {
+          "name": "教师培训",
+          "location": "辅导室2",
+          "time": "晚上8点"
+        }
+      ]
+    },
+    {
+      "date": "7/10(五)",
       "items": [
         {
           "name": "翻译会议",
-          "location": "辅导2",
-          "time": "下午 5 点"
+          "location": "辅导室2",
+          "time": "下午5点"
         },
         {
-          "name": "青年团契",
-          "location": "联谊会堂",
-          "time": "晚上 7 点"
+          "name": "青年干事会议",
+          "location": "辅导室1",
+          "time": "晚上8点"
         }
       ]
     },
     {
-      "date": "7/5(Sun)",
+      "date": "7/11(六)",
       "items": [
         {
-          "name": "教会学校毕业",
-          "location": "副厅",
-          "time": "上午 9 点"
-        },
+          "name": "青年团契",
+          "location": "交际室",
+          "time": "晚上7点"
+        }
+      ]
+    },
+    {
+      "date": "7/12(日)",
+      "items": [
         {
           "name": "主日讲道",
-          "location": "正殿",
-          "time": "上午 11 点"
+          "location": "大讲堂",
+          "time": "上午11点"
         },
         {
-          "name": "共团契",
-          "location": "正殿",
-          "time": "下午 2 点"
+          "name": "第3区域会议",
+          "location": "交际室",
+          "time": "下午2点"
+        },
+        {
+          "name": "语言别团契",
+          "location": "",
+          "time": "下午2点"
         }
       ]
     }
   ],
   "news": [
     {
-      "title": "东海岸青少年营（7月1日至4日）",
-      "body": "东海岸青年营将于本周三开始在肯塔基州静修中心举行，为期四天。请为所有出席的老师、学生和志愿者祈祷。"
+      "title": "圣经讲演会（7月13日至19日）",
+      "body": "七月圣经讲演会即将举行，由朴钟泾牧师主讲。\n- 7月13-18日（周一至周六）：晚上8点\n- 7月19日（周日）：上午11点\n请邀请亲友参加。"
     },
     {
-      "title": "七月新信徒训练：圣日（7月19日）",
-      "body": "这是一个共同学习和交流基督徒生活的基本要素的时刻。我们期待您的参与。 （询问：b.Andrew）"
+      "title": "七月初信会：圣洁（7月19日）",
+      "body": "是时候一起学习交通基督生活里的重要部分。我们期待你们的参与。（咨询：安德烈兄弟）"
     },
     {
-      "title": "教堂服务",
-      "body": "如果您已经得救一年多了，想参与教会的事奉工作，请联系我们的牧师。"
+      "title": "教会的侍奉",
+      "body": "如果你已经得救超过一年并且愿意参与教会的侍奉工作的话请联系担任牧师。"
     },
     {
-      "title": "咨询拜访",
-      "body": "如果您需要传福音辅导、基督徒生活辅导或探访，请联系牧师。"
+      "title": "个人商谈以及拜访",
+      "body": "如果你需要传道商谈与信仰商谈或者有需要拜访的人们，请联系担任牧师。"
     },
     {
-      "title": "教堂清洁管理：饮料和食物垃圾处理",
-      "body": "请注意饮料、食物垃圾的处理，营造宜人的教堂环境。\n- 请先单独处理剩余的饮料和冰块，然后再将杯子扔进垃圾桶。另外，请注意减少食物浪费。如果需要处理食物垃圾，请密封好，防止暴露。"
+      "title": "教会清洁管理：饮料以及食物的处理",
+      "body": "请注意处理饮料和食物垃圾，以造成一个愉快的教堂环境。\n- 请将剩余的饮料和冰块分开处理，然后再将杯子扔进垃圾桶。另外，请注意尽量减少食物浪费。如果您需要处理食物垃圾，请将其密封严密以防止暴露在外面。"
     }
   ],
   "prayerRequests": [
@@ -397,12 +660,12 @@
     {
       "who": "Cathy Kwon",
       "whom": "Brianna",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Cathy Kwon",
       "whom": "Yubin Won",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "John Park",
@@ -412,22 +675,22 @@
     {
       "who": "Rong Xue",
       "whom": "Maggy",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Rong Xue",
       "whom": "Zhengjian Cai",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Rong Xue",
       "whom": "Lin Qicao",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Rong Xue",
       "whom": "Li Shuzhen",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Joseph Lee",
@@ -437,7 +700,7 @@
     {
       "who": "Sookhee Kim",
       "whom": "Carol",
-      "relation": "获得。"
+      "relation": "熟人"
     },
     {
       "who": "Sue Kim",
@@ -457,21 +720,21 @@
   ],
   "jointPrayer": [
     {
-      "title": "纽约教会以语言为基础的布道",
-      "body": "教堂里有不同语言的团体。请为不同语言群体的积极传福音祷告。"
+      "title": "纽约教会语言传道",
+      "body": "教会内有多种语言小组，请为了各语言小组积极传福音而祷告。"
     },
     {
-      "title": "肯塔基静修中心",
-      "body": "禅修中心的住宿设施正在扩建和修缮中。请特别为YA中心（团结堂）的建设祷告。"
+      "title": "肯塔基修养馆",
+      "body": "修养馆的住宿设施正在扩建和维修中，请特别为青年中心（统一馆）的建设而祷告。"
     }
   ],
   "seminarInfo": {
-    "title": "七月圣经研讨会",
-    "date": "July 13-18: 8PM / July19: 11AM",
-    "speaker": "p.Chongkyung Park"
+    "title": "七月圣经讲演会",
+    "date": "7月13-18日 下午8点 / 7月19日 上午11点",
+    "speaker": "朴钟泾 牧师"
   },
   "retreatInfo": {
-    "enabled": false,
+    "enabled": true,
     "title": "",
     "date": "",
     "location": "",
@@ -496,38 +759,42 @@
   },
   "bulletinTitle": "教会消息",
   "labels": {
-    "headSermon": "主日讲道",
-    "headServices": "服务",
-    "headSeminar": "美国东海岸圣经研讨会",
-    "headFellowship": "服务与团契",
-    "lblTitle": "标题",
-    "lblMainVerse": "主要诗句",
-    "lblSpeaker": "扬声器",
-    "lblEndingPraise": "结束好评",
-    "colSunday": "星期日",
-    "colUsherSun": "亚瑟 (太阳)",
-    "colLunchDuty": "午餐值班",
-    "colChildCare": "儿童保育",
-    "colUsherWed": "亚瑟（周三）",
+    "headSermon": "周日话语",
+    "headServices": "侍奉",
+    "headSeminar": "美国东部教会圣经讲演会",
+    "headFellowship": "定期话语与交通",
+    "lblTitle": "主题",
+    "lblMainVerse": "本文话语",
+    "lblSpeaker": "讲师",
+    "lblEndingPraise": "结束赞美诗",
+    "colSunday": "周日",
+    "colUsherSun": "引座员(周日)",
+    "colLunchDuty": "午餐",
+    "colChildCare": "幼儿",
+    "colUsherWed": "引座员(周三)",
     "colDate": "日期",
     "colChurchName": "教会",
-    "colSemSpeaker": "扬声器",
+    "colSemSpeaker": "讲师",
     "colLanguage": "语言",
-    "lblPastor": "牧师",
-    "lblAddress": "地址",
+    "lblPastor": "主任牧师",
+    "lblAddress": "教会地址",
     "headBibleReading": "圣经阅读",
-    "headMemoryVerses": "背诵经文",
-    "headCleaning": "主日清洁区",
+    "headMemoryVerses": "话语背诵",
+    "headCleaning": "主日清扫区域",
     "headCalendar": "每月时间表",
-    "headSeminarInfo": "圣经研讨会信息",
-    "headWeekSchedule": "本周的日程安排",
-    "headChurchNews": "纽约教会新闻",
-    "headPrayer": "祈祷请求",
-    "headJointPrayer": "共同祷告",
-    "headRetreats": "静修时间表",
+    "headSeminarInfo": "圣经讲演会信息",
+    "headWeekSchedule": "本周日程安排",
+    "headChurchNews": "教会新闻",
+    "headPrayer": "代祷要求",
+    "headJointPrayer": "共同祈祷",
+    "headRetreats": "静修信息",
     "colWeekDate": "日期",
     "colWeekEvent": "事件",
     "colWeekLocation": "地点",
-    "colWeekTime": "时间"
+    "colWeekTime": "时间",
+    "colCleanLocation": "区域",
+    "colCleanGroup": "组别",
+    "seminarInfoLabelDate": "日期",
+    "seminarInfoLabelSpeaker": "讲师"
   }
 }
