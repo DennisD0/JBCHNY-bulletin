@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
 :root {
   --background: #f8fafc; /* slate-50 */
   --foreground: #1c1917; /* stone-900 */

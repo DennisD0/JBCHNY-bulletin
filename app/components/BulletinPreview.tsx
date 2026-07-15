@@ -565,6 +565,7 @@ export default function BulletinPreview({
   pendingDiffs?: Record<string, Partial<BulletinData>>;
   onDismissPending?: (sectionKey: string) => void;
 }) {
+  if (!data.calendarMonth) return null;
   const [mm, yyyy] = data.calendarMonth.split("/").map(Number);
 
   // When the fit-controller shrinks the bible-reading section, bold the cell
@@ -827,7 +828,7 @@ export default function BulletinPreview({
             <div data-fit-body>
             <table style={{ ...tbl, marginBottom:0 }}>
               <thead>
-                <tr><TH>Location</TH><TH>Group</TH></tr>
+                <tr><TH>{data.labels?.colCleanLocation ?? "Location"}</TH><TH>{data.labels?.colCleanGroup ?? "Group"}</TH></tr>
               </thead>
               <tbody>
                 {data.cleaningAreas.map((r,i) => (
@@ -1091,8 +1092,8 @@ export default function BulletinPreview({
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <tbody>
                   {([
-                    ["DATE",    data.seminarInfo.date,    "date"],
-                    ["SPEAKER", data.seminarInfo.speaker, "speaker"],
+                    [data.labels?.seminarInfoLabelDate    ?? "DATE",    data.seminarInfo.date,    "date"],
+                    [data.labels?.seminarInfoLabelSpeaker ?? "SPEAKER", data.seminarInfo.speaker, "speaker"],
                   ] as [string, string, "date"|"speaker"][]).map(([lbl, val, field]) => (
                     <tr key={lbl}>
                       <td style={{ color:BL, fontWeight:700, fontSize:F.body, paddingRight:8, paddingBottom:2, width:54, whiteSpace:"nowrap" }}>{lbl}</td>

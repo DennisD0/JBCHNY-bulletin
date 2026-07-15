@@ -7,6 +7,136 @@ const INDEX_PATH       = join(process.cwd(), "data", "memory_verse_index.json");
 const TEXT_CACHE_PATH  = join(process.cwd(), "data", "memory_verse_texts.json");
 const NKJV_BIBLE_ID    = "de4e12af7fb5a05d-01";
 
+// ── Multi-language support ────────────────────────────────────────────────────
+
+type Lang = "en" | "ko" | "zh" | "ru" | "es";
+
+// Korean abbreviation → 0-based canonical Bible book index (same order across all local Bible files)
+const KOR_TO_BOOK_INDEX: Record<string, number> = {
+  "창": 0,  "출": 1,  "레": 2,  "민": 3,  "신": 4,  "수": 5,  "삿": 6,  "룻": 7,
+  "삼상": 8, "삼하": 9, "왕상": 10,"왕하": 11,"대상": 12,"대하": 13,
+  "스": 14, "느": 15, "에": 16, "욥": 17, "시": 18, "잠": 19, "전": 20,
+  "아": 21, "사": 22, "렘": 23, "애": 24, "겔": 25, "단": 26, "호": 27,
+  "욜": 28, "암": 29, "옵": 30, "욘": 31, "미": 32, "나": 33, "합": 34,
+  "습": 35, "학": 36, "슥": 37, "말": 38, "마": 39, "막": 40, "눅": 41,
+  "요": 42, "행": 43, "롬": 44, "고전": 45,"고후": 46,"갈": 47, "엡": 48,
+  "빌": 49, "골": 50, "살전": 51,"살후": 52,"딤전": 53,"딤후": 54,
+  "딛": 55, "몬": 56, "히": 57, "약": 58, "벧전": 59,"벧후": 60,
+  "요일": 61,"요이": 62,"요삼": 63,"유": 64, "계": 65,
+};
+
+// Book names per language (index matches KOR_TO_BOOK_INDEX)
+const BOOK_NAMES: Partial<Record<Lang, string[]>> = {
+  zh: ["创","出","利","民","申","书","士","得","撒上","撒下","王上","王下","代上","代下","拉","尼","斯","伯","诗","箴","传","歌","赛","耶","哀","结","但","何","珥","摩","俄","拿","弥","鸿","哈","番","该","亚","玛","太","可","路","约","徒","罗","林前","林后","加","弗","腓","西","帖前","帖后","提前","提后","多","门","来","雅","彼前","彼后","约一","约二","约三","犹","启"],
+  ru: ["Быт","Исх","Лев","Чис","Втор","Нав","Суд","Руфь","1Цар","2Цар","3Цар","4Цар","1Пар","2Пар","Ездр","Неем","Есф","Иов","Пс","Притч","Еккл","Песн","Ис","Иер","Плач","Иез","Дан","Ос","Иоил","Ам","Авд","Ион","Мих","Наум","Авв","Соф","Агг","Зах","Мал","Мф","Мк","Лк","Ин","Деян","Рим","1Кор","2Кор","Гал","Еф","Флп","Кол","1Фес","2Фес","1Тим","2Тим","Тит","Флм","Евр","Иак","1Пет","2Пет","1Ин","2Ин","3Ин","Иуд","Откр"],
+  es: ["Génesis","Éxodo","Levítico","Números","Deuteronomio","Josué","Jueces","Rut","1 Samuel","2 Samuel","1 Reyes","2 Reyes","1 Crónicas","2 Crónicas","Esdras","Nehemías","Ester","Job","Salmos","Proverbios","Eclesiastés","Cantares","Isaías","Jeremías","Lamentaciones","Ezequiel","Daniel","Oseas","Joel","Amós","Abdías","Jonás","Miqueas","Nahúm","Habacuc","Sofonías","Hageo","Zacarías","Malaquías","Mateo","Marcos","Lucas","Juan","Hechos","Romanos","1 Corintios","2 Corintios","Gálatas","Efesios","Filipenses","Colosenses","1 Tesalonicenses","2 Tesalonicenses","1 Timoteo","2 Timoteo","Tito","Filemón","Hebreos","Santiago","1 Pedro","2 Pedro","1 Juan","2 Juan","3 Juan","Judas","Apocalipsis"],
+};
+
+const WEEK_LABELS: Record<Lang, [string, string, string]> = {
+  en: ["Last week",           "This week",          "Next week"],
+  ko: ["지난 주",              "이번 주",             "다음 주"],
+  zh: ["上周",                 "本周",                "下周"],
+  ru: ["На прошлой неделе",   "На этой неделе",      "На следующей неделе"],
+  es: ["Semana pasada",        "Esta semana",         "Próxima semana"],
+};
+
+const THEME_TRANSLATIONS: Partial<Record<Lang, Record<string, string>>> = {
+  ko: { "Atonement":"속죄","Bible":"성경","Christ":"그리스도","Eternal Life":"영생","Fellowship":"교제","God":"하나님","Holiness":"성결","Holy Spirit":"성령","Hope":"희망","Judgment":"심판","Law":"율법","Life":"인생","Obedience":"순종","Peace":"평안","Prayer":"기도","Righteousness":"의","Salvation":"구원","Second Coming":"재림","Sin":"죄","Soul":"영혼" },
+  zh: { "Atonement":"赎罪","Bible":"圣经","Christ":"基督","Eternal Life":"永生","Fellowship":"团契","God":"上帝","Holiness":"圣洁","Holy Spirit":"圣灵","Hope":"希望","Judgment":"审判","Law":"律法","Life":"生命","Obedience":"顺从","Peace":"平安","Prayer":"祈祷","Righteousness":"义","Salvation":"救恩","Second Coming":"再临","Sin":"罪","Soul":"灵魂" },
+  ru: { "Atonement":"Искупление","Bible":"Библия","Christ":"Христос","Eternal Life":"Вечная жизнь","Fellowship":"Общение","God":"Бог","Holiness":"Святость","Holy Spirit":"Святой Дух","Hope":"Надежда","Judgment":"Суд","Law":"Закон","Life":"Жизнь","Obedience":"Послушание","Peace":"Мир","Prayer":"Молитва","Righteousness":"Праведность","Salvation":"Спасение","Second Coming":"Второе пришествие","Sin":"Грех","Soul":"Душа" },
+  es: { "Atonement":"Expiación","Bible":"Biblia","Christ":"Cristo","Eternal Life":"Vida eterna","Fellowship":"Comunión","God":"Dios","Holiness":"Santidad","Holy Spirit":"Espíritu Santo","Hope":"Esperanza","Judgment":"Juicio","Law":"Ley","Life":"Vida","Obedience":"Obediencia","Peace":"Paz","Prayer":"Oración","Righteousness":"Justicia","Salvation":"Salvación","Second Coming":"Segunda Venida","Sin":"Pecado","Soul":"Alma" },
+};
+
+function translateTheme(theme: string, lang: Lang): string {
+  return THEME_TRANSLATIONS[lang]?.[theme] ?? theme;
+}
+
+function formatRef(korRef: string, lang: Lang): string {
+  if (lang === "en") return korToEnglish(korRef);
+  if (lang === "ko") return korRef;
+  const p = parseKorRef(korRef);
+  if (!p) return korToEnglish(korRef);
+  const bookIndex = KOR_TO_BOOK_INDEX[p.kor];
+  if (bookIndex === undefined) return korToEnglish(korRef);
+  const names = BOOK_NAMES[lang];
+  if (!names) return korToEnglish(korRef);
+  const bookName = names[bookIndex];
+  if (!bookName) return korToEnglish(korRef);
+  return p.verses ? `${bookName} ${p.chap}:${p.verses}` : `${bookName} ${p.chap}`;
+}
+
+// Module-level caches (loaded once per process)
+type BibleBook = { chapters: string[][] };
+const localBibleCache: Partial<Record<string, BibleBook[]>> = {};
+let esBibleIndex: Map<string, string> | null = null;
+
+function loadLocalBible(lang: "ko" | "zh" | "ru"): BibleBook[] {
+  if (localBibleCache[lang]) return localBibleCache[lang]!;
+  const path = join(process.cwd(), "data", `bible_${lang}.json`);
+  if (!existsSync(path)) return [];
+  const data = JSON.parse(readFileSync(path, "utf8")) as BibleBook[];
+  localBibleCache[lang] = data;
+  return data;
+}
+
+function loadESIndex(): Map<string, string> {
+  if (esBibleIndex) return esBibleIndex;
+  const path = join(process.cwd(), "data", "bible_es.json");
+  if (!existsSync(path)) return new Map();
+  const data = JSON.parse(readFileSync(path, "utf8")) as Array<{ BoookNumber: number; Chapter: number; Verse: number; Text: string }>;
+  const idx = new Map<string, string>();
+  for (const e of data) idx.set(`${e.BoookNumber}:${e.Chapter}:${e.Verse}`, e.Text);
+  esBibleIndex = idx;
+  return idx;
+}
+
+function getVersesFromRange(verses: string | undefined, chapterData: string[]): string[] {
+  if (!verses) return [];
+  if (verses.includes("-")) {
+    const [s, e] = verses.split("-").map(Number);
+    return Array.from({ length: e - s + 1 }, (_, i) => chapterData[s + i - 1] ?? "").filter(Boolean);
+  }
+  if (verses.includes(",")) {
+    const [v1, v2] = verses.split(",").map(Number);
+    return Array.from({ length: v2 - v1 + 1 }, (_, i) => chapterData[v1 + i - 1] ?? "").filter(Boolean);
+  }
+  const v = parseInt(verses, 10);
+  return chapterData[v - 1] ? [chapterData[v - 1]] : [];
+}
+
+async function lookupLocalVerse(korRef: string, lang: Lang): Promise<string> {
+  if (lang === "en") return "";
+  const p = parseKorRef(korRef);
+  if (!p) return "";
+  const bookIndex = KOR_TO_BOOK_INDEX[p.kor];
+  if (bookIndex === undefined) return "";
+  const chap = parseInt(p.chap, 10);
+
+  if (lang === "es") {
+    const idx = loadESIndex();
+    const bookNum = bookIndex + 1;
+    if (!p.verses) return "";
+    const verses: string[] = [];
+    if (p.verses.includes("-")) {
+      const [s, e] = p.verses.split("-").map(Number);
+      for (let v = s; v <= e; v++) verses.push(idx.get(`${bookNum}:${chap}:${v}`) ?? "");
+    } else if (p.verses.includes(",")) {
+      const [v1, v2] = p.verses.split(",").map(Number);
+      for (let v = v1; v <= v2; v++) verses.push(idx.get(`${bookNum}:${chap}:${v}`) ?? "");
+    } else {
+      verses.push(idx.get(`${bookNum}:${chap}:${parseInt(p.verses, 10)}`) ?? "");
+    }
+    return verses.filter(Boolean).join(" ");
+  }
+
+  const bible = loadLocalBible(lang as "ko" | "zh" | "ru");
+  const book = bible[bookIndex];
+  if (!book) return "";
+  const chapterData = book.chapters[chap - 1];
+  if (!chapterData) return "";
+  return getVersesFromRange(p.verses, chapterData).join(" ");
+}
+
 // ── Date-based verse anchor ───────────────────────────────────────────────────
 // July 5, 2026 (Sunday) = verse index 145 (벧전 3:15-16)
 const ANCHOR_SUNDAY_MS = Date.UTC(2026, 6, 5); // month is 0-indexed
@@ -266,6 +396,7 @@ export async function POST(request: Request) {
 
   // ── roll: auto-compute last/this/next week from the bulletin date ──
   if (body.action === "roll") {
+    const lang: Lang = (["en","ko","zh","ru","es"].includes(body.lang) ? body.lang : "en") as Lang;
     const bulletinDate = body.bulletinDate
       ? parseBulletinDate(body.bulletinDate)
       : new Date();
@@ -278,16 +409,18 @@ export async function POST(request: Request) {
     const thisIdx = weekIndexForDate(thisSunday, verses.length);
     const nextIdx = weekIndexForDate(nextSunday, verses.length);
 
-    const [lastFetch, thisFetch, nextFetch] = await Promise.all([
-      fetchVerseText(verses[lastIdx].reference),
-      fetchVerseText(verses[thisIdx].reference),
-      fetchVerseText(verses[nextIdx].reference),
-    ]);
+    const labels = WEEK_LABELS[lang];
+
+    const [lastText, thisText, nextText] = await Promise.all(
+      lang === "en"
+        ? [fetchVerseText(verses[lastIdx].reference), fetchVerseText(verses[thisIdx].reference), fetchVerseText(verses[nextIdx].reference)].map(p => p.then(r => r.text))
+        : [lookupLocalVerse(verses[lastIdx].reference, lang), lookupLocalVerse(verses[thisIdx].reference, lang), lookupLocalVerse(verses[nextIdx].reference, lang)]
+    );
 
     const newVerses = [
-      { label: "Last week", date: formatMonthDay(lastSunday), reference: korToEnglish(verses[lastIdx].reference), theme: verses[lastIdx].theme, text: lastFetch.text },
-      { label: "This week", date: formatMonthDay(thisSunday), reference: korToEnglish(verses[thisIdx].reference), theme: verses[thisIdx].theme, text: thisFetch.text },
-      { label: "Next week", date: formatMonthDay(nextSunday), reference: korToEnglish(verses[nextIdx].reference), theme: verses[nextIdx].theme, text: nextFetch.text },
+      { label: labels[0], date: formatMonthDay(lastSunday), reference: formatRef(verses[lastIdx].reference, lang), theme: translateTheme(verses[lastIdx].theme, lang), text: lastText },
+      { label: labels[1], date: formatMonthDay(thisSunday), reference: formatRef(verses[thisIdx].reference, lang), theme: translateTheme(verses[thisIdx].theme, lang), text: thisText },
+      { label: labels[2], date: formatMonthDay(nextSunday), reference: formatRef(verses[nextIdx].reference, lang), theme: translateTheme(verses[nextIdx].theme, lang), text: nextText },
     ];
 
     saveNextWeekIndex(nextIdx);

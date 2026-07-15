@@ -585,9 +585,11 @@ type VerseStats = {
 function MemoryVersesSidebarPanel({
   data,
   set,
+  lang,
 }: {
   data: BulletinData;
   set: (patch: Partial<BulletinData>) => void;
+  lang: BulletinLanguage;
 }) {
   const [stats, setStats] = useState<VerseStats | null>(null);
   const [rolling, setRolling] = useState(false);
@@ -617,7 +619,7 @@ function MemoryVersesSidebarPanel({
       const res = await fetch("/api/memory-verse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "roll", bulletinDate: shiftedStr }),
+        body: JSON.stringify({ action: "roll", bulletinDate: shiftedStr, lang }),
       });
       if (res.ok) {
         const json = await res.json();
@@ -635,7 +637,7 @@ function MemoryVersesSidebarPanel({
       const res = await fetch("/api/memory-verse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "roll", bulletinDate: data.date }),
+        body: JSON.stringify({ action: "roll", bulletinDate: data.date, lang }),
       });
       if (res.ok) {
         const json = await res.json();
@@ -1990,7 +1992,7 @@ function ToolbarTooltip({ text, children }: { text: string; children: React.Reac
 function FloatingToolbar({
   mode, onMode, onFit, onExport, exporting, disabled,
   canUndo, canRedo, onUndo, onRedo,
-  notifCount, onBell,
+  notifCount, onBell, autoSaveStatus,
 }: {
   mode: CanvasMode;
   onMode: (m: CanvasMode) => void;
@@ -2004,6 +2006,7 @@ function FloatingToolbar({
   onRedo: () => void;
   notifCount: number;
   onBell: () => void;
+  autoSaveStatus: "idle" | "pending" | "saving" | "saved" | "error";
 }) {
   const pillStyle: React.CSSProperties = {
     position: "relative", zIndex: 1,
@@ -2151,6 +2154,41 @@ function FloatingToolbar({
             )}
           </button>
         </ToolbarTooltip>
+        {/* Auto-save status */}
+        <AnimatePresence>
+          {autoSaveStatus !== "idle" && (
+            <>
+              <div style={{ width: 1, height: 24, background: "#E2E8F0", margin: "0 4px", flexShrink: 0 }} />
+              <motion.div
+                key="autosave-pill"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.18 }}
+                title={autoSaveStatus === "saved" ? "Auto-saved" : autoSaveStatus === "saving" ? "Auto-saving…" : autoSaveStatus === "pending" ? "Changes pending…" : "Auto-save failed"}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "0 10px", height: 40,
+                  fontSize: 11, fontWeight: 700,
+                  color: autoSaveStatus === "saved" ? "#16A34A" : autoSaveStatus === "error" ? "#DC2626" : "#64748B",
+                  whiteSpace: "nowrap", flexShrink: 0,
+                }}
+              >
+                {(autoSaveStatus === "saving" || autoSaveStatus === "pending") && (
+                  <RefreshCw size={12} strokeWidth={2.5} style={{ flexShrink: 0, animation: autoSaveStatus === "saving" ? "spin 1s linear infinite" : "pulse 1.5s ease-in-out infinite" }} />
+                )}
+                {autoSaveStatus === "saved" && <CheckCircle size={12} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+                {autoSaveStatus === "error" && <AlertTriangle size={12} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+                <span>
+                  {autoSaveStatus === "saved" ? "Auto-saved"
+                    : autoSaveStatus === "saving" ? "Auto-saving…"
+                    : autoSaveStatus === "pending" ? "Pending…"
+                    : "Save failed"}
+                </span>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
         </div>{/* /floating-main-pill */}
       </div>{/* /glass wrapper */}
 
@@ -3553,7 +3591,7 @@ function SectionEditorPanel({
       case "bible":
         return <BibleReadingTab data={data} set={set} />;
       case "memory":
-        return <MemoryVersesSidebarPanel data={data} set={set} />;
+        return <MemoryVersesSidebarPanel data={data} set={set} lang={language} />;
       case "cleaning":
         return <CleaningTab data={data} set={set} />;
       case "calendar":
@@ -3870,6 +3908,8 @@ export default function Home() {
     })(),
   );
   const activeLangRef = useRef<BulletinLanguage>("en");
+  const dataRef        = useRef<BulletinData | null>(null);
+  const autoSaveTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [data, setData]           = useState<BulletinData | null>(null);
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
@@ -3913,6 +3953,7 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [savedMsg, setSavedMsg]   = useState("");
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved" | "error">("idle");
   const [changedSections, setChangedSections] = useState<Set<TabId>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
@@ -4060,6 +4101,8 @@ export default function Home() {
     const interval = window.setInterval(refreshLanguageStatus, 30_000);
     return () => window.clearInterval(interval);
   }, [refreshLanguageStatus]);
+
+  useEffect(() => { dataRef.current = data; }, [data]);
 
   useEffect(() => {
     const pendingIds = new Set<string>();
@@ -4388,6 +4431,9 @@ export default function Home() {
       return next;
     });
     setHistoryStamp(s => s + 1);
+    setAutoSaveStatus("pending");
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { void doAutoSaveRef.current(); }, 2000);
   }, [readOnly]);
 
   const submitComment = async () => {
@@ -4676,8 +4722,38 @@ export default function Home() {
     setSyncPreviewSection(null);
   };
 
+  const doAutoSave = async () => {
+    const d = dataRef.current;
+    const lang = activeLangRef.current;
+    if (!d || readOnly) return;
+    setAutoSaveStatus("saving");
+    try {
+      const res = await fetch(`/api/bulletin/${lang}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: d }),
+      });
+      if (res.ok) {
+        setAutoSaveStatus("saved");
+        setChangedSections(new Set());
+        void refreshLanguageStatus();
+        setTimeout(() => setAutoSaveStatus(s => s === "saved" ? "idle" : s), 3000);
+      } else {
+        setAutoSaveStatus("error");
+        setTimeout(() => setAutoSaveStatus(s => s === "error" ? "idle" : s), 4000);
+      }
+    } catch {
+      setAutoSaveStatus("error");
+      setTimeout(() => setAutoSaveStatus(s => s === "error" ? "idle" : s), 4000);
+    }
+  };
+  const doAutoSaveRef = useRef(doAutoSave);
+  doAutoSaveRef.current = doAutoSave;
+
   const save = async () => {
     if (!data || readOnly) return;
+    if (autoSaveTimer.current) { clearTimeout(autoSaveTimer.current); autoSaveTimer.current = null; }
+    setAutoSaveStatus("idle");
     setSaving(true);
     const sectionKey = activeTab ? TAB_SECTION_KEY[activeTab] : undefined;
     const res = await fetch(`/api/bulletin/${activeLang}`, {
@@ -4724,9 +4800,17 @@ export default function Home() {
     };
 
     try {
-      const res = await fetch(`/api/auto-populate?date=${encodeURIComponent(date)}`);
-      if (res.ok) {
-        const result = await res.json();
+      const [autoRes, verseRes] = await Promise.all([
+        fetch(`/api/auto-populate?date=${encodeURIComponent(date)}`),
+        fetch("/api/memory-verse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "roll", bulletinDate: date, lang: activeLang }),
+        }),
+      ]);
+
+      if (autoRes.ok) {
+        const result = await autoRes.json();
         nextPatch.bibleReadingDates = result.dates;
         nextPatch.bibleReading1 = result.reading1;
         nextPatch.bibleReading2 = result.reading2;
@@ -4735,6 +4819,11 @@ export default function Home() {
           : "Bulletin week generated from the available auto-fill data.");
       } else {
         setGenerationNotice("Date generated. Bible-reading data is unavailable for this week.");
+      }
+
+      if (verseRes.ok) {
+        const verseResult = await verseRes.json();
+        nextPatch.memoryVerses = verseResult.memoryVerses;
       }
     } catch {
       setGenerationNotice("Date generated. Bible-reading data could not be loaded.");
@@ -4748,7 +4837,7 @@ export default function Home() {
     setExporting(true);
     setExportError("");
     try {
-      const res = await fetch("/api/export-pdf");
+      const res = await fetch(`/api/export-pdf?lang=${activeLang}`);
       if (!res.ok) {
         const result = await res.json();
         setExportError(`Export failed: ${result.error ?? "unknown"}`);
@@ -4757,7 +4846,9 @@ export default function Home() {
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");
-      a.href = url; a.download = `bulletin-${data?.number ?? "draft"}.pdf`;
+      const langName = LANGUAGE_CONFIG[activeLang].name;
+      const bulletinDate = data?.date ?? "00/00/0000";
+      a.href = url; a.download = `${langName} Bulletin_${bulletinDate}.pdf`;
       a.click(); URL.revokeObjectURL(url);
     } finally { setExporting(false); }
   }
@@ -5484,7 +5575,7 @@ export default function Home() {
         state.status === "pending" && !seenSectionNotifications.includes(buildSectionNotificationId(activeLang, sectionKey))
       ).length
     : 0)
-} onBell={() => setNotifPanelOpen((v) => !v)} />
+} onBell={() => setNotifPanelOpen((v) => !v)} autoSaveStatus={autoSaveStatus} />
 
         {/* Persistent access bar — centered over the canvas, directly above the toolbar */}
         <AnimatePresence>
