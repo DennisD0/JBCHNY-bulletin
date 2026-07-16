@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useLayoutEffect, useRef, ReactNode } from "react";
 import type { BulletinData, CalendarBanner } from "@/lib/bulletin-types";
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -480,6 +480,23 @@ function SectionDiffPopup({ sectionKey, enContent, onClose }: {
       </button>
     </div>
   );
+}
+
+function FitTd({ children, baseSize, style, colSpan, value }: {
+  children: ReactNode; baseSize: number; style?: React.CSSProperties; colSpan?: number; value: string;
+}) {
+  const ref = useRef<HTMLTableCellElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let s = baseSize;
+    el.style.fontSize = s + "px";
+    while (el.scrollWidth > el.clientWidth + 1 && s > 6) {
+      s -= 0.5;
+      el.style.fontSize = s + "px";
+    }
+  }, [value, baseSize]);
+  return <td ref={ref} colSpan={colSpan} style={{ ...style, fontSize: baseSize }}>{children}</td>;
 }
 
 function PendingBadge({ sectionKey, enContent, show, onDismiss }: {
@@ -1212,8 +1229,8 @@ export default function BulletinPreview({
           </div>{/* /prayer-requests wrapper */}
 
           <div data-fit-section="joint-prayer" style={{
-            flex: data.retreatInfo?.enabled ? undefined : 1,
-            height: data.retreatInfo?.enabled ? 190 : undefined,
+            flex: (data.retreatInfo?.enabled || data.seminarService?.enabled) ? undefined : 1,
+            height: (data.retreatInfo?.enabled || data.seminarService?.enabled) ? 190 : undefined,
             overflow:"hidden",
           }}>
             <SecHead title={data.labels?.headJointPrayer ?? "Joint Prayer"} />
@@ -1230,6 +1247,76 @@ export default function BulletinPreview({
             ))}
             </div>
           </div>
+
+          {data.seminarService?.enabled && (
+            <div style={{ position: "relative", flex:1, minHeight:0 }}>
+            <PendingBadge sectionKey="seminarService" enContent={pendingDiffs?.["seminarService"]} show={!!pendingDiffs?.["seminarService"]} onDismiss={onDismissPending ? () => onDismissPending("seminarService") : undefined} />
+            <div data-fit-section="seminar-service" style={{ height:"100%", overflow:"hidden" }}>
+              <SecHead title={data.labels?.headSeminarService ?? "Bible Seminar Service"} />
+              <div data-fit-body>
+              {(() => {
+                const ss = data.seminarService!;
+                const dayCount = ss.days.length;
+                const colW = `${Math.floor(80 / dayCount)}%`;
+                return (
+                  <table style={{ width:"100%", borderCollapse:"collapse", border:`${RULE}px solid ${BL}`, tableLayout:"fixed", fontSize:F.small }}>
+                    <colgroup>
+                      <col style={{ width:"14%" }} />
+                      {ss.days.map((_,i) => <col key={i} style={{ width:colW }} />)}
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th style={{ padding:"2px 3px", borderBottom:`${RULE}px solid ${BL}`, borderRight:`${RULE}px solid ${BL}` }} />
+                        {ss.days.map((d,i) => (
+                          <th key={i} style={{
+                            color:BL, fontWeight:700, fontSize:F.small, textAlign:"center",
+                            padding:"2px 2px", whiteSpace:"pre-line", lineHeight:1.2,
+                            borderBottom:`${RULE}px solid ${BL}`,
+                            borderLeft: i>0 ? `0.5px solid ${LG}` : undefined,
+                          }}>
+                            <E value={d} onSave={onUpdate ? (v) => onUpdate({ seminarService: { ...ss, days: ss.days.map((x,j) => j===i ? v : x) } }) : undefined} />
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ss.rows.map((row, ri) => (
+                        <tr key={ri} style={{ borderTop:`0.5px solid ${LG}` }}>
+                          <td style={{
+                            color:BL, fontWeight:700, fontSize:F.small, textAlign:"center",
+                            padding:"2px 3px", whiteSpace:"pre-line", lineHeight:1.2,
+                            borderRight:`${RULE}px solid ${BL}`,
+                            verticalAlign:"middle",
+                          }}>
+                            <E value={row.label} onSave={onUpdate ? (v) => onUpdate({ seminarService: { ...ss, rows: ss.rows.map((r,j) => j===ri ? {...r, label:v} : r) } }) : undefined} />
+                          </td>
+                          {row.merged ? (
+                            <FitTd key="merged" colSpan={dayCount} value={row.cells[0] ?? ""} baseSize={F.small} style={{ textAlign:"center", color:GR, padding:"2px 3px", whiteSpace:"pre", lineHeight:1.2, overflow:"hidden" }}>
+                              <E value={row.cells[0] ?? ""} onSave={onUpdate ? (v) => onUpdate({ seminarService: { ...ss, rows: ss.rows.map((r,j) => j===ri ? {...r, cells:[v]} : r) } }) : undefined} />
+                            </FitTd>
+                          ) : (
+                            ss.days.map((_,ci) => (
+                              <FitTd key={ci} value={row.cells[ci] ?? ""} baseSize={F.small} style={{
+                                textAlign:"center", color:GR,
+                                padding:"2px 2px", whiteSpace:"pre", lineHeight:1.2,
+                                borderLeft: ci>0 ? `0.5px solid ${LG}` : undefined,
+                                verticalAlign:"middle",
+                                overflow:"hidden",
+                              }}>
+                                <E value={row.cells[ci] ?? ""} onSave={onUpdate ? (v) => onUpdate({ seminarService: { ...ss, rows: ss.rows.map((r,j) => j===ri ? {...r, cells: r.cells.map((c,k) => k===ci ? v : c)} : r) } }) : undefined} />
+                              </FitTd>
+                            ))
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              })()}
+              </div>
+            </div>
+            </div>
+          )}
 
           {data.retreatInfo?.enabled && (
             <div style={{ position: "relative", flex:1, minHeight:0 }}>

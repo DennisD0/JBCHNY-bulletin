@@ -5,11 +5,11 @@
     "initializedFromEn": true,
     "sections": {
       "retreatInfo": {
-        "status": "dismissed",
-        "enContentHash": "2ee9dfdae89de34ef08514cd84b1193696d98d5b3d8905c8bc1aa4cd05790018",
+        "status": "synced",
+        "enContentHash": "e3f6420129db9ef30ae818a1144a27c4e4360e104715182a3536a1852e03957c",
         "pendingEnContent": {
           "retreatInfo": {
-            "enabled": true,
+            "enabled": false,
             "title": "",
             "date": "",
             "location": "",
@@ -274,6 +274,76 @@
               "text": "For whatever things were written before were written for our learning, that we through the patience and comfort of the Scriptures might have hope."
             }
           ]
+        }
+      },
+      "seminarService": {
+        "status": "pending",
+        "enContentHash": "d94ed1676bf2c2518c9e3ac707e92b8272df155734fa851108c9632e81645f85",
+        "pendingEnContent": {
+          "seminarService": {
+            "enabled": true,
+            "days": [
+              "MON\n(7/13)",
+              "TUE\n(7/14)",
+              "WED\n(7/15)",
+              "THU\n(7/16)",
+              "FRI\n(7/17)",
+              "SAT\n(7/18)"
+            ],
+            "rows": [
+              {
+                "label": "USHER",
+                "cells": [
+                  "Jungho P",
+                  "Andrew K",
+                  "Jose H",
+                  "Jungho P",
+                  "Andrew K",
+                  "Jose H"
+                ]
+              },
+              {
+                "label": "DINNER\nPREP",
+                "cells": [
+                  "Yufen J\nYounghee A",
+                  "Jinxian L\nSunok J",
+                  "Oklim Y\nConnie C",
+                  "Minkyung J\nSookhee K",
+                  "Heewon K\nYubin S",
+                  "Eunice K\nGrace K"
+                ]
+              },
+              {
+                "label": "DINNER\nDUTY",
+                "cells": [
+                  "Jiwook J\nPaul S",
+                  "Cathy K\nLiah Yu",
+                  "Dennis D\nDavid P",
+                  "Rong X\nJiho M",
+                  "Jean A\nJiaqi F",
+                  "Eric S\nEuna J"
+                ]
+              },
+              {
+                "label": "CHILD\nCARE",
+                "cells": [
+                  "Yufen J",
+                  "Jinxian L",
+                  "Oklim Y",
+                  "Minkyung J",
+                  "Heewon K",
+                  "Eunice K"
+                ]
+              },
+              {
+                "label": "CLEAN\nUP",
+                "cells": [
+                  ""
+                ],
+                "merged": true
+              }
+            ]
+          }
         }
       }
     }
@@ -763,31 +833,95 @@
     "date": "July 13-18: 8PM / July19: 11AM",
     "speaker": "p.Chongkyung Park"
   },
+  "seminarService": {
+    "enabled": false,
+    "days": [
+      "LUN\n(7/13)",
+      "MAR\n(7/14)",
+      "MIÉ\n(7/15)",
+      "JUE\n(7/16)",
+      "VIE\n(7/17)",
+      "SÁB\n(7/18)"
+    ],
+    "rows": [
+      {
+        "label": "UJIER",
+        "cells": [
+          "Jungho P",
+          "Andrew K",
+          "Jose H",
+          "Jungho P",
+          "Andrew K",
+          "Jose H"
+        ]
+      },
+      {
+        "label": "PREP.\nCENA",
+        "cells": [
+          "Yufen J\nYounghee A",
+          "Jinxian L\nSunok J",
+          "Oklim Y\nConnie C",
+          "Minkyung J\nSookhee K",
+          "Heewon K\nYubin S",
+          "Eunice K\nGrace K"
+        ]
+      },
+      {
+        "label": "SERV.\nCENA",
+        "cells": [
+          "Jiwook J\nPaul S",
+          "Cathy K\nLiah Yu",
+          "Dennis D\nDavid P",
+          "Rong X\nJiho M",
+          "Jean A\nJiaqi F",
+          "Eric S\nEuna J"
+        ]
+      },
+      {
+        "label": "CUIDADO\nNIÑOS",
+        "cells": [
+          "Yufen J",
+          "Jinxian L",
+          "Oklim Y",
+          "Minkyung J",
+          "Heewon K",
+          "Eunice K"
+        ]
+      },
+      {
+        "label": "LIMPIEZA",
+        "cells": [
+          "Jóvenes"
+        ],
+        "merged": true
+      }
+    ]
+  },
   "retreatInfo": {
-    "enabled": true,
+    "enabled": false,
     "title": "",
     "date": "",
     "location": "",
     "fees": [
       {
-        "label": "Adult (13+)",
+        "label": "Adulto (13+)",
         "amount": "$200"
       },
       {
-        "label": "Senior (70+)",
+        "label": "Mayores (70+)",
         "amount": "$100"
       },
       {
-        "label": "Ages 7-12",
+        "label": "Edades 7-12",
         "amount": "$100"
       },
       {
-        "label": "Under 6 / Prospect",
+        "label": "Menores de 6 años / Prospecto",
         "amount": "FREE"
       }
     ]
   },
-  "bulletinTitle": "Church Bulletin",
+  "bulletinTitle": "Boletín Dominical",
   "labels": {
     "headSermon": "Lord's Day Sermon",
     "headServices": "Services",
@@ -813,6 +947,7 @@
     "headCleaning": "Lord's Day Cleaning Area",
     "headCalendar": "Monthly Schedule",
     "headSeminarInfo": "Bible Seminar Info",
+    "headSeminarService": "Servicio del Seminario Bíblico",
     "headWeekSchedule": "This week's schedule",
     "headChurchNews": "NY Church News",
     "headPrayer": "Prayer Request",

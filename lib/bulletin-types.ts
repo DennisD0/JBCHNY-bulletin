@@ -67,6 +67,18 @@ export interface PrayerRequest {
   relation: string;
 }
 
+export interface SeminarServiceRowData {
+  label: string;
+  cells: string[];
+  merged?: boolean;
+}
+
+export interface SeminarServiceData {
+  enabled: boolean;
+  days: string[];
+  rows: SeminarServiceRowData[];
+}
+
 export interface BulletinLabels {
   // Section headings
   headSermon: string;
@@ -98,6 +110,7 @@ export interface BulletinLabels {
   headCleaning: string;
   headCalendar: string;
   headSeminarInfo: string;
+  headSeminarService: string;
   headWeekSchedule: string;
   headChurchNews: string;
   headPrayer: string;
@@ -151,6 +164,8 @@ export interface BulletinData {
   jointPrayer: NewsItem[];
 
   seminarInfo: { title: string; date: string; speaker: string };
+
+  seminarService?: SeminarServiceData;
 
   retreatInfo: {
     enabled: boolean;

@@ -5,7 +5,7 @@ import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion
 import {
   LayoutDashboard, Church, Users, BookOpen, Quote,
   CalendarDays, CalendarClock, Newspaper, HandHeart, Sparkles,
-  BookMarked, CalendarRange, Save as SaveIcon,
+  BookMarked, CalendarRange, ClipboardList, Save as SaveIcon,
   TextCursor, Hand, Maximize2, Download,
   RefreshCw, ChevronLeft, ChevronRight, LocateFixed,
   Undo2, Redo2, GripVertical, Lock, Eye, AlertTriangle,
@@ -30,6 +30,7 @@ import type {
   PrayerRequest,
   CalendarBanner,
   FellowshipRow,
+  SeminarServiceData,
 } from "@/lib/bulletin-types";
 import {
   BULLETIN_LANGUAGES,
@@ -1213,6 +1214,7 @@ function CalendarTab({
           }
         />
       </Card>
+
     </div>
   );
 }
@@ -1580,6 +1582,167 @@ function PrayerTab({
 }
 
 // ---------------------------------------------------------------------------
+// Sidebar panel: Bible Seminar Service
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SEMINAR_SERVICE_ROWS = [
+  { label: "USHER",        cells: ["", "", "", "", "", ""], merged: false },
+  { label: "DINNER\nPREP", cells: ["", "", "", "", "", ""], merged: false },
+  { label: "DINNER\nDUTY", cells: ["", "", "", "", "", ""], merged: false },
+  { label: "CHILD\nCARE",  cells: ["", "", "", "", "", ""], merged: false },
+  { label: "CLEAN\nUP",    cells: [""],                     merged: true  },
+];
+
+const DEFAULT_SEMINAR_SERVICE_DAYS = [
+  "MON\n(7/13)", "TUE\n(7/14)", "WED\n(7/15)",
+  "THU\n(7/16)", "FRI\n(7/17)", "SAT\n(7/18)",
+];
+
+function SeminarServicePanel({
+  data,
+  set,
+}: {
+  data: BulletinData;
+  set: (patch: Partial<BulletinData>) => void;
+}) {
+  const ss: SeminarServiceData = data.seminarService ?? {
+    enabled: false,
+    days: DEFAULT_SEMINAR_SERVICE_DAYS,
+    rows: DEFAULT_SEMINAR_SERVICE_ROWS,
+  };
+  const setSS = (patch: Partial<SeminarServiceData>) =>
+    set({ seminarService: { ...ss, ...patch } });
+
+  const dayCount = ss.days.length;
+
+  return (
+    <Card>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ss.enabled ? 12 : 0 }}>
+        <SectionTitle>Bible Seminar Service</SectionTitle>
+        <button
+          onClick={() => {
+            const next = !ss.enabled;
+            setSS({ enabled: next });
+            if (next) set({ retreatInfo: { ...(data.retreatInfo ?? { title:"", date:"", location:"", fees:[] }), enabled: false } });
+          }}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            fontSize: 11, fontWeight: 700,
+            color: ss.enabled ? "#fff" : "#4472C4",
+            background: ss.enabled ? "#4472C4" : "#EFF6FF",
+            border: `1px solid ${ss.enabled ? "#4472C4" : "#BFDBFE"}`,
+            borderRadius: 6, padding: "4px 10px", cursor: "pointer", flexShrink: 0,
+          }}
+        >
+          {ss.enabled ? "Hide" : "Show"}
+        </button>
+      </div>
+
+      {ss.enabled && (
+        <div className="flex flex-col gap-3">
+          {/* Spreadsheet table — headers + rows aligned in one grid */}
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", minWidth: 320 }}>
+              <colgroup>
+                <col style={{ width: "18%" }} />
+                {ss.days.map((_, i) => <col key={i} style={{ width: `${82 / dayCount}%` }} />)}
+                <col style={{ width: 28 }} />
+              </colgroup>
+              {/* Day header row */}
+              <thead>
+                <tr>
+                  <th style={{ padding: "2px 2px 4px" }} />
+                  {ss.days.map((d, i) => (
+                    <th key={i} style={{ padding: "2px 2px 4px" }}>
+                      <textarea
+                        value={d}
+                        rows={2}
+                        onChange={(e) => setSS({ days: ss.days.map((x, j) => j === i ? e.target.value : x) })}
+                        className="w-full text-center text-[10px] font-bold bg-blue-50 border border-blue-200 rounded px-1 py-0.5 resize-none focus:outline-none focus:border-blue-400"
+                        style={{ lineHeight: 1.3 }}
+                      />
+                    </th>
+                  ))}
+                  <th style={{ padding: "2px 0 4px" }} />
+                </tr>
+              </thead>
+              {/* Data rows */}
+              <tbody>
+                {ss.rows.map((row, ri) => (
+                  <tr key={ri} style={{ borderTop: "1px solid #e7e5e4" }}>
+                    {/* Row label */}
+                    <td style={{ padding: "3px 4px 3px 2px", verticalAlign: "middle" }}>
+                      <textarea
+                        value={row.label}
+                        rows={2}
+                        onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, label: e.target.value } : r) })}
+                        className="w-full text-[10px] font-bold bg-stone-50 border border-stone-200 rounded px-1 py-0.5 resize-none text-center focus:outline-none focus:border-blue-400"
+                        style={{ lineHeight: 1.3 }}
+                      />
+                    </td>
+                    {/* Cells */}
+                    {row.merged ? (
+                      <td colSpan={dayCount} style={{ padding: "3px 2px" }}>
+                        <input
+                          value={row.cells[0] ?? ""}
+                          onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: [e.target.value] } : r) })}
+                          className="w-full text-[10px] text-center bg-amber-50 border border-amber-200 rounded px-1 py-1 focus:outline-none focus:border-amber-400"
+                          placeholder="Spans all days"
+                        />
+                      </td>
+                    ) : (
+                      ss.days.map((_, ci) => (
+                        <td key={ci} style={{ padding: "3px 2px" }}>
+                          <textarea
+                            value={row.cells[ci] ?? ""}
+                            rows={2}
+                            onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: r.cells.map((c, k) => k === ci ? e.target.value : c) } : r) })}
+                            className="w-full text-[10px] text-center bg-white border border-stone-200 rounded px-1 py-0.5 resize-none focus:outline-none focus:border-blue-400"
+                            style={{ lineHeight: 1.3 }}
+                          />
+                        </td>
+                      ))
+                    )}
+                    {/* Merge toggle */}
+                    <td style={{ padding: "3px 0 3px 2px", verticalAlign: "middle", textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        title="Merge all days"
+                        checked={!!row.merged}
+                        onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, merged: e.target.checked, cells: e.target.checked ? [r.cells[0] ?? ""] : Array(dayCount).fill("") } : r) })}
+                        className="cursor-pointer accent-blue-600"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-[9px] text-stone-400 mt-1">☑ checkbox = merge all days into one cell</p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSS({ rows: [...ss.rows, { label: "NEW ROW", cells: Array(dayCount).fill(""), merged: false }] })}
+              className="rounded-xl bg-blue-50 border border-blue-200 px-3 py-1 text-xs text-blue-700 font-bold hover:bg-blue-100"
+            >
+              + Add row
+            </button>
+            {ss.rows.length > 1 && (
+              <button
+                onClick={() => setSS({ rows: ss.rows.slice(0, -1) })}
+                className="rounded-xl bg-red-50 border border-red-200 px-3 py-1 text-xs text-red-600 font-bold hover:bg-red-100"
+              >
+                − Remove last row
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Sidebar panel: Retreat Info
 // ---------------------------------------------------------------------------
 
@@ -1608,7 +1771,11 @@ function RetreatInfoPanel({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: retreat.enabled ? 12 : 0 }}>
         <SectionTitle>Retreat Info</SectionTitle>
         <button
-          onClick={() => setRetreat({ enabled: !retreat.enabled })}
+          onClick={() => {
+            const next = !retreat.enabled;
+            setRetreat({ enabled: next });
+            if (next && data.seminarService?.enabled) set({ seminarService: { ...data.seminarService, enabled: false } });
+          }}
           style={{
             display: "flex", alignItems: "center", gap: 5,
             fontSize: 11, fontWeight: 700,
@@ -2233,7 +2400,8 @@ const SECTIONS = [
   { id: "schedule",  label: "Weekly Schedule", icon: CalendarClock,   page: 2 },
   { id: "news",      label: "News",            icon: Newspaper,       page: 2 },
   { id: "prayer",    label: "Prayer",          icon: HandHeart,       page: 2 },
-  { id: "retreat",   label: "Retreat Info",    icon: CalendarRange,   page: 2 },
+  { id: "retreat",        label: "Retreat Info",       icon: CalendarRange,   page: 2 },
+  { id: "seminar-service", label: "Seminar Service",   icon: ClipboardList,   page: 2 },
 ] as const;
 
 type TabId = (typeof SECTIONS)[number]["id"];
@@ -2250,6 +2418,7 @@ const TAB_SECTION_KEY: Record<TabId, string> = {
   news: "news",
   prayer: "prayer",
   retreat: "retreatInfo",
+  "seminar-service": "seminarService",
 };
 
 const FIELD_TO_TAB: Partial<Record<keyof BulletinData, TabId>> = {
@@ -2266,6 +2435,7 @@ const FIELD_TO_TAB: Partial<Record<keyof BulletinData, TabId>> = {
   news: "news", jointPrayer: "news", seminarInfo: "news",
   prayerRequests: "prayer",
   retreatInfo: "retreat",
+  seminarService: "seminar-service",
 };
 
 const LANGUAGE_CONFIG: Record<BulletinLanguage, { code: string; flag: string; name: string }> = {
@@ -2350,7 +2520,8 @@ const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   schedule: { cx: 673,  cy: 967,  h: 299 }, // col 2 p2, top half
   news:     { cx: 673,  cy: 1374, h: 330 }, // col 2 p2, bottom half
   prayer:   { cx: 1120, cy: 967,  h: 299 }, // col 3 p2, top half
-  retreat:  { cx: 1120, cy: 1530, h: 240 }, // col 3 p2, below joint prayer
+  retreat:          { cx: 1120, cy: 1530, h: 240 }, // col 3 p2, below joint prayer
+  "seminar-service": { cx: 1120, cy: 1530, h: 240 }, // col 3 p2, same slot as retreat
 };
 
 type BulletinWeek = {
@@ -3604,6 +3775,8 @@ function SectionEditorPanel({
         return <PrayerTab data={data} set={set} />;
       case "retreat":
         return <RetreatInfoPanel data={data} set={set} />;
+      case "seminar-service":
+        return <SeminarServicePanel data={data} set={set} />;
     }
   })();
 

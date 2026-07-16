@@ -245,6 +245,106 @@
             }
           ]
         }
+      },
+      "retreatInfo": {
+        "status": "pending",
+        "enContentHash": "e3f6420129db9ef30ae818a1144a27c4e4360e104715182a3536a1852e03957c",
+        "pendingEnContent": {
+          "retreatInfo": {
+            "enabled": false,
+            "title": "",
+            "date": "",
+            "location": "",
+            "fees": [
+              {
+                "label": "Adult (13+)",
+                "amount": "$200"
+              },
+              {
+                "label": "Senior (70+)",
+                "amount": "$100"
+              },
+              {
+                "label": "Ages 7-12",
+                "amount": "$100"
+              },
+              {
+                "label": "Under 6 / Prospect",
+                "amount": "FREE"
+              }
+            ]
+          }
+        }
+      },
+      "seminarService": {
+        "status": "pending",
+        "enContentHash": "d94ed1676bf2c2518c9e3ac707e92b8272df155734fa851108c9632e81645f85",
+        "pendingEnContent": {
+          "seminarService": {
+            "enabled": true,
+            "days": [
+              "MON\n(7/13)",
+              "TUE\n(7/14)",
+              "WED\n(7/15)",
+              "THU\n(7/16)",
+              "FRI\n(7/17)",
+              "SAT\n(7/18)"
+            ],
+            "rows": [
+              {
+                "label": "USHER",
+                "cells": [
+                  "Jungho P",
+                  "Andrew K",
+                  "Jose H",
+                  "Jungho P",
+                  "Andrew K",
+                  "Jose H"
+                ]
+              },
+              {
+                "label": "DINNER\nPREP",
+                "cells": [
+                  "Yufen J\nYounghee A",
+                  "Jinxian L\nSunok J",
+                  "Oklim Y\nConnie C",
+                  "Minkyung J\nSookhee K",
+                  "Heewon K\nYubin S",
+                  "Eunice K\nGrace K"
+                ]
+              },
+              {
+                "label": "DINNER\nDUTY",
+                "cells": [
+                  "Jiwook J\nPaul S",
+                  "Cathy K\nLiah Yu",
+                  "Dennis D\nDavid P",
+                  "Rong X\nJiho M",
+                  "Jean A\nJiaqi F",
+                  "Eric S\nEuna J"
+                ]
+              },
+              {
+                "label": "CHILD\nCARE",
+                "cells": [
+                  "Yufen J",
+                  "Jinxian L",
+                  "Oklim Y",
+                  "Minkyung J",
+                  "Heewon K",
+                  "Eunice K"
+                ]
+              },
+              {
+                "label": "CLEAN\nUP",
+                "cells": [
+                  ""
+                ],
+                "merged": true
+              }
+            ]
+          }
+        }
       }
     }
   },
@@ -733,6 +833,70 @@
     "date": "7月13-18日 下午8点 / 7月19日 上午11点",
     "speaker": "朴钟泾 牧师"
   },
+  "seminarService": {
+    "enabled": true,
+    "days": [
+      "周一\n7/13",
+      "周二\n7/14",
+      "周三\n7/15",
+      "周四\n7/16",
+      "周五\n7/17",
+      "周六\n7/18"
+    ],
+    "rows": [
+      {
+        "label": "引座员",
+        "cells": [
+          "朴正浩",
+          "安德烈",
+          "何塞",
+          "朴正浩",
+          "安德烈",
+          "何塞"
+        ]
+      },
+      {
+        "label": "晚餐\n准备",
+        "cells": [
+          "姜玉芬\n安英姬",
+          "刘锦仙\n权顺玉",
+          "尹玉任\n陈庆兰",
+          "郑珉镜\n金淑姬",
+          "金锡文\n申裕斌",
+          "金修真\n姜庚淑"
+        ]
+      },
+      {
+        "label": "晚餐\n清扫",
+        "cells": [
+          "姜志旭\n保罗",
+          "权凯西\n利亚",
+          "丹尼斯\n大卫",
+          "薛蓉\n志浩",
+          "吉恩\n嘉琪",
+          "埃里克\n尤娜"
+        ]
+      },
+      {
+        "label": "幼儿",
+        "cells": [
+          "姜玉芬",
+          "刘锦仙",
+          "尹玉任",
+          "郑珉镜",
+          "金锡文",
+          "金修真"
+        ]
+      },
+      {
+        "label": "打扫",
+        "cells": [
+          "青年组"
+        ],
+        "merged": true
+      }
+    ]
+  },
   "retreatInfo": {
     "enabled": true,
     "title": "",
@@ -783,6 +947,7 @@
     "headCleaning": "主日清扫区域",
     "headCalendar": "每月时间表",
     "headSeminarInfo": "圣经讲演会信息",
+    "headSeminarService": "圣经讲演会侍奉",
     "headWeekSchedule": "本周日程安排",
     "headChurchNews": "教会新闻",
     "headPrayer": "代祷要求",

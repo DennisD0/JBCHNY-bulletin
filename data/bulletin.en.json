@@ -484,8 +484,72 @@
     "date": "July 13-18: 8PM / July19: 11AM",
     "speaker": "p.Chongkyung Park"
   },
-  "retreatInfo": {
+  "seminarService": {
     "enabled": true,
+    "days": [
+      "MON\n(7/13)",
+      "TUE\n(7/14)",
+      "WED\n(7/15)",
+      "THU\n(7/16)",
+      "FRI\n(7/17)",
+      "SAT\n(7/18)"
+    ],
+    "rows": [
+      {
+        "label": "USHER",
+        "cells": [
+          "Jungho P",
+          "Andrew K",
+          "Jose H",
+          "Jungho P",
+          "Andrew K",
+          "Jose H"
+        ]
+      },
+      {
+        "label": "DINNER\nPREP",
+        "cells": [
+          "Yufen J\nYounghee A",
+          "Jinxian L\nSunok J",
+          "Oklim Y\nConnie C",
+          "Minkyung J\nSookhee K",
+          "Heewon K\nYubin S",
+          "Eunice K\nGrace K"
+        ]
+      },
+      {
+        "label": "DINNER\nDUTY",
+        "cells": [
+          "Jiwook J\nPaul S",
+          "Cathy K\nLiah Yu",
+          "Dennis D\nDavid P",
+          "Rong X\nJiho M",
+          "Jean A\nJiaqi F",
+          "Eric S\nEuna J"
+        ]
+      },
+      {
+        "label": "CHILD\nCARE",
+        "cells": [
+          "Yufen J",
+          "Jinxian L",
+          "Oklim Y",
+          "Minkyung J",
+          "Heewon K",
+          "Eunice K"
+        ]
+      },
+      {
+        "label": "CLEAN\nUP",
+        "cells": [
+          ""
+        ],
+        "merged": true
+      }
+    ]
+  },
+  "retreatInfo": {
+    "enabled": false,
     "title": "",
     "date": "",
     "location": "",
@@ -534,6 +598,7 @@
     "headCleaning": "Lord's Day Cleaning Area",
     "headCalendar": "Monthly Schedule",
     "headSeminarInfo": "Bible Seminar Info",
+    "headSeminarService": "Bible Seminar Service",
     "headWeekSchedule": "This week's schedule",
     "headChurchNews": "NY Church News",
     "headPrayer": "Prayer Request",

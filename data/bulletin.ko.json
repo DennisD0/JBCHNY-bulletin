@@ -490,6 +490,17 @@
     "date": "7월13-18일오후8시/ 7월19일오전11시",
     "speaker": "박종경P"
   },
+  "seminarService": {
+    "enabled": true,
+    "days": ["월요일\n(7/13)", "화요일\n(7/14)", "수요일\n(7/15)", "목요일\n(7/16)", "금요일\n(7/17)", "토요일\n(7/18)"],
+    "rows": [
+      { "label": "안내",    "cells": ["박정호", "김종엽", "호세", "박정호", "김종엽", "호세"] },
+      { "label": "식사봉사", "cells": ["강옥분\n안영희", "류금선\n전순옥", "윤옥림\n천칭란", "정민경\n김숙희", "김희원\n신유빈", "김수진\n강경숙"] },
+      { "label": "뒷정리",  "cells": ["장지욱\n윤바울", "권성아\n유리아", "도경환\n박해민", "롱쉐\n민지호", "안정은\n부짜치", "심현우\n조은아"] },
+      { "label": "유아봉사", "cells": ["강옥분", "류금선", "윤옥림", "정민경", "김희원", "김수진"] },
+      { "label": "청소",    "cells": ["청년회"], "merged": true }
+    ]
+  },
   "retreatInfo": {
     "enabled": false,
     "title": "",
@@ -540,6 +551,7 @@
     "headCleaning": "회별 주일 청소 구역",
     "headCalendar": "월간계획",
     "headSeminarInfo": "집회안내",
+    "headSeminarService": "집회봉사",
     "headWeekSchedule": "이번주교제안내",
     "headChurchNews": "교회소식",
     "headPrayer": "기도부탁",

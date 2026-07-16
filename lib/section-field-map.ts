@@ -13,6 +13,7 @@ export const SECTION_FIELD_MAP: Record<string, (keyof BulletinData)[]> = {
   prayer: ["prayerRequests", "jointPrayer"],
   retreatInfo: ["retreatInfo"],
   seminarInfo: ["seminarInfo"],
+  seminarService: ["seminarService"],
 };
 
 export function snapshotSection(data: BulletinData, sectionKey: string): Partial<BulletinData> {
