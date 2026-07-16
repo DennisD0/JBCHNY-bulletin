@@ -116,6 +116,9 @@ export interface BulletinLabels {
   headPrayer: string;
   headJointPrayer: string;
   headRetreats: string;
+  // Cleaning table columns
+  colCleanLocation: string;
+  colCleanGroup: string;
   // Week schedule table columns
   colWeekDate: string;
   colWeekEvent: string;
