@@ -1615,6 +1615,8 @@ function SeminarServicePanel({
 
   const dayCount = ss.days.length;
 
+  const [activeDay, setActiveDay] = useState(0);
+
   return (
     <Card>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ss.enabled ? 12 : 0 }}>
@@ -1640,97 +1642,93 @@ function SeminarServicePanel({
 
       {ss.enabled && (
         <div className="flex flex-col gap-3">
-          {/* Spreadsheet table — headers + rows aligned in one grid */}
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", minWidth: 320 }}>
-              <colgroup>
-                <col style={{ width: "18%" }} />
-                {ss.days.map((_, i) => <col key={i} style={{ width: `${82 / dayCount}%` }} />)}
-                <col style={{ width: 28 }} />
-              </colgroup>
-              {/* Day header row */}
-              <thead>
-                <tr>
-                  <th style={{ padding: "2px 2px 4px" }} />
-                  {ss.days.map((d, i) => (
-                    <th key={i} style={{ padding: "2px 2px 4px" }}>
-                      <textarea
-                        value={d}
-                        rows={2}
-                        onChange={(e) => setSS({ days: ss.days.map((x, j) => j === i ? e.target.value : x) })}
-                        className="w-full text-center text-[10px] font-bold bg-blue-50 border border-blue-200 rounded px-1 py-0.5 resize-none focus:outline-none focus:border-blue-400"
-                        style={{ lineHeight: 1.3 }}
-                      />
-                    </th>
-                  ))}
-                  <th style={{ padding: "2px 0 4px" }} />
-                </tr>
-              </thead>
-              {/* Data rows */}
-              <tbody>
-                {ss.rows.map((row, ri) => (
-                  <tr key={ri} style={{ borderTop: "1px solid #e7e5e4" }}>
-                    {/* Row label */}
-                    <td style={{ padding: "3px 4px 3px 2px", verticalAlign: "middle" }}>
-                      <textarea
-                        value={row.label}
-                        rows={2}
-                        onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, label: e.target.value } : r) })}
-                        className="w-full text-[10px] font-bold bg-stone-50 border border-stone-200 rounded px-1 py-0.5 resize-none text-center focus:outline-none focus:border-blue-400"
-                        style={{ lineHeight: 1.3 }}
-                      />
-                    </td>
-                    {/* Cells */}
-                    {row.merged ? (
-                      <td colSpan={dayCount} style={{ padding: "3px 2px" }}>
-                        <input
-                          value={row.cells[0] ?? ""}
-                          onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: [e.target.value] } : r) })}
-                          className="w-full text-[10px] text-center bg-amber-50 border border-amber-200 rounded px-1 py-1 focus:outline-none focus:border-amber-400"
-                          placeholder="Spans all days"
-                        />
-                      </td>
-                    ) : (
-                      ss.days.map((_, ci) => (
-                        <td key={ci} style={{ padding: "3px 2px" }}>
-                          <textarea
-                            value={row.cells[ci] ?? ""}
-                            rows={2}
-                            onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: r.cells.map((c, k) => k === ci ? e.target.value : c) } : r) })}
-                            className="w-full text-[10px] text-center bg-white border border-stone-200 rounded px-1 py-0.5 resize-none focus:outline-none focus:border-blue-400"
-                            style={{ lineHeight: 1.3 }}
-                          />
-                        </td>
-                      ))
-                    )}
-                    {/* Merge toggle */}
-                    <td style={{ padding: "3px 0 3px 2px", verticalAlign: "middle", textAlign: "center" }}>
-                      <input
-                        type="checkbox"
-                        title="Merge all days"
-                        checked={!!row.merged}
-                        onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, merged: e.target.checked, cells: e.target.checked ? [r.cells[0] ?? ""] : Array(dayCount).fill("") } : r) })}
-                        className="cursor-pointer accent-blue-600"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="text-[9px] text-stone-400 mt-1">☑ checkbox = merge all days into one cell</p>
+          {/* Day tabs */}
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {ss.days.map((d, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveDay(i)}
+                style={{
+                  padding: "5px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer",
+                  background: activeDay === i ? "#4472C4" : "#F1F5F9",
+                  color: activeDay === i ? "#fff" : "#475569",
+                  border: `1px solid ${activeDay === i ? "#4472C4" : "#CBD5E1"}`,
+                  whiteSpace: "pre-line", textAlign: "center", lineHeight: 1.2,
+                }}
+              >
+                {d.replace("\n", "\n")}
+              </button>
+            ))}
+          </div>
+
+          {/* Day label editor */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 11, color: "#94A3B8", flexShrink: 0 }}>Day label:</span>
+            <input
+              value={ss.days[activeDay] ?? ""}
+              onChange={(e) => setSS({ days: ss.days.map((x, j) => j === activeDay ? e.target.value : x) })}
+              className="flex-1 text-sm border border-blue-200 rounded-lg px-2 py-1 bg-blue-50 focus:outline-none focus:border-blue-400"
+              placeholder="e.g. MON&#10;(7/13)"
+            />
+          </div>
+
+          {/* Row inputs for active day */}
+          <div className="flex flex-col gap-2">
+            {ss.rows.map((row, ri) => (
+              <div key={ri} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 12px" }}>
+                {/* Row label + merge toggle */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                  <input
+                    value={row.label}
+                    onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, label: e.target.value } : r) })}
+                    className="text-xs font-bold text-blue-700 bg-transparent border-none focus:outline-none focus:bg-blue-50 rounded px-1 w-24"
+                    placeholder="Role"
+                  />
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#94A3B8", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={!!row.merged}
+                      onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, merged: e.target.checked, cells: e.target.checked ? [r.cells[0] ?? ""] : Array(dayCount).fill("") } : r) })}
+                      className="cursor-pointer accent-blue-600"
+                    />
+                    All days same
+                  </label>
+                </div>
+                {/* Input */}
+                {row.merged ? (
+                  <textarea
+                    value={row.cells[0] ?? ""}
+                    rows={2}
+                    onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: [e.target.value] } : r) })}
+                    className="w-full text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-amber-400"
+                    placeholder="Same person(s) every day"
+                    style={{ lineHeight: 1.5 }}
+                  />
+                ) : (
+                  <textarea
+                    value={row.cells[activeDay] ?? ""}
+                    rows={2}
+                    onChange={(e) => setSS({ rows: ss.rows.map((r, j) => j === ri ? { ...r, cells: r.cells.map((c, k) => k === activeDay ? e.target.value : c) } : r) })}
+                    className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-blue-400"
+                    placeholder="Name(s) — one per line"
+                    style={{ lineHeight: 1.5 }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setSS({ rows: [...ss.rows, { label: "NEW ROW", cells: Array(dayCount).fill(""), merged: false }] })}
-              className="rounded-xl bg-blue-50 border border-blue-200 px-3 py-1 text-xs text-blue-700 font-bold hover:bg-blue-100"
+              onClick={() => setSS({ rows: [...ss.rows, { label: "NEW ROLE", cells: Array(dayCount).fill(""), merged: false }] })}
+              className="rounded-xl bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs text-blue-700 font-bold hover:bg-blue-100"
             >
               + Add row
             </button>
             {ss.rows.length > 1 && (
               <button
                 onClick={() => setSS({ rows: ss.rows.slice(0, -1) })}
-                className="rounded-xl bg-red-50 border border-red-200 px-3 py-1 text-xs text-red-600 font-bold hover:bg-red-100"
+                className="rounded-xl bg-red-50 border border-red-200 px-3 py-1.5 text-xs text-red-600 font-bold hover:bg-red-100"
               >
                 − Remove last row
               </button>
