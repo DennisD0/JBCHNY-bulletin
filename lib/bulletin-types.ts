@@ -110,6 +110,8 @@ export interface BulletinLabels {
   headCleaning: string;
   headCalendar: string;
   headSeminarInfo: string;
+  seminarInfoLabelDate: string;
+  seminarInfoLabelSpeaker: string;
   headSeminarService: string;
   headWeekSchedule: string;
   headChurchNews: string;
