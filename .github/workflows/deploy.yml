@@ -16,4 +16,9 @@ jobs:
           host: 34.30.218.223
           username: dennisnasa
           key: ${{ secrets.VM_DEPLOY_KEY }}
-          script: bash ~/bulletin/scripts/deploy.sh
+          script: |
+            cd ~/bulletin
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+            bash ~/bulletin/scripts/deploy.sh
