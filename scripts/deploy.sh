@@ -8,7 +8,9 @@ set -e
 cd ~/bulletin
 
 echo "▸ Pulling latest code..."
-git pull
+git fetch origin main
+git reset --hard origin/main
+git clean -fd
 
 echo "▸ Installing dependencies..."
 npm install
