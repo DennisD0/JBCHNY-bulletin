@@ -1904,7 +1904,8 @@ type ManageData = {
     endDate: string | null;
     daysRemaining: number;
     percentUsed: number;
-    events: Array<{ label: string; startDate: string; endDate: string; type: string }>;
+    events: Array<{ label: string; startDate: string; endDate: string; type: string; pastor?: string }>;
+    eastCoastSeminars?: Array<{ date: string; church: string; speaker: string; speakerKo: string; language: string }>;
   } | null;
   today?: string;
 };
@@ -4957,17 +4958,67 @@ export default function Home() {
       .map((event) => {
         const [, startMonth, startDay] = event.startDate.split("-").map(Number);
         const [, endMonth, endDay] = event.endDate.split("-").map(Number);
+        const pastorSuffix = event.type === "grand-bible-seminar" && event.pastor
+          ? ` (p.${event.pastor.split(" ").pop()})`
+          : "";
         return {
-          label: event.label,
+          label: event.label + pastorSuffix,
           startDate: `${startMonth}/${startDay}`,
           endDate: `${endMonth}/${endDay}`,
+          type: undefined,
+        };
+      });
+
+    const doy = Math.floor((week.start.getTime() - new Date(week.start.getFullYear(), 0, 0).getTime()) / 86400000);
+    const bulletinNumber = `${week.start.getFullYear()}-${String(Math.floor(doy / 7)).padStart(2, "0")}`;
+
+    const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const bValLocal = (v: string) => { const [bm, bd] = v.split("/").map(Number); return bm * 100 + bd; };
+    const generatedWeekSchedule = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(week.start.getFullYear(), week.start.getMonth(), week.start.getDate() + i);
+      const m = d.getMonth() + 1;
+      const dayNum = d.getDate();
+      const current = m * 100 + dayNum;
+      const items: Array<{ name: string; location: string; time: string }> = [];
+      for (const banner of calendarBanners) {
+        if (current >= bValLocal(banner.startDate) && current <= bValLocal(banner.endDate)) {
+          items.push({ name: banner.label, location: "", time: "" });
+        }
+      }
+      for (const r of (data?.weeklyRecurring ?? [])) {
+        if (r.dayOfWeek === i) {
+          items.push({ name: r.label, location: "", time: "" });
+        }
+      }
+      return { date: `${m}/${dayNum}(${DOW_SHORT[i]})`, items };
+    }).filter(day => day.items.length > 0);
+
+    // Build East Coast Seminar rows: upcoming entries from bulletin Sunday onward, sorted ascending
+    const bulletinIso = `${week.start.getFullYear()}-${String(week.start.getMonth() + 1).padStart(2,"0")}-${String(week.start.getDate()).padStart(2,"0")}`;
+    const upcomingEastCoast = (schedule?.eastCoastSeminars ?? [])
+      .filter(e => e.date >= bulletinIso)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 8)
+      .map(e => {
+        const [, em, ed] = e.date.split("-").map(Number);
+        const sat = new Date(new Date(e.date).getTime() + 6 * 86400000);
+        const satM = sat.getMonth() + 1;
+        const satD = sat.getDate();
+        return {
+          date: `${em}/${ed}-${satM}/${satD}`,
+          church: e.church,
+          speaker: e.speaker,
+          language: e.language,
         };
       });
 
     const nextPatch: Partial<BulletinData> = {
       date,
+      number: bulletinNumber,
       calendarMonth: `${String(month).padStart(2, "0")}/${year}`,
       calendarBanners,
+      weekSchedule: generatedWeekSchedule,
+      eastCoastSeminar: upcomingEastCoast.length > 0 ? upcomingEastCoast : undefined,
     };
 
     try {

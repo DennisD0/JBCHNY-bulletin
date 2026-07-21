@@ -823,7 +823,9 @@ export default function BulletinPreview({
                     (<E value={v.date}     onSave={upA(data.memoryVerses,"memoryVerses",i,"date")} />){" "}
                     <E value={v.reference} onSave={upA(data.memoryVerses,"memoryVerses",i,"reference")} />
                   </span>
-                  <span style={{ flex:1, borderBottom:`1px dotted ${GR}`, margin:"0 3px 1.5px", minWidth:6 }} />
+                  <span style={{ flex:1, overflow:"hidden", margin:"0 3px", minWidth:6, lineHeight:1 }}>
+                    <span style={{ fontSize: F.body + 2, color:GR, letterSpacing:1, whiteSpace:"nowrap" }}>{"......................................................................................................................................................................................................................................."}</span>
+                  </span>
                   <span style={{ fontWeight: 700, fontSize: F.body, whiteSpace: "nowrap" }}>
                     <E value={v.theme} onSave={upA(data.memoryVerses,"memoryVerses",i,"theme")} />
                   </span>

@@ -1,6 +1,6 @@
 {
-  "number": "2026-26",
-  "date": "07/12/2026",
+  "number": "2026-28",
+  "date": "07/19/2026",
   "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
   "quoteRef": "Psalms 118:17",
   "pastor": "Chong Kyung Park",
@@ -26,22 +26,52 @@
   ],
   "eastCoastSeminar": [
     {
-      "date": "7/6-12",
-      "church": "Michigan",
-      "speaker": "p.John Kweon",
+      "date": "7/19-7/24",
+      "church": "Orlando",
+      "speaker": "p.Oh",
       "language": "Korean"
     },
     {
-      "date": "7/6-12",
-      "church": "s.Illinois",
-      "speaker": "p.Joshua Lee",
+      "date": "7/19-7/24",
+      "church": "Atlanta",
+      "speaker": "p.Kwon",
       "language": "Korean"
     },
     {
-      "date": "7/13-19",
-      "church": "s.Virginia",
-      "speaker": "p.Jacob Jeong",
-      "language": "English"
+      "date": "7/19-7/24",
+      "church": "Southern Virginia",
+      "speaker": "p.Jeong",
+      "language": "Korean"
+    },
+    {
+      "date": "7/19-7/24",
+      "church": "New Jersey",
+      "speaker": "p.Shin",
+      "language": "Korean"
+    },
+    {
+      "date": "7/19-7/24",
+      "church": "New York",
+      "speaker": "e.Kim",
+      "language": "Korean"
+    },
+    {
+      "date": "7/19-7/24",
+      "church": "Southern Illinois",
+      "speaker": "p.Kim",
+      "language": "Korean"
+    },
+    {
+      "date": "7/26-7/31",
+      "church": "Southern Virginia",
+      "speaker": "p.Lee",
+      "language": "Korean"
+    },
+    {
+      "date": "7/26-7/31",
+      "church": "Washington DC",
+      "speaker": "e.Kim",
+      "language": "Korean"
     }
   ],
   "fellowship": [
@@ -80,53 +110,53 @@
   "email": "prayer910124@gmail.com",
   "address": "167 Willis Ave, Mineola, NY 11501",
   "bibleReadingDates": [
-    "7/12",
-    "7/13",
-    "7/14",
-    "7/15",
-    "7/16",
-    "7/17",
-    "7/18"
+    "7/19",
+    "7/20",
+    "7/21",
+    "7/22",
+    "7/23",
+    "7/24",
+    "7/25"
   ],
   "bibleReading1": [
-    "Prov 14-17",
-    "Prov 18-21",
-    "Prov 22-25",
-    "Prov 26-28",
-    "Prov 29-31",
-    "Eccl 1-4",
-    "Eccl 5-8"
+    "Eccl 9-12",
+    "Song 1-8",
+    "Isa 1-3",
+    "Isa 4-7",
+    "Isa 8-10",
+    "Isa 11-15",
+    "Isa 16-21"
   ],
   "bibleReading2": [
-    "Ex 7-8\nEx 9-11",
-    "Ex 12-14\nEx 15-17",
-    "Ex 18-20\nEx 21-23",
-    "Ex 24-27\nEx 28-29",
-    "Ex 30-32\nEx 33-35",
-    "Ex 36-38\nEx 39-40",
-    "Lev 1-4\nLev 5-7"
+    "Lev 8-10\nLev 11-13",
+    "Lev 14-16\nLev 17-20",
+    "Lev 21-23\nLev 24-25",
+    "Lev 26-27\nNum 1-2",
+    "Num 3-5\nNum 6-7",
+    "Num 8-10\nNum 11-13",
+    "Num 14-15\nNum 16-18"
   ],
   "memoryVerses": [
     {
       "label": "Last week",
-      "date": "7/5",
-      "reference": "1 Peter 3:15-16",
-      "theme": "Hope",
-      "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
-    },
-    {
-      "label": "This week",
       "date": "7/12",
       "reference": "1 John 3:1-3",
       "theme": "Hope",
       "text": "Behold what manner of love the Father has bestowed on us, that we should be called children of God! Therefore the world does not know us, because it did not know Him. Beloved, now we are children of God; and it has not yet been revealed what we shall be, but we know that when He is revealed, we shall be like Him, for we shall see Him as He is. And everyone who has this hope in Him purifies himself, just as He is pure."
     },
     {
-      "label": "Next week",
+      "label": "This week",
       "date": "7/19",
       "reference": "Romans 15:4",
       "theme": "Hope",
       "text": "For whatever things were written before were written for our learning, that we through the patience and comfort of the Scriptures might have hope."
+    },
+    {
+      "label": "Next week",
+      "date": "7/26",
+      "reference": "Acts 24:15",
+      "theme": "Hope",
+      "text": "I have hope in God, which they themselves also accept, that there will be a resurrection of the dead, both of the just and the unjust."
     }
   ],
   "cleaningAreas": [
@@ -268,7 +298,7 @@
       "endDate": "7/4"
     },
     {
-      "label": "Grand Bible Seminar",
+      "label": "Grand Bible Seminar (p.Park)",
       "startDate": "7/6",
       "endDate": "7/12"
     },
@@ -280,97 +310,62 @@
   ],
   "weekSchedule": [
     {
-      "date": "7/5(Sun)",
+      "date": "7/19(Sun)",
       "items": [
         {
-          "name": "Officer Meeting",
-          "location": "Fellowship Hall",
-          "time": "2:30 PM"
-        },
-        {
-          "name": "Mother Officer Meeting",
-          "location": "Fellowship Hall",
-          "time": "4:00 PM"
-        },
-        {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
-        }
-      ]
-    },
-    {
-      "date": "7/6(Mon)",
-      "items": [
-        {
-          "name": "Mother Monthly Meeting",
+          "name": "Sermon",
           "location": "",
-          "time": "8 PM"
+          "time": ""
         }
       ]
     },
     {
-      "date": "7/8(Wed)",
+      "date": "7/22(Wed)",
       "items": [
         {
-          "name": "Wednesday Sermon",
-          "location": "Main Hall",
-          "time": "8 PM"
-        }
-      ]
-    },
-    {
-      "date": "7/9(Thu)",
-      "items": [
-        {
-          "name": "Teacher Training",
-          "location": "Counseling 2",
-          "time": "8 PM"
-        }
-      ]
-    },
-    {
-      "date": "7/10(Fri)",
-      "items": [
-        {
-          "name": "Translator Meeting",
-          "location": "Counseling 2",
-          "time": "5 PM"
-        },
-        {
-          "name": "YA Officer Meeting",
-          "location": "Counseling 1",
-          "time": "8 PM"
-        }
-      ]
-    },
-    {
-      "date": "7/11(Sat)",
-      "items": [
-        {
-          "name": "Young Adult Fellowship",
-          "location": "Fellowship Hall",
-          "time": "7 PM"
-        }
-      ]
-    },
-    {
-      "date": "7/12(Sun)",
-      "items": [
-        {
-          "name": "Sunday Sermon",
-          "location": "Main Hall",
-          "time": "11 AM"
-        },
-        {
-          "name": "Region 3 Meeting",
-          "location": "Fellowship Hall",
-          "time": "2 PM"
-        },
-        {
-          "name": "Fellowship by Language",
+          "name": "Wed sermon",
           "location": "",
-          "time": "2 PM"
+          "time": ""
+        }
+      ]
+    },
+    {
+      "date": "7/23(Thu)",
+      "items": [
+        {
+          "name": "Teachers'",
+          "location": "",
+          "time": ""
+        }
+      ]
+    },
+    {
+      "date": "7/24(Fri)",
+      "items": [
+        {
+          "name": "YA Officer Retreat",
+          "location": "",
+          "time": ""
+        }
+      ]
+    },
+    {
+      "date": "7/25(Sat)",
+      "items": [
+        {
+          "name": "YA Officer Retreat",
+          "location": "",
+          "time": ""
+        },
+        {
+          "name": "Translators'",
+          "location": "",
+          "time": ""
+        },
+        {
+          "name": "YA'",
+          "location": "",
+          "time": ""
         }
       ]
     }

@@ -28,5 +28,86 @@
       "endDate": "2026-07-26",
       "location": "NJ Church"
     }
+  ],
+  "eastCoastSeminars": [
+    { "date": "2026-07-05", "church": "Orlando",           "speakerKo": "오동준p",  "speaker": "p.Oh",    "language": "Korean" },
+    { "date": "2026-07-05", "church": "Atlanta",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-07-05", "church": "Southern Virginia", "speakerKo": "최현우p",  "speaker": "p.Choi",  "language": "Korean" },
+    { "date": "2026-07-05", "church": "Washington DC",     "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-07-05", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-07-05", "church": "New York",          "speakerKo": "박종경p",  "speaker": "p.Park",  "language": "Korean" },
+    { "date": "2026-07-05", "church": "Michigan",          "speakerKo": "조정훈p",  "speaker": "p.Cho",   "language": "Korean" },
+    { "date": "2026-07-05", "church": "Chicago",           "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-07-05", "church": "Southern Illinois", "speakerKo": "이지은p",  "speaker": "p.Lee",   "language": "Korean" },
+
+    { "date": "2026-07-12", "church": "Orlando",           "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-07-12", "church": "Atlanta",           "speakerKo": "김송준e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-07-12", "church": "New Jersey",        "speakerKo": "김지환e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-07-12", "church": "New York",          "speakerKo": "박종경p",  "speaker": "p.Park",  "language": "Korean" },
+    { "date": "2026-07-12", "church": "Michigan",          "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-07-12", "church": "Chicago",           "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+    { "date": "2026-07-12", "church": "Southern Illinois", "speakerKo": "이지은p",  "speaker": "p.Lee",   "language": "Korean" },
+
+    { "date": "2026-07-19", "church": "Orlando",           "speakerKo": "오동준p",  "speaker": "p.Oh",    "language": "Korean" },
+    { "date": "2026-07-19", "church": "Atlanta",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-07-19", "church": "Southern Virginia", "speakerKo": "정성호p",  "speaker": "p.Jeong", "language": "Korean" },
+    { "date": "2026-07-19", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-07-19", "church": "New York",          "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-07-19", "church": "Southern Illinois", "speakerKo": "김성열p",  "speaker": "p.Kim",   "language": "Korean" },
+
+    { "date": "2026-07-26", "church": "Southern Virginia", "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-07-26", "church": "Washington DC",     "speakerKo": "김지환e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-07-26", "church": "New Jersey",        "speakerKo": "최현우p",  "speaker": "p.Choi",  "language": "Korean" },
+    { "date": "2026-07-26", "church": "New York",          "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+
+    { "date": "2026-08-02", "church": "Orlando",           "speakerKo": "정성호p",  "speaker": "p.Jeong", "language": "Korean" },
+    { "date": "2026-08-02", "church": "Atlanta",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-08-02", "church": "Washington DC",     "speakerKo": "김송준e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-02", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-08-02", "church": "New York",          "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-02", "church": "Michigan",          "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+    { "date": "2026-08-02", "church": "Chicago",           "speakerKo": "조정훈p",  "speaker": "p.Cho",   "language": "Korean" },
+
+    { "date": "2026-08-09", "church": "Orlando",           "speakerKo": "오동준p",  "speaker": "p.Oh",    "language": "Korean" },
+    { "date": "2026-08-09", "church": "Atlanta",           "speakerKo": "이재준p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-08-09", "church": "Washington DC",     "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-09", "church": "New Jersey",        "speakerKo": "김지환e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-09", "church": "New York",          "speakerKo": "박종경p",  "speaker": "p.Park",  "language": "Korean" },
+    { "date": "2026-08-09", "church": "Michigan",          "speakerKo": "조정훈p",  "speaker": "p.Cho",   "language": "Korean" },
+    { "date": "2026-08-09", "church": "Chicago",           "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+
+    { "date": "2026-08-16", "church": "Atlanta",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-08-16", "church": "Washington DC",     "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-08-16", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+
+    { "date": "2026-08-23", "church": "Atlanta",           "speakerKo": "김송준e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-23", "church": "New York",          "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-08-23", "church": "Chicago",           "speakerKo": "김상원p",  "speaker": "p.Kim",   "language": "Korean" },
+
+    { "date": "2026-08-30", "church": "Atlanta",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-08-30", "church": "Washington DC",     "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-08-30", "church": "New Jersey",        "speakerKo": "박종경p",  "speaker": "p.Park",  "language": "Korean" },
+    { "date": "2026-08-30", "church": "Chicago",           "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+    { "date": "2026-08-30", "church": "Southern Illinois", "speakerKo": "김지환e",  "speaker": "e.Kim",   "language": "Korean" },
+
+    { "date": "2026-09-06", "church": "Washington DC",     "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-09-06", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-09-06", "church": "New York",          "speakerKo": "박종경p",  "speaker": "p.Park",  "language": "Korean" },
+    { "date": "2026-09-06", "church": "Southern Illinois", "speakerKo": "김성열p",  "speaker": "p.Kim",   "language": "Korean" },
+
+    { "date": "2026-09-13", "church": "Southern Virginia", "speakerKo": "최현우p",  "speaker": "p.Choi",  "language": "Korean" },
+    { "date": "2026-09-13", "church": "Chicago",           "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+
+    { "date": "2026-09-20", "church": "Washington DC",     "speakerKo": "김재호e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-09-20", "church": "New Jersey",        "speakerKo": "김지환e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-09-20", "church": "Chicago",           "speakerKo": "김송준e",  "speaker": "e.Kim",   "language": "Korean" },
+
+    { "date": "2026-09-27", "church": "Orlando",           "speakerKo": "권종안p",  "speaker": "p.Kwon",  "language": "Korean" },
+    { "date": "2026-09-27", "church": "Atlanta",           "speakerKo": "김송준e",  "speaker": "e.Kim",   "language": "Korean" },
+    { "date": "2026-09-27", "church": "Washington DC",     "speakerKo": "이해찬p",  "speaker": "p.Lee",   "language": "Korean" },
+    { "date": "2026-09-27", "church": "New Jersey",        "speakerKo": "신민철p",  "speaker": "p.Shin",  "language": "Korean" },
+    { "date": "2026-09-27", "church": "Chicago",           "speakerKo": "우성준p",  "speaker": "p.Woo",   "language": "Korean" },
+    { "date": "2026-09-27", "church": "Michigan",          "speakerKo": "앙희환e",  "speaker": "e.Yang",  "language": "Korean" },
+    { "date": "2026-09-27", "church": "Southern Illinois", "speakerKo": "앙희환e",  "speaker": "e.Yang",  "language": "Korean" }
   ]
 }

@@ -36,40 +36,40 @@
       },
       "bibleReading": {
         "status": "pending",
-        "enContentHash": "ddd608e6b2602424a5598ac6904f88855ff47d42791f3a84f6b96b3e1b868060",
+        "enContentHash": "30479814267ce6d837da0c4f5077f57d2eff34cc1f2e8a63b4018694585e2fbb",
         "pendingEnContent": {
           "bibleReadingDates": [
-            "7/12",
-            "7/13",
-            "7/14",
-            "7/15",
-            "7/16",
-            "7/17",
-            "7/18"
+            "7/19",
+            "7/20",
+            "7/21",
+            "7/22",
+            "7/23",
+            "7/24",
+            "7/25"
           ],
           "bibleReading1": [
-            "Prov 14-17",
-            "Prov 18-21",
-            "Prov 22-25",
-            "Prov 26-28",
-            "Prov 29-31",
-            "Eccl 1-4",
-            "Eccl 5-8"
+            "Eccl 9-12",
+            "Song 1-8",
+            "Isa 1-3",
+            "Isa 4-7",
+            "Isa 8-10",
+            "Isa 11-15",
+            "Isa 16-21"
           ],
           "bibleReading2": [
-            "Ex 7-8\nEx 9-11",
-            "Ex 12-14\nEx 15-17",
-            "Ex 18-20\nEx 21-23",
-            "Ex 24-27\nEx 28-29",
-            "Ex 30-32\nEx 33-35",
-            "Ex 36-38\nEx 39-40",
-            "Lev 1-4\nLev 5-7"
+            "Lev 8-10\nLev 11-13",
+            "Lev 14-16\nLev 17-20",
+            "Lev 21-23\nLev 24-25",
+            "Lev 26-27\nNum 1-2",
+            "Num 3-5\nNum 6-7",
+            "Num 8-10\nNum 11-13",
+            "Num 14-15\nNum 16-18"
           ]
         }
       },
       "header": {
         "status": "pending",
-        "enContentHash": "28db6e5c8bed75a7636d881bed6e47bc003c478d3c87ea5f646e2d999af43a59",
+        "enContentHash": "295a920869d2192d665bd2192bdcfc7f17e1be451649bbbf2b03add33da914d2",
         "pendingEnContent": {
           "bulletinTitle": "Church Bulletin",
           "labels": {
@@ -97,6 +97,7 @@
             "headCleaning": "Lord's Day Cleaning Area",
             "headCalendar": "Monthly Schedule",
             "headSeminarInfo": "Bible Seminar Info",
+            "headSeminarService": "Bible Seminar Service",
             "headWeekSchedule": "This week's schedule",
             "headChurchNews": "NY Church News",
             "headPrayer": "Prayer Request",
@@ -111,8 +112,8 @@
             "seminarInfoLabelDate": "DATE",
             "seminarInfoLabelSpeaker": "SPEAKER"
           },
-          "number": "2026-26",
-          "date": "07/12/2026",
+          "number": "2026-28",
+          "date": "07/19/2026",
           "quote": "I shall not die, but live,\nAnd declare the works of the LORD.",
           "quoteRef": "Psalms 118:17",
           "pastor": "Chong Kyung Park"
@@ -120,7 +121,7 @@
       },
       "calendar": {
         "status": "pending",
-        "enContentHash": "0f70621294fcc3e5351e62cf1c3ac29ecc6a0544387c37c557d6eebcbb27f440",
+        "enContentHash": "b75e1e6cc458b77228491ff542a11e1cdac37d696848ac68fe2353944072f010",
         "pendingEnContent": {
           "calendarMonth": "07/2026",
           "calendarEvents": {
@@ -213,7 +214,7 @@
               "endDate": "7/4"
             },
             {
-              "label": "Grand Bible Seminar",
+              "label": "Grand Bible Seminar (p.Park)",
               "startDate": "7/6",
               "endDate": "7/12"
             },
@@ -249,29 +250,29 @@
       },
       "memoryVerses": {
         "status": "pending",
-        "enContentHash": "e32d997d9adbd0c508b3bb950927b15143b24d7c870cb918998a341c07aa339a",
+        "enContentHash": "d87dd6e03d7a8df68f8e370c75c26d526d0bebc1b4390a81c9bad1ed4bdb2b5c",
         "pendingEnContent": {
           "memoryVerses": [
             {
               "label": "Last week",
-              "date": "7/5",
-              "reference": "1 Peter 3:15-16",
-              "theme": "Hope",
-              "text": "But sanctify the Lord God in your hearts, and always be ready to give a defense to everyone who asks you a reason for the hope that is in you, with meekness and fear; having a good conscience, that when they defame you as evildoers, those who revile your good conduct in Christ may be ashamed."
-            },
-            {
-              "label": "This week",
               "date": "7/12",
               "reference": "1 John 3:1-3",
               "theme": "Hope",
               "text": "Behold what manner of love the Father has bestowed on us, that we should be called children of God! Therefore the world does not know us, because it did not know Him. Beloved, now we are children of God; and it has not yet been revealed what we shall be, but we know that when He is revealed, we shall be like Him, for we shall see Him as He is. And everyone who has this hope in Him purifies himself, just as He is pure."
             },
             {
-              "label": "Next week",
+              "label": "This week",
               "date": "7/19",
               "reference": "Romans 15:4",
               "theme": "Hope",
               "text": "For whatever things were written before were written for our learning, that we through the patience and comfort of the Scriptures might have hope."
+            },
+            {
+              "label": "Next week",
+              "date": "7/26",
+              "reference": "Acts 24:15",
+              "theme": "Hope",
+              "text": "I have hope in God, which they themselves also accept, that there will be a resurrection of the dead, both of the just and the unjust."
             }
           ]
         }
@@ -344,6 +345,74 @@
               }
             ]
           }
+        }
+      },
+      "weekSchedule": {
+        "status": "pending",
+        "enContentHash": "c0a8c82dfb0ff9788e0b10c198e7c80ac023bea862841d2f0cc3bd84aa658e56",
+        "pendingEnContent": {
+          "weekSchedule": [
+            {
+              "date": "7/19(Sun)",
+              "items": [
+                {
+                  "name": "Sermon",
+                  "location": "",
+                  "time": ""
+                }
+              ]
+            },
+            {
+              "date": "7/22(Wed)",
+              "items": [
+                {
+                  "name": "Wed sermon",
+                  "location": "",
+                  "time": ""
+                }
+              ]
+            },
+            {
+              "date": "7/23(Thu)",
+              "items": [
+                {
+                  "name": "Teachers'",
+                  "location": "",
+                  "time": ""
+                }
+              ]
+            },
+            {
+              "date": "7/24(Fri)",
+              "items": [
+                {
+                  "name": "YA Officer Retreat",
+                  "location": "",
+                  "time": ""
+                }
+              ]
+            },
+            {
+              "date": "7/25(Sat)",
+              "items": [
+                {
+                  "name": "YA Officer Retreat",
+                  "location": "",
+                  "time": ""
+                },
+                {
+                  "name": "Translators'",
+                  "location": "",
+                  "time": ""
+                },
+                {
+                  "name": "YA'",
+                  "location": "",
+                  "time": ""
+                }
+              ]
+            }
+          ]
         }
       }
     }

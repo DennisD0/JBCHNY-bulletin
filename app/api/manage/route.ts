@@ -27,6 +27,14 @@ export interface ScheduleEvent {
   pastor?: string;
 }
 
+export interface EastCoastSeminarEntry {
+  date: string;
+  church: string;
+  speaker: string;
+  speakerKo: string;
+  language: string;
+}
+
 export interface ScheduleSource {
   id: string;
   name: string;
@@ -39,6 +47,7 @@ export interface ScheduleSource {
   percentUsed: number;
   status: "active" | "missing" | "expired" | "warning";
   events: ScheduleEvent[];
+  eastCoastSeminars: EastCoastSeminarEntry[];
 }
 
 function getPlanCoverage(planFile: string) {
@@ -129,7 +138,8 @@ export async function GET() {
   const schedulePath = join(process.cwd(), "data", scheduleFile);
   let scheduleSrc: ScheduleSource;
 
-  let scheduleRaw: { coverageStart?: string; coverageEnd?: string; quarter?: string; events?: ScheduleEvent[] } | null = null;
+  type EastCoastSeminarEntry = { date: string; church: string; speaker: string; speakerKo: string; language: string };
+  let scheduleRaw: { coverageStart?: string; coverageEnd?: string; quarter?: string; events?: ScheduleEvent[]; eastCoastSeminars?: EastCoastSeminarEntry[] } | null = null;
   if (existsSync(schedulePath)) {
     try {
       scheduleRaw = JSON.parse(readFileSync(schedulePath, "utf8"));
@@ -141,7 +151,7 @@ export async function GET() {
   if (scheduleRaw) {
     const coverageStart = scheduleRaw.coverageStart ?? null;
     const coverageEnd = scheduleRaw.coverageEnd ?? null;
-    const { quarter, events } = scheduleRaw;
+    const { quarter, events, eastCoastSeminars } = scheduleRaw;
     const totalDays = coverageStart && coverageEnd
       ? Math.max(0, Math.ceil((new Date(coverageEnd).getTime() - new Date(coverageStart).getTime()) / 86400000))
       : 0;
@@ -158,6 +168,7 @@ export async function GET() {
       percentUsed: s.percentUsed,
       status: s.status,
       events: events ?? [],
+      eastCoastSeminars: eastCoastSeminars ?? [],
     };
   } else {
     scheduleSrc = {
@@ -172,6 +183,7 @@ export async function GET() {
       percentUsed: 0,
       status: "missing",
       events: [],
+      eastCoastSeminars: [],
     };
   }
 
