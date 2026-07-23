@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
+import { fetchVerseText as fetchAuthoritativeVerse } from "@/lib/bible-lookup";
 
 const VERSE_LIST_PATH  = join(process.cwd(), "data", "memory_verse_list.json");
 const INDEX_PATH       = join(process.cwd(), "data", "memory_verse_index.json");
@@ -65,76 +66,14 @@ function formatRef(korRef: string, lang: Lang): string {
   return p.verses ? `${bookName} ${p.chap}:${p.verses}` : `${bookName} ${p.chap}`;
 }
 
-// Module-level caches (loaded once per process)
-type BibleBook = { chapters: string[][] };
-const localBibleCache: Partial<Record<string, BibleBook[]>> = {};
-let esBibleIndex: Map<string, string> | null = null;
-
-function loadLocalBible(lang: "ko" | "zh" | "ru"): BibleBook[] {
-  if (localBibleCache[lang]) return localBibleCache[lang]!;
-  const path = join(process.cwd(), "data", `bible_${lang}.json`);
-  if (!existsSync(path)) return [];
-  const data = JSON.parse(readFileSync(path, "utf8")) as BibleBook[];
-  localBibleCache[lang] = data;
-  return data;
-}
-
-function loadESIndex(): Map<string, string> {
-  if (esBibleIndex) return esBibleIndex;
-  const path = join(process.cwd(), "data", "bible_es.json");
-  if (!existsSync(path)) return new Map();
-  const data = JSON.parse(readFileSync(path, "utf8")) as Array<{ BoookNumber: number; Chapter: number; Verse: number; Text: string }>;
-  const idx = new Map<string, string>();
-  for (const e of data) idx.set(`${e.BoookNumber}:${e.Chapter}:${e.Verse}`, e.Text);
-  esBibleIndex = idx;
-  return idx;
-}
-
-function getVersesFromRange(verses: string | undefined, chapterData: string[]): string[] {
-  if (!verses) return [];
-  if (verses.includes("-")) {
-    const [s, e] = verses.split("-").map(Number);
-    return Array.from({ length: e - s + 1 }, (_, i) => chapterData[s + i - 1] ?? "").filter(Boolean);
-  }
-  if (verses.includes(",")) {
-    const [v1, v2] = verses.split(",").map(Number);
-    return Array.from({ length: v2 - v1 + 1 }, (_, i) => chapterData[v1 + i - 1] ?? "").filter(Boolean);
-  }
-  const v = parseInt(verses, 10);
-  return chapterData[v - 1] ? [chapterData[v - 1]] : [];
-}
-
 async function lookupLocalVerse(korRef: string, lang: Lang): Promise<string> {
   if (lang === "en") return "";
-  const p = parseKorRef(korRef);
-  if (!p) return "";
-  const bookIndex = KOR_TO_BOOK_INDEX[p.kor];
-  if (bookIndex === undefined) return "";
-  const chap = parseInt(p.chap, 10);
-
-  if (lang === "es") {
-    const idx = loadESIndex();
-    const bookNum = bookIndex + 1;
-    if (!p.verses) return "";
-    const verses: string[] = [];
-    if (p.verses.includes("-")) {
-      const [s, e] = p.verses.split("-").map(Number);
-      for (let v = s; v <= e; v++) verses.push(idx.get(`${bookNum}:${chap}:${v}`) ?? "");
-    } else if (p.verses.includes(",")) {
-      const [v1, v2] = p.verses.split(",").map(Number);
-      for (let v = v1; v <= v2; v++) verses.push(idx.get(`${bookNum}:${chap}:${v}`) ?? "");
-    } else {
-      verses.push(idx.get(`${bookNum}:${chap}:${parseInt(p.verses, 10)}`) ?? "");
-    }
-    return verses.filter(Boolean).join(" ");
-  }
-
-  const bible = loadLocalBible(lang as "ko" | "zh" | "ru");
-  const book = bible[bookIndex];
-  if (!book) return "";
-  const chapterData = book.chapters[chap - 1];
-  if (!chapterData) return "";
-  return getVersesFromRange(p.verses, chapterData).join(" ");
+  // Convert Korean reference to English (e.g. "벧전 3:15-16" → "1 Peter 3:15-16")
+  // then delegate to the authoritative bible-lookup lib which auto-downloads and
+  // caches the full Bible JSON for each language on first use.
+  const engRef = korToEnglish(korRef);
+  const result = await fetchAuthoritativeVerse(engRef, lang);
+  return result ?? "";
 }
 
 // ── Date-based verse anchor ───────────────────────────────────────────────────
