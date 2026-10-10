@@ -5067,11 +5067,26 @@ export default function Home() {
       }
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
       const langName = LANGUAGE_CONFIG[activeLang].name;
       const bulletinDate = data?.date ?? "00/00/0000";
-      a.href = url; a.download = `${langName} Bulletin_${bulletinDate}.pdf`;
-      a.click(); URL.revokeObjectURL(url);
+      const filename = `${langName} Bulletin_${bulletinDate}.pdf`;
+      // iOS Safari ignores the `download` attribute and just navigates to the
+      // blob URL, so open it directly there instead of faking an <a> click.
+      const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (isIOS) {
+        window.open(url, "_blank");
+      } else {
+        const a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      // Revoking right after click() races the (often async on mobile) blob
+      // load and can hand the viewer a dangling URL, which renders as a
+      // broken/blank PDF. Give it time to finish loading before freeing it.
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } finally { setExporting(false); }
   }
 
