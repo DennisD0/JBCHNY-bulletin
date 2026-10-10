@@ -17,11 +17,13 @@ jobs:
           VM_IP: 34.61.20.62
         run: |
           set -eu
+          echo "Before (Cloudflare): $(dig +short jbchbulletin.duckdns.org @1.1.1.1)"
+          echo "Before (Google):     $(dig +short jbchbulletin.duckdns.org @8.8.8.8)"
+          echo "Authoritative:       $(dig +short jbchbulletin.duckdns.org @ns1.duckdns.org)"
           if [ -z "$DUCKDNS_TOKEN" ]; then
             echo "::error::DUCKDNS_TOKEN secret is not set (Settings > Secrets and variables > Actions)."
             exit 1
           fi
-          echo "Before: $(dig +short jbchbulletin.duckdns.org @1.1.1.1)"
           result=$(curl -fsS "https://www.duckdns.org/update?domains=jbchbulletin&token=${DUCKDNS_TOKEN}&ip=${VM_IP}")
           echo "DuckDNS response: $result"
           test "$result" = "OK"
