@@ -3,6 +3,15 @@ name: Deploy to VM
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - ".github/workflows/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+# The e2-micro VM can only run one `next build` at a time; queue deploys.
+concurrency:
+  group: deploy-vm
+  cancel-in-progress: false
 
 jobs:
   deploy:
