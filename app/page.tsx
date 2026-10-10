@@ -4151,8 +4151,9 @@ export default function Home() {
   const canvasModeRef = useRef<CanvasMode>("grab");
   const interactionMode: CanvasMode = spacePanning ? "grab" : canvasMode;
 
-  // Two-layer transform: outer div pans via translate, inner div zooms via CSS zoom.
-  // CSS zoom re-rasterizes at the display size → crisp text (vs transform:scale which blurs).
+  // Two-layer transform: outer div pans via translate, inner div scales.
+  // Not CSS zoom: WebKit (iPad/iPhone Safari) lays text out at a different size
+  // than its boxes under zoom, so bulletin text overflowed and overlapped there.
   const pdfPanRef  = useRef<HTMLDivElement>(null);
   const pdfZoomRef = useRef<HTMLDivElement>(null);
 
@@ -4163,9 +4164,9 @@ export default function Home() {
     if (!pan || !zoom) return;
     const easing = "cubic-bezier(0.4,0,0.2,1)";
     pan.style.transition  = animate ? `transform 0.42s ${easing}` : "none";
-    zoom.style.transition = animate ? `zoom 0.42s ${easing}` : "none";
+    zoom.style.transition = animate ? `transform 0.42s ${easing}` : "none";
     pan.style.transform   = `translate(${x}px,${y}px)`;
-    zoom.style.zoom       = String(z);
+    zoom.style.transform  = `scale(${z})`;
   }, []);
 
   const postLockAction = useCallback(async (
@@ -5669,7 +5670,7 @@ export default function Home() {
         {data ? (
           /* Pan layer — translate only */
           <div ref={pdfPanRef} style={{ position: "absolute", left: 0, top: 0, willChange: "transform" }}>
-            {/* Zoom layer — CSS zoom for crisp text re-rasterize */}
+            {/* Zoom layer — scaled via transform in applyTransform */}
             <div ref={pdfZoomRef} style={{ width: PAGE_W, transformOrigin: "0 0", pointerEvents: interactionMode === "grab" ? "none" : "auto", position: "relative" }}>
               <BulletinPreview
                 data={data}
@@ -5697,7 +5698,7 @@ export default function Home() {
                     if (!zoomEl) return;
                     const rect = zoomEl.getBoundingClientRect();
                     // Use the scale that is actually rendered at click time.
-                    // style.zoom is the animation target and can briefly differ
+                    // style.transform is the animation target and can briefly differ
                     // from the scale visible under the pointer.
                     const renderedZoom = rect.width / PAGE_W || 1;
                     const localX = (e.clientX - rect.left) / renderedZoom;
