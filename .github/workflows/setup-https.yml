@@ -1,0 +1,27 @@
+name: Set up HTTPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  https:
+    name: Install Let's Encrypt certificate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run certbot via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 34.61.20.62
+          username: dennisnasa
+          key: ${{ secrets.VM_DEPLOY_KEY }}
+          script: |
+            set -e
+            sudo sed -i 's/server_name _;/server_name jbchbulletin.duckdns.org;/' /etc/nginx/sites-available/bulletin
+            sudo apt-get update -q
+            sudo apt-get install -y -q certbot python3-certbot-nginx
+            sudo certbot --nginx -d jbchbulletin.duckdns.org --redirect --agree-tos \
+              --register-unsafely-without-email --non-interactive --keep-until-expiring
+            sudo nginx -t
+            sudo systemctl reload nginx
+            sudo systemctl list-timers | grep -i certbot || true
