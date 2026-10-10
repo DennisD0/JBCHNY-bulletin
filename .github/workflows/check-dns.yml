@@ -1,0 +1,17 @@
+name: Check DNS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dig:
+    name: Resolve jbchbulletin.duckdns.org
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Look up the record
+        run: |
+          echo "Authoritative: $(dig +short jbchbulletin.duckdns.org @ns1.duckdns.org)"
+          echo "Cloudflare:    $(dig +short jbchbulletin.duckdns.org @1.1.1.1)"
+          echo "Google:        $(dig +short jbchbulletin.duckdns.org @8.8.8.8)"
+          echo "HTTPS status:  $(curl -s -o /dev/null -w '%{http_code}' --max-time 15 https://jbchbulletin.duckdns.org/)"
