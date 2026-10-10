@@ -1,0 +1,25 @@
+name: Diagnose DuckDNS updater
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    name: Look for DuckDNS updaters on the VM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Inspect cron and timers (read-only)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 34.61.20.62
+          username: dennisnasa
+          key: ${{ secrets.VM_DEPLOY_KEY }}
+          script: |
+            redact() { sed -E 's/(token=)[A-Za-z0-9-]+/\1REDACTED/g; s/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/REDACTED-UUID/g'; }
+            echo "== user crontab =="; crontab -l 2>&1 | redact
+            echo "== root crontab =="; sudo crontab -l 2>&1 | redact
+            echo "== /etc/cron.d =="; sudo grep -ril duckdns /etc/cron* 2>/dev/null; sudo cat /etc/cron.d/* 2>/dev/null | redact
+            echo "== systemd timers =="; systemctl list-timers --all --no-pager 2>&1 | head -30
+            echo "== files mentioning duckdns =="; sudo grep -ril duckdns /home /root /etc /opt /usr/local 2>/dev/null | grep -v letsencrypt | head -20
+            for f in $(sudo grep -ril duckdns /home /root /opt /usr/local 2>/dev/null | head -5); do echo "--- $f"; sudo cat "$f" | redact; done
