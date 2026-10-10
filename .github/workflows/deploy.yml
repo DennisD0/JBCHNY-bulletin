@@ -25,6 +25,7 @@ jobs:
           host: 34.61.20.62
           username: dennisnasa
           key: ${{ secrets.VM_DEPLOY_KEY }}
+          command_timeout: 20m
           script: |
             cd ~/bulletin
             git fetch origin main
