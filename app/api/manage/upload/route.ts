@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFileSync, readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readDataJson, writeDataJson } from "@/lib/cloud-data";
 
 export const maxDuration = 60;
 
@@ -465,7 +464,7 @@ export async function POST(request: NextRequest) {
 
     // Step 3: Parse based on type
     let parsedData: unknown;
-    let outputPath: string;
+    let outputName: string;
     let previewLines: string[] = [];
 
     if (uploadType === "reading") {
@@ -479,14 +478,14 @@ export async function POST(request: NextRequest) {
         plan = parseEnglishReadingPlan(rawText, year);
       }
       parsedData = plan;
-      outputPath = join(process.cwd(), "data", "year_reading_plan.json");
+      outputName = "year_reading_plan.json";
       const entries = Object.entries(plan).filter(([,v]) => v);
       previewLines = entries.slice(0, 10).map(([k, v]) => `${k}: ${v}`);
       previewLines.push(`... ${entries.length} total entries`);
     } else {
       const schedule = parseScheduleText(rawText, year);
       parsedData = schedule;
-      outputPath = join(process.cwd(), "data", "monthly_schedule.json");
+      outputName = "monthly_schedule.json";
       previewLines = schedule.events.map(e =>
         `${e.label}: ${e.startDate} – ${e.endDate}${e.location ? " · " + e.location : ""}`
       );
@@ -500,15 +499,11 @@ export async function POST(request: NextRequest) {
       // Reading plans are a flat {date: passage} map — merge onto the existing file so a
       // partial upload doesn't wipe the rest of the year. (Schedule is a coherent snapshot,
       // so it's replaced wholesale.)
-      if (uploadType === "reading" && existsSync(outputPath)) {
-        try {
-          const existing = JSON.parse(readFileSync(outputPath, "utf8")) as Record<string, string | null>;
-          toWrite = { ...existing, ...(parsedData as Record<string, string | null>) };
-        } catch {
-          // Existing file unreadable — fall back to writing the fresh data.
-        }
+      if (uploadType === "reading") {
+        const existing = await readDataJson<Record<string, string | null>>(outputName);
+        if (existing) toWrite = { ...existing, ...(parsedData as Record<string, string | null>) };
       }
-      writeFileSync(outputPath, JSON.stringify(toWrite, null, 2));
+      await writeDataJson(outputName, toWrite);
     }
 
     return NextResponse.json({

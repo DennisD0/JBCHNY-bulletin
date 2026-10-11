@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readDataJson } from "@/lib/cloud-data";
 
 export interface DataSource {
   id: string;
@@ -50,11 +49,10 @@ export interface ScheduleSource {
   eastCoastSeminars: EastCoastSeminarEntry[];
 }
 
-function getPlanCoverage(planFile: string) {
-  const p = join(process.cwd(), "data", planFile);
-  if (!existsSync(p)) return { start: null, end: null, total: 0 };
+async function getPlanCoverage(planFile: string) {
   try {
-    const plan: Record<string, string | null> = JSON.parse(readFileSync(p, "utf8"));
+    const plan = await readDataJson<Record<string, string | null>>(planFile);
+    if (!plan) return { start: null, end: null, total: 0 };
     const keys = Object.keys(plan).filter((k) => plan[k] !== null).sort();
     if (!keys.length) return { start: null, end: null, total: 0 };
     return { start: keys[0], end: keys[keys.length - 1], total: keys.length };
@@ -121,7 +119,7 @@ export async function GET() {
 
   for (const src of readingSources) {
     if (!src.planFile) continue;
-    const { start, end, total } = getPlanCoverage(src.planFile);
+    const { start, end, total } = await getPlanCoverage(src.planFile);
     if (!start || !end) continue;
     src.startDate = start;
     src.endDate = end;
@@ -135,17 +133,14 @@ export async function GET() {
 
   // --- Monthly schedule source ---
   const scheduleFile = "monthly_schedule.json";
-  const schedulePath = join(process.cwd(), "data", scheduleFile);
   let scheduleSrc: ScheduleSource;
 
   type EastCoastSeminarEntry = { date: string; church: string; speaker: string; speakerKo: string; language: string };
   let scheduleRaw: { coverageStart?: string; coverageEnd?: string; quarter?: string; events?: ScheduleEvent[]; eastCoastSeminars?: EastCoastSeminarEntry[] } | null = null;
-  if (existsSync(schedulePath)) {
-    try {
-      scheduleRaw = JSON.parse(readFileSync(schedulePath, "utf8"));
-    } catch (error) {
-      console.error("Failed to read/parse monthly_schedule.json", error);
-    }
+  try {
+    scheduleRaw = await readDataJson(scheduleFile);
+  } catch (error) {
+    console.error("Failed to read/parse monthly_schedule.json", error);
   }
 
   if (scheduleRaw) {

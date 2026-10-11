@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readDataJson } from "@/lib/cloud-data";
 
 const DISPLAY: Record<string, string> = { Ps: "Psalms" };
 
@@ -31,12 +30,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const dateStr = searchParams.get("date"); // MM/DD/YYYY
 
-  const planPath = join(process.cwd(), "data", "year_reading_plan.json");
-  if (!existsSync(planPath)) {
+  const plan = await readDataJson<Record<string, string | null>>("year_reading_plan.json");
+  if (!plan) {
     return NextResponse.json({ error: "No reading plan loaded" }, { status: 404 });
   }
 
-  const plan: Record<string, string | null> = JSON.parse(readFileSync(planPath, "utf8"));
   const coveredDates = Object.keys(plan).filter((key) => plan[key] !== null).sort();
   const coverageStart = coveredDates[0] ?? null;
   const coverageEnd = coveredDates[coveredDates.length - 1] ?? null;

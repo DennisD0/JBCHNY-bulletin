@@ -10,6 +10,7 @@
     "test": "node --test --experimental-strip-types lib/hymn-crop.test.ts lib/audiveris.test.ts lib/hymn-presets.test.ts"
   },
   "dependencies": {
+    "@google-cloud/storage": "^8.4.0",
     "@xmldom/xmldom": "^0.8.13",
     "framer-motion": "^12.42.2",
     "html2canvas": "^1.4.1",
