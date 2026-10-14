@@ -108,6 +108,46 @@ export function UploadModal({
     }
   }
 
+  // Everything the reader wasn't sure about, recomputed live as the user fixes cells.
+  const doubleCheck: Array<{ key: string; text: string; cell?: [number, number]; confirmable?: boolean }> = [];
+  if (grid) {
+    const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+    grid.churches.forEach((ch, ci) => ch.sundays.forEach((cell, si) => {
+      if (cell.status === "unknown") {
+        doubleCheck.push({ key: `u-${ci}-${si}`, cell: [ci, si], text: `${ch.ko} · ${md(cell.date)} — couldn't read the name${cell.raw ? ` (OCR saw “${cell.raw}”)` : ""}. Type it in the table.` });
+      } else if (cell.status === "corrected") {
+        const read = (cell.raw ?? "").replace(/[^가-힣]/g, "").slice(0, 3);
+        doubleCheck.push({ key: `c-${ci}-${si}`, cell: [ci, si], confirmable: true, text: `${ch.ko} · ${md(cell.date)} — read “${read}”, used ${cell.name}${cell.title}.` });
+      }
+    }));
+    if (grid.events.length === 0) doubleCheck.push({ key: "no-events", text: "No events were found in the bands above the table. Add any events from the sheet below." });
+    grid.events.forEach((ev) => {
+      if (!ev.label.trim() || !ev.startDate || !ev.endDate || ev.endDate < ev.startDate) {
+        doubleCheck.push({ key: `e-${ev.id}`, text: `Event “${ev.label || "(no name)"}” needs a name and a valid start and end date.` });
+      }
+    });
+  }
+  const unreadable = doubleCheck.filter((d) => d.key.startsWith("u-") || d.key.startsWith("e-")).length;
+
+  function focusCell(ci: number, si: number) {
+    const el = document.getElementById(`cell-${ci}-${si}`) as HTMLInputElement | null;
+    el?.scrollIntoView({ block: "center", inline: "center" });
+    el?.focus();
+  }
+  function confirmCell(ci: number, si: number) {
+    if (!grid) return;
+    setGrid({ ...grid, churches: grid.churches.map((c, i) => i !== ci ? c : { ...c, sundays: c.sundays.map((x, j) => j === si ? { ...x, status: "ok" } : x) }) });
+  }
+  function updateEvent(id: string, patch: Partial<BandEvent>) {
+    if (!grid) return;
+    setGrid({ ...grid, events: grid.events.map((ev) => ev.id === id ? { ...ev, ...patch } : ev) });
+  }
+  function addEvent() {
+    if (!grid) return;
+    const start = grid.coverageStart;
+    setGrid({ ...grid, events: [...grid.events, { id: `custom-${Date.now()}`, type: "other", label: "", startDate: start, endDate: start, location: "" }] });
+  }
+
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
@@ -212,6 +252,31 @@ export function UploadModal({
               <span>✅</span>
               <span>Parsed successfully. Review below, then click <strong>Save</strong>.</span>
             </div>
+            {doubleCheck.length > 0 && (
+              <div style={{ background: "#FFF7ED", border: "1.5px solid #FDBA74", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#C2410C", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+                  ⚠ Double-check ({doubleCheck.length})
+                </div>
+                <div style={{ fontSize: 12, color: "#9A3412", marginBottom: 8 }}>
+                  {unreadable > 0
+                    ? `${unreadable} item${unreadable === 1 ? "" : "s"} could not be read — fix ${unreadable === 1 ? "it" : "them"} below or leave ${unreadable === 1 ? "it" : "them"} as is. The rest were auto-corrected and are probably right.`
+                    : "Nothing is blocking, but these were auto-corrected or guessed — worth a quick look."}
+                </div>
+                <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                  {doubleCheck.map((d) => (
+                    <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: d.key.startsWith("u-") || d.key.startsWith("e-") ? "#B91C1C" : "#9A3412", padding: "4px 0", borderTop: "1px solid #FED7AA" }}>
+                      <span style={{ flex: 1 }}>{d.text}</span>
+                      {d.cell && (
+                        <button onClick={() => focusCell(d.cell![0], d.cell![1])} style={{ border: "1px solid #FDBA74", background: "#fff", color: "#C2410C", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Go to cell</button>
+                      )}
+                      {d.confirmable && d.cell && (
+                        <button onClick={() => confirmCell(d.cell![0], d.cell![1])} style={{ border: "none", background: "#EA580C", color: "#fff", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Looks right</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ background: BL_L, border: `1px solid ${BL_M}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
                 {uploadType === "reading" ? "Parsed Readings (first 10)" : "Parsed Events"}
@@ -225,21 +290,30 @@ export function UploadModal({
             </div>
             {grid && (
               <>
-                {grid.events.length > 0 && (
-                  <div style={{ border: `1px solid ${BL_M}`, borderRadius: 12, padding: "10px 14px", marginBottom: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Events found</div>
-                    {grid.events.map((ev) => (
-                      <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#1E3A8A", padding: "2px 0" }}>
-                        <span style={{ flex: 1 }}>{ev.label} · {ev.startDate.slice(5)} – {ev.endDate.slice(5)}{ev.location ? ` · ${ev.location}` : ""}</span>
+                <div style={{ border: `1px solid ${BL_M}`, borderRadius: 12, padding: "10px 14px", marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                    Events — edit, remove or add
+                  </div>
+                  {grid.events.map((ev) => {
+                    const bad = !ev.label.trim() || !ev.startDate || !ev.endDate || ev.endDate < ev.startDate;
+                    const field = { padding: "5px 7px", fontSize: 13, borderRadius: 6, outline: "none", border: `1.5px solid ${bad ? "#FCA5A5" : "#E2E8F0"}`, color: "#1E293B", background: "#fff", minWidth: 0 } as const;
+                    return (
+                      <div key={ev.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, padding: "4px 0" }}>
+                        <input value={ev.label} placeholder="Event name" onChange={(e) => updateEvent(ev.id, { label: e.target.value })} style={{ ...field, flex: "2 1 200px" }} />
+                        <input type="date" value={ev.startDate} onChange={(e) => updateEvent(ev.id, { startDate: e.target.value, ...(ev.endDate < e.target.value ? { endDate: e.target.value } : {}) })} style={{ ...field, width: 140 }} />
+                        <span style={{ color: "#94A3B8" }}>–</span>
+                        <input type="date" value={ev.endDate} min={ev.startDate} onChange={(e) => updateEvent(ev.id, { endDate: e.target.value })} style={{ ...field, width: 140 }} />
+                        <input value={ev.location} placeholder="Location (optional)" onChange={(e) => updateEvent(ev.id, { location: e.target.value })} style={{ ...field, flex: "1 1 130px" }} />
                         <button
                           title="Remove this event"
                           onClick={() => setGrid({ ...grid, events: grid.events.filter((x) => x.id !== ev.id) })}
-                          style={{ border: "none", background: "#F1F5F9", borderRadius: 6, cursor: "pointer", color: "#64748B", width: 22, height: 22 }}
+                          style={{ border: "none", background: "#F1F5F9", borderRadius: 6, cursor: "pointer", color: "#64748B", width: 26, height: 26 }}
                         >✕</button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                  <button onClick={addEvent} style={{ marginTop: 6, border: `1.5px dashed ${BL}`, background: BL_L, color: BL, borderRadius: 8, padding: "5px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>＋ Add event</button>
+                </div>
                 <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
                   Preachers by church — fix any cell, then save <span style={{ fontWeight: 600, textTransform: "none", color: "#94A3B8" }}>(top 9 rows feed the East Coast table · → = same as last week · amber = auto-corrected · red = not recognised)</span>
                 </div>
@@ -260,6 +334,8 @@ export function UploadModal({
                           {ch.sundays.map((cell, si) => (
                             <td key={cell.date} style={{ padding: 2 }}>
                               <input
+                                id={`cell-${ci}-${si}`}
+                                key={`${cell.status}-${formatCell(cell)}`}
                                 defaultValue={formatCell(cell)}
                                 title={cell.raw ? `OCR read: ${cell.raw}` : undefined}
                                 disabled={cell.status === "retreat"}

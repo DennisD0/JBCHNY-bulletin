@@ -6,8 +6,8 @@ import type { BulletinLanguage } from "@/lib/bulletin-languages";
  * Fetches Bible verses from authoritative translations instead of Google Translate.
  *   Korean  → 개역한글 (Korean Revised Version / ko_ko)
  *   Spanish → Reina Valera (es_rvr)
- *   Chinese → 和合本 Union Version Simplified (zh_cuv)
- *   Russian → Russian Synodal Bible (ru_synodal)
+ *   Chinese → 和合本 Union Version (ChiUn, Traditional → Simplified on read)
+ *   Russian → Russian Synodal Bible (RusSynodal)
  *
  * Source: github.com/thiagobodruk/bible (raw JSON, downloaded once and cached locally).
  * JSON format: [{abbrev, chapters: [[v1, v2, ...], ...]}, ...] — all arrays are 0-indexed.
@@ -21,8 +21,10 @@ const GITHUB_URLS: Partial<Record<BulletinLanguage, string>> = {
   ko: "https://raw.githubusercontent.com/scrollmapper/bible_databases/master/formats/json/KorRV.json",
   // RVR1960 (Reina Valera 1960) — flat format, converted on load
   es: "https://raw.githubusercontent.com/TriGataro/Biblia_Reina_Valera_1960/master/Biblia_Reina_Valera_1960_Esp.json",
-  zh: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/zh_cuv.json",
-  ru: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/ru_synodal.json",
+  // ChiUn = 和合本 in Traditional script; converted to Simplified when a verse is read.
+  zh: "https://raw.githubusercontent.com/scrollmapper/bible_databases/master/formats/json/ChiUn.json",
+  // RusSynodal includes the apocrypha (78 books) and Greek psalm numbering; handled below.
+  ru: "https://raw.githubusercontent.com/scrollmapper/bible_databases/master/formats/json/RusSynodal.json",
 };
 
 type BibleBook = { abbrev: string; chapters: string[][] };
@@ -44,10 +46,31 @@ function convertRVR1960(flat: RVR1960Entry[]): BibleData {
 }
 
 // scrollmapper format: { translation, books: [{ name, chapters: [{ chapter, verses: [{ verse, text }] }] }] }
-type ScrollmapperBible = { books: Array<{ chapters: Array<{ verses: Array<{ verse: number; text: string }> }> }> };
+type ScrollmapperBible = { books: Array<{ name?: string; chapters: Array<{ verses: Array<{ verse: number; text: string }> }> }> };
+
+// The 66 canonical books in the order BOOK_INDEX expects, by normalised English name.
+const CANON = [
+  "genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel",
+  "1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs",
+  "ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos",
+  "obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi",
+  "matthew","mark","luke","john","acts","romans","1 corinthians","2 corinthians","galatians","ephesians",
+  "philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon",
+  "hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation",
+];
+function normBookName(n: string): string {
+  return n.toLowerCase().replace(/^iii /, "3 ").replace(/^ii /, "2 ").replace(/^i /, "1 ").replace(/ of john$/, "");
+}
 
 export function convertScrollmapper(src: ScrollmapperBible): BibleData {
-  return src.books.map((book) => ({
+  // Some files (RusSynodal) include apocryphal books in the middle; pick out the canonical 66.
+  let books = src.books;
+  if (books.length !== 66 && books.every((b) => b.name)) {
+    const byName = new Map(books.map((b) => [normBookName(b.name!), b]));
+    const picked = CANON.map((n) => byName.get(n));
+    if (picked.every(Boolean)) books = picked as typeof books;
+  }
+  return books.map((book) => ({
     abbrev: "",
     chapters: book.chapters.map((ch) => {
       const verses: string[] = [];
@@ -196,6 +219,32 @@ function parseReference(ref: string): ParsedRef | null {
   };
 }
 
+/**
+ * RusSynodal numbers the Psalms like the Greek Septuagint, so Hebrew (English-Bible)
+ * Psalm 118 is Synodal 117. Translate a Hebrew chapter:verse to the Synodal one.
+ */
+export function ruPsalmRef(chapter: number, verse: number): [number, number] {
+  if (chapter <= 8 || chapter >= 148) return [chapter, verse];
+  if (chapter === 9) return [9, verse];
+  if (chapter === 10) return [9, verse + 21];          // Hebrew 9 and 10 are one psalm
+  if (chapter <= 113) return [chapter - 1, verse];
+  if (chapter === 114) return [113, verse];            // Hebrew 114 + 115 are Synodal 113
+  if (chapter === 115) return [113, verse + 8];
+  if (chapter === 116) return verse <= 9 ? [114, verse] : [115, verse - 9];  // split in two
+  if (chapter <= 146) return [chapter - 1, verse];
+  return verse <= 11 ? [146, verse] : [147, verse - 11];                    // Hebrew 147 spans two
+}
+
+/** Per-language clean-up of verse text from the source file. */
+export async function normalizeVerseText(lang: BulletinLanguage, text: string): Promise<string> {
+  if (lang !== "zh") return text;
+  // The Traditional-script source puts spaces between words, which Chinese doesn't use;
+  // the bulletin is in Simplified script.
+  const OpenCC = await import("opencc-js");
+  const toSimplified = OpenCC.Converter({ from: "tw", to: "cn" });
+  return toSimplified(text.replace(/\s+/g, ""));
+}
+
 // Per-verse result cache so we never re-fetch the same verse twice
 const VERSE_CACHE_PATH = join(process.cwd(), "data", "bible_verse_cache.json");
 type VerseCache = Partial<Record<BulletinLanguage, Record<string, string>>>;
@@ -260,13 +309,14 @@ export async function fetchVerseText(
 
   const lines: string[] = [];
   for (let v = parsed.verseStart; v <= parsed.verseEnd; v++) {
+    const [ch, vv] = lang === "ru" && parsed.bookIdx === 18 ? ruPsalmRef(parsed.chapter, v) : [parsed.chapter, v];
     // Some Bible sources (e.g. Synodal) embed verse numbers like "(117:17)" in text — strip them
-    const text = chapter[v - 1]?.trim().replace(/^\(\d+:\d+\)\s*/, "");
+    const text = book.chapters[ch - 1]?.[vv - 1]?.trim().replace(/^\(\d+:\d+\)\s*/, "");
     if (text) lines.push(text);
   }
   if (!lines.length) return null;
 
-  const result = lines.join(" ");
+  const result = await normalizeVerseText(lang, lines.join(lang === "zh" ? "" : " "));
 
   // Persist to verse cache
   cache[lang] ??= {};

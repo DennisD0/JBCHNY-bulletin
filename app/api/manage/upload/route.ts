@@ -466,6 +466,22 @@ function mergeSchedule(existing: ScheduleFile | null, incoming: ScheduleFile): S
   };
 }
 
+// Events can be edited in the review window, so don't trust their shape.
+function cleanEvents(v: unknown): ParsedEvent[] {
+  if (!Array.isArray(v)) return [];
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  return v.flatMap((e, i) => {
+    if (!e || typeof e.label !== "string" || !e.label.trim()) return [];
+    if (typeof e.startDate !== "string" || typeof e.endDate !== "string" || !iso.test(e.startDate) || !iso.test(e.endDate) || e.endDate < e.startDate) return [];
+    const type = typeof e.type === "string" && e.type ? e.type : "other";
+    return [{
+      id: typeof e.id === "string" && e.id ? e.id : `${type}-${e.startDate}-${i}`,
+      type, label: e.label.trim(), startDate: e.startDate, endDate: e.endDate,
+      location: typeof e.location === "string" ? e.location.trim() : "",
+    }];
+  });
+}
+
 function isGridChurches(v: unknown): v is GridChurch[] {
   return Array.isArray(v) && v.length > 0 && v.every((c) =>
     c && typeof c.en === "string" && Array.isArray(c.sundays) &&
@@ -485,7 +501,7 @@ export async function POST(request: NextRequest) {
       const existing = await readDataJson<ScheduleFile>("monthly_schedule.json");
       const merged = mergeSchedule(existing, {
         coverageStart, coverageEnd, quarter, churches,
-        events: Array.isArray(events) ? events : [],
+        events: cleanEvents(events),
       });
       await writeDataJson("monthly_schedule.json", merged);
       // Remember what the person fixed so the same misread is corrected automatically next time.
@@ -539,13 +555,6 @@ export async function POST(request: NextRequest) {
         const previewLines = [
           `${grid.quarter}: ${fmtDay(grid.coverageStart)} – ${fmtDay(grid.coverageEnd)} · ${grid.churches.length} churches`,
           ...(ny ? [`New York: ${ny.sundays.filter((c) => c.name && c.status !== "same").map((c) => `${fmtDay(c.date)} ${c.name}${c.title}`).join(", ")}`] : []),
-          ...(grid.events.length > 0
-            ? [`Events: ${grid.events.map((e) => `${e.label} ${fmtDay(e.startDate)}–${fmtDay(e.endDate)}`).join("; ")}`]
-            : ["No events found in the top bands"]),
-          grid.unmatched > 0
-            ? `⚠ ${grid.unmatched} name${grid.unmatched === 1 ? "" : "s"} not recognised — fix the red cells below`
-            : "All names recognised",
-          ...(grid.corrected > 0 ? [`${grid.corrected} name${grid.corrected === 1 ? "" : "s"} auto-corrected (amber cells) — worth a quick look`] : []),
         ];
         if (shouldSave) {
           const existing = await readDataJson<ScheduleFile>("monthly_schedule.json");
