@@ -16,7 +16,9 @@ import type { BulletinLanguage } from "@/lib/bulletin-languages";
 // thiagobodruk format: [{abbrev, chapters: string[][]}]
 // TriGataro RVR1960 format: [{BoookNumber, Chapter, Verse, Text, ...}] (flat per-verse)
 const GITHUB_URLS: Partial<Record<BulletinLanguage, string>> = {
-  ko: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/ko_ko.json",
+  // KorRV = 개역성경 (the 개역한글 text). thiagobodruk's ko_ko.json no longer exists (404), which
+  // silently dropped Korean verses back to machine translation.
+  ko: "https://raw.githubusercontent.com/scrollmapper/bible_databases/master/formats/json/KorRV.json",
   // RVR1960 (Reina Valera 1960) — flat format, converted on load
   es: "https://raw.githubusercontent.com/TriGataro/Biblia_Reina_Valera_1960/master/Biblia_Reina_Valera_1960_Esp.json",
   zh: "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/zh_cuv.json",
@@ -39,6 +41,20 @@ function convertRVR1960(flat: RVR1960Entry[]): BibleData {
     books[bookIdx].chapters[chapterIdx][entry.Verse - 1] = entry.Text;
   }
   return books;
+}
+
+// scrollmapper format: { translation, books: [{ name, chapters: [{ chapter, verses: [{ verse, text }] }] }] }
+type ScrollmapperBible = { books: Array<{ chapters: Array<{ verses: Array<{ verse: number; text: string }> }> }> };
+
+export function convertScrollmapper(src: ScrollmapperBible): BibleData {
+  return src.books.map((book) => ({
+    abbrev: "",
+    chapters: book.chapters.map((ch) => {
+      const verses: string[] = [];
+      for (const v of ch.verses) verses[v.verse - 1] = v.text;
+      return verses;
+    }),
+  }));
 }
 
 // In-memory cache of parsed Bible files (avoids repeated 2-5 MB disk reads)
@@ -76,7 +92,9 @@ async function loadBible(lang: BulletinLanguage): Promise<BibleData | null> {
     // TriGataro RVR1960 is a flat per-verse array; convert to standard BibleData format
     const data: BibleData = lang === "es" && Array.isArray(parsed) && parsed[0]?.BoookNumber !== undefined
       ? convertRVR1960(parsed as RVR1960Entry[])
-      : parsed as BibleData;
+      : Array.isArray(parsed?.books)
+        ? convertScrollmapper(parsed as ScrollmapperBible)
+        : parsed as BibleData;
     memoryBibles.set(lang, data);
     return data;
   } catch {
@@ -201,6 +219,12 @@ function writeVerseCache(cache: VerseCache) {
   }
 }
 
+// data/verse_overrides.json: { "<lang>": { "<English reference>": "<verse text>" } }
+const OVERRIDES_PATH = join(process.cwd(), "data", "verse_overrides.json");
+function readOverrides(): Partial<Record<BulletinLanguage, Record<string, string>>> {
+  try { return JSON.parse(readFileSync(OVERRIDES_PATH, "utf-8")); } catch { return {}; }
+}
+
 /**
  * Returns the verse text for `reference` in the authoritative Bible version for `lang`,
  * or null if the reference is unparseable / the source is unavailable.
@@ -211,6 +235,11 @@ export async function fetchVerseText(
   lang: BulletinLanguage,
 ): Promise<string | null> {
   if (!GITHUB_URLS[lang]) return null;
+
+  // Verses pinned in the repo (e.g. the cover verse) win over everything, so they stay in
+  // the intended translation even when the Bible download is unavailable.
+  const pinned = readOverrides()[lang]?.[reference];
+  if (pinned) return pinned;
 
   // Check verse cache first
   const cache = readVerseCache();
