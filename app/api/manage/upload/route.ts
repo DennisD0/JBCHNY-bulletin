@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import sharp from "sharp";
 import { readDataJson, writeDataJson } from "@/lib/cloud-data";
+import { createOcrWorker } from "@/lib/ocr-worker";
+import { loadRoster, saveLearnedFromGrid } from "@/lib/preacher-roster";
+import { readScheduleGrid } from "@/lib/schedule-grid";
+import { buildEastCoastEntries, type GridChurch } from "@/lib/schedule-grid-shared";
 
 export const maxDuration = 60;
 
@@ -407,24 +408,6 @@ async function renderPdfToImages(pdfBuffer: Buffer): Promise<Buffer[]> {
 }
 
 // ── OCR via tesseract.js ────────────────────────────────────
-// tesseract.js downloads kor+eng language data from a CDN on every cold worker
-// unless told where to find it. On the small VM that download alone can blow past
-// the reverse proxy's 60s timeout (nginx then returns an HTML 504 page, which the
-// client fails to parse as JSON). The repo already ships the traineddata files for
-// Audiveris, so point tesseract.js at them.
-function localTessdataDir(): string | undefined {
-  const candidates = [
-    process.env.AUDIVERIS_TESSDATA_DIR,
-    path.join(process.cwd(), "tools", "audiveris", "tessdata"),
-  ];
-  for (const dir of candidates) {
-    if (dir && fs.existsSync(path.join(dir, "kor.traineddata")) && fs.existsSync(path.join(dir, "eng.traineddata"))) {
-      return dir;
-    }
-  }
-  return undefined;
-}
-
 // Phone photos can be 4000+px; OCR time and memory scale with pixel count and
 // nothing useful is gained above ~2400px on a printed table.
 async function shrinkForOcr(buf: Buffer): Promise<Buffer> {
@@ -440,14 +423,7 @@ async function shrinkForOcr(buf: Buffer): Promise<Buffer> {
 }
 
 async function runOCR(imageBuffers: Buffer[], langs: string): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createWorker } = require("tesseract.js") as typeof import("tesseract.js");
-  const langPath = localTessdataDir();
-  const worker = await createWorker(
-    langs,
-    1,
-    langPath ? { langPath, gzip: false, cachePath: os.tmpdir() } : {}
-  );
+  const worker = await createOcrWorker(langs);
   const parts: string[] = [];
   try {
     for (const buf of imageBuffers) {
@@ -461,9 +437,62 @@ async function runOCR(imageBuffers: Buffer[], langs: string): Promise<string> {
   }
 }
 
+// ── Schedule merge ──────────────────────────────────────────
+interface ScheduleFile {
+  coverageStart?: string; coverageEnd?: string; quarter?: string;
+  events?: ParsedEvent[];
+  eastCoastSeminars?: ReturnType<typeof buildEastCoastEntries>;
+  churches?: GridChurch[];
+}
+
+// A new upload only replaces what falls inside its own date range. Everything else
+// already saved (other quarters' East Coast rows and events, and anything the upload
+// couldn't read) is kept, so a bad or partial parse can't wipe the schedule.
+function mergeSchedule(existing: ScheduleFile | null, incoming: ScheduleFile): ScheduleFile {
+  const start = incoming.coverageStart ?? existing?.coverageStart;
+  const end   = incoming.coverageEnd   ?? existing?.coverageEnd;
+  const outside = (a: string, b: string) => !!start && !!end && (b < start || a > end);
+  const keptEvents = (existing?.events ?? []).filter((e) => outside(e.startDate, e.endDate));
+  const keptEast   = (existing?.eastCoastSeminars ?? []).filter((e) => outside(e.date, e.date));
+  const east = incoming.churches ? buildEastCoastEntries(incoming.churches) : [];
+  return {
+    ...existing,
+    coverageStart: [existing?.coverageStart, start].filter(Boolean).sort()[0],
+    coverageEnd:   [existing?.coverageEnd, end].filter(Boolean).sort().reverse()[0],
+    quarter: incoming.quarter ?? existing?.quarter,
+    events: [...keptEvents, ...(incoming.events ?? [])],
+    eastCoastSeminars: [...keptEast, ...east].sort((a, b) => a.date.localeCompare(b.date)),
+    ...(incoming.churches ? { churches: incoming.churches } : {}),
+  };
+}
+
+function isGridChurches(v: unknown): v is GridChurch[] {
+  return Array.isArray(v) && v.length > 0 && v.every((c) =>
+    c && typeof c.en === "string" && Array.isArray(c.sundays) &&
+    c.sundays.every((s: { date?: unknown; name?: unknown }) => typeof s.date === "string" && typeof s.name === "string"));
+}
+
 // ── POST handler ────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
+    // Reviewed/corrected schedule from the upload modal's table (no file involved).
+    if ((request.headers.get("content-type") ?? "").includes("application/json")) {
+      const body = await request.json();
+      if (body?.type !== "schedule" || !isGridChurches(body?.data?.churches)) {
+        return NextResponse.json({ error: "Invalid schedule data" }, { status: 400 });
+      }
+      const { coverageStart, coverageEnd, quarter, churches, events } = body.data;
+      const existing = await readDataJson<ScheduleFile>("monthly_schedule.json");
+      const merged = mergeSchedule(existing, {
+        coverageStart, coverageEnd, quarter, churches,
+        events: Array.isArray(events) ? events : [],
+      });
+      await writeDataJson("monthly_schedule.json", merged);
+      // Remember what the person fixed so the same misread is corrected automatically next time.
+      await saveLearnedFromGrid(churches).catch((e) => console.error("Failed to save learned names", e));
+      return NextResponse.json({ success: true, saved: true });
+    }
+
     const formData = await request.formData();
     const uploadType = formData.get("type") as string; // "reading" | "schedule"
     const yearStr    = formData.get("year") as string;
@@ -499,7 +528,34 @@ export async function POST(request: NextRequest) {
       imageBuffers = [buffer];
     }
 
-    // Step 2: OCR — use Korean + English for schedule, Korean+English for reading
+    // Step 2a: the quarterly sermon plan is a ruled grid — read it cell by cell.
+    const shouldSave = formData.get("save") === "true";
+    if (uploadType === "schedule") {
+      const { roster, aliases } = await loadRoster();
+      const grid = await readScheduleGrid(imageBuffers[0], year, roster, aliases);
+      if (grid) {
+        const ny = grid.churches.find((c) => c.en === "New York");
+        const fmtDay = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+        const previewLines = [
+          `${grid.quarter}: ${fmtDay(grid.coverageStart)} – ${fmtDay(grid.coverageEnd)} · ${grid.churches.length} churches`,
+          ...(ny ? [`New York: ${ny.sundays.filter((c) => c.name && c.status !== "same").map((c) => `${fmtDay(c.date)} ${c.name}${c.title}`).join(", ")}`] : []),
+          ...(grid.events.length > 0
+            ? [`Events: ${grid.events.map((e) => `${e.label} ${fmtDay(e.startDate)}–${fmtDay(e.endDate)}`).join("; ")}`]
+            : ["No events found in the top bands"]),
+          grid.unmatched > 0
+            ? `⚠ ${grid.unmatched} name${grid.unmatched === 1 ? "" : "s"} not recognised — fix the red cells below`
+            : "All names recognised",
+          ...(grid.corrected > 0 ? [`${grid.corrected} name${grid.corrected === 1 ? "" : "s"} auto-corrected (amber cells) — worth a quick look`] : []),
+        ];
+        if (shouldSave) {
+          const existing = await readDataJson<ScheduleFile>("monthly_schedule.json");
+          await writeDataJson("monthly_schedule.json", mergeSchedule(existing, grid));
+        }
+        return NextResponse.json({ success: true, preview: previewLines, rawText: "", data: grid, saved: shouldSave });
+      }
+    }
+
+    // Step 2b: OCR — use Korean + English for schedule, Korean+English for reading
     const langs = "kor+eng";
     const rawText = await runOCR(imageBuffers, langs);
 
@@ -534,15 +590,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 4: Optionally save immediately (controlled by "save" flag)
-    const shouldSave = formData.get("save") === "true";
     if (shouldSave) {
       let toWrite = parsedData;
-      // Reading plans are a flat {date: passage} map — merge onto the existing file so a
-      // partial upload doesn't wipe the rest of the year. (Schedule is a coherent snapshot,
-      // so it's replaced wholesale.)
+      // Merge onto what's saved so a partial or poor parse doesn't wipe the rest:
+      // reading plans are a flat {date: passage} map; the schedule is merged by date range.
       if (uploadType === "reading") {
         const existing = await readDataJson<Record<string, string | null>>(outputName);
         if (existing) toWrite = { ...existing, ...(parsedData as Record<string, string | null>) };
+      } else {
+        const existing = await readDataJson<ScheduleFile>(outputName);
+        toWrite = mergeSchedule(existing, parsedData as ScheduleFile);
       }
       await writeDataJson(outputName, toWrite);
     }

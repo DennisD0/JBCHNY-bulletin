@@ -18,7 +18,7 @@ export interface DataSource {
 
 export interface ScheduleEvent {
   id: string;
-  type: "grand-bible-seminar" | "ya-officer-retreat" | "ec-youth-camp";
+  type: string;
   label: string;
   startDate: string;
   endDate: string;
