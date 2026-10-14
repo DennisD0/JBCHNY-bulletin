@@ -9,6 +9,22 @@ const RED  = "#C00000";
 
 type Stage = "idle" | "parsing" | "review" | "saving" | "done" | "error";
 
+// The server (or the nginx proxy in front of it) can answer with an HTML error page
+// — e.g. a 504 when OCR runs past the proxy timeout — which res.json() chokes on
+// with "Unexpected token '<'". Read as text first and explain what happened.
+async function readUploadResponse(res: Response): Promise<{ error?: string; [k: string]: unknown }> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    if (res.status === 413) return { error: "File is too large for the server. Try a smaller image or PDF." };
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      return { error: "The server took too long to read this file (or restarted). Try again, or upload a smaller/cropped image." };
+    }
+    return { error: `Server returned an unexpected response (HTTP ${res.status}).` };
+  }
+}
+
 export function UploadModal({
   name,
   uploadType,
@@ -40,10 +56,10 @@ export function UploadModal({
       fd.append("year", String(year));
       fd.append("save", "false");
       const res  = await fetch("/api/manage/upload", { method: "POST", body: fd });
-      const json = await res.json();
+      const json = await readUploadResponse(res);
       if (!res.ok || json.error) throw new Error(json.error ?? "Parse failed");
-      setPreview(json.preview ?? []);
-      setRawText(json.rawText ?? "");
+      setPreview((json.preview as string[]) ?? []);
+      setRawText((json.rawText as string) ?? "");
       setParsedData(json.data);
       setStage("review");
     } catch (e) {
@@ -62,7 +78,7 @@ export function UploadModal({
       fd.append("year", String(year));
       fd.append("save", "true");
       const res  = await fetch("/api/manage/upload", { method: "POST", body: fd });
-      const json = await res.json();
+      const json = await readUploadResponse(res);
       if (!res.ok || json.error) throw new Error(json.error ?? "Save failed");
       setStage("done");
       onSaved?.();

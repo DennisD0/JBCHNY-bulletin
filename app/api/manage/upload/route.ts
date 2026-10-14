@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import sharp from "sharp";
 import { readDataJson, writeDataJson } from "@/lib/cloud-data";
 
 export const maxDuration = 60;
@@ -403,14 +407,51 @@ async function renderPdfToImages(pdfBuffer: Buffer): Promise<Buffer[]> {
 }
 
 // ── OCR via tesseract.js ────────────────────────────────────
+// tesseract.js downloads kor+eng language data from a CDN on every cold worker
+// unless told where to find it. On the small VM that download alone can blow past
+// the reverse proxy's 60s timeout (nginx then returns an HTML 504 page, which the
+// client fails to parse as JSON). The repo already ships the traineddata files for
+// Audiveris, so point tesseract.js at them.
+function localTessdataDir(): string | undefined {
+  const candidates = [
+    process.env.AUDIVERIS_TESSDATA_DIR,
+    path.join(process.cwd(), "tools", "audiveris", "tessdata"),
+  ];
+  for (const dir of candidates) {
+    if (dir && fs.existsSync(path.join(dir, "kor.traineddata")) && fs.existsSync(path.join(dir, "eng.traineddata"))) {
+      return dir;
+    }
+  }
+  return undefined;
+}
+
+// Phone photos can be 4000+px; OCR time and memory scale with pixel count and
+// nothing useful is gained above ~2400px on a printed table.
+async function shrinkForOcr(buf: Buffer): Promise<Buffer> {
+  try {
+    return await sharp(buf)
+      .rotate() // honour EXIF orientation
+      .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
+      .png()
+      .toBuffer();
+  } catch {
+    return buf; // let tesseract try the original if sharp can't decode it
+  }
+}
+
 async function runOCR(imageBuffers: Buffer[], langs: string): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createWorker } = require("tesseract.js") as typeof import("tesseract.js");
-  const worker = await createWorker(langs);
+  const langPath = localTessdataDir();
+  const worker = await createWorker(
+    langs,
+    1,
+    langPath ? { langPath, gzip: false, cachePath: os.tmpdir() } : {}
+  );
   const parts: string[] = [];
   try {
     for (const buf of imageBuffers) {
-      const { data: { text } } = await worker.recognize(buf);
+      const { data: { text } } = await worker.recognize(await shrinkForOcr(buf));
       parts.push(text);
     }
     return parts.join("\n");

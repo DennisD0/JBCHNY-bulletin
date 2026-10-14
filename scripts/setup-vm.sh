@@ -89,7 +89,7 @@ server {
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 60s;
+        proxy_read_timeout 180s;
     }
 }
 NGINX
