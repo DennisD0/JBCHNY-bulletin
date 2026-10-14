@@ -10,8 +10,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.27"],
   // mupdf ships a WebAssembly binary. Bundling it through webpack/Turbopack
   // corrupts the WASM init sequence, so load it directly from node_modules
-  // at runtime instead of letting the bundler touch it.
-  serverExternalPackages: ["mupdf"],
+  // at runtime instead of letting the bundler touch it. tesseract.js spawns a
+  // worker from its own files on disk; bundled, that path breaks and uploads hang.
+  serverExternalPackages: ["mupdf", "tesseract.js"],
 };
 
 export default nextConfig;
