@@ -953,7 +953,7 @@ export default function BulletinPreview({
                 </tr>
               </thead>
               <tbody>
-                {data.eastCoastSeminar.map((r,i) => (
+                {(data.eastCoastSeminar ?? []).map((r,i) => (
                   <tr key={i}>
                     <TD noWrap xs><E value={r.date}     onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"date")} /></TD>
                     <TD xs>       <E value={r.church}   onSave={upA(data.eastCoastSeminar,"eastCoastSeminar",i,"church")} /></TD>

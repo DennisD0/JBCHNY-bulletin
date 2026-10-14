@@ -361,7 +361,7 @@ function ServicesTab({
 
       <Card>
         <SectionTitle>US East Coast Bible Seminar</SectionTitle>
-        {data.eastCoastSeminar.map((row, i) => (
+        {(data.eastCoastSeminar ?? []).map((row, i) => (
           <div
             key={i}
             className="flex gap-2 items-start rounded-xl border border-stone-100 p-3"
@@ -371,7 +371,7 @@ function ServicesTab({
                 label="Date"
                 value={row.date}
                 onChange={(v) => {
-                  const rows = data.eastCoastSeminar.map((r, idx) =>
+                  const rows = (data.eastCoastSeminar ?? []).map((r, idx) =>
                     idx === i ? { ...r, date: v } : r
                   );
                   set({ eastCoastSeminar: rows });
@@ -381,7 +381,7 @@ function ServicesTab({
                 label="Church"
                 value={row.church}
                 onChange={(v) => {
-                  const rows = data.eastCoastSeminar.map((r, idx) =>
+                  const rows = (data.eastCoastSeminar ?? []).map((r, idx) =>
                     idx === i ? { ...r, church: v } : r
                   );
                   set({ eastCoastSeminar: rows });
@@ -391,7 +391,7 @@ function ServicesTab({
                 label="Speaker"
                 value={row.speaker}
                 onChange={(v) => {
-                  const rows = data.eastCoastSeminar.map((r, idx) =>
+                  const rows = (data.eastCoastSeminar ?? []).map((r, idx) =>
                     idx === i ? { ...r, speaker: v } : r
                   );
                   set({ eastCoastSeminar: rows });
@@ -401,7 +401,7 @@ function ServicesTab({
                 label="Language"
                 value={row.language}
                 onChange={(v) => {
-                  const rows = data.eastCoastSeminar.map((r, idx) =>
+                  const rows = (data.eastCoastSeminar ?? []).map((r, idx) =>
                     idx === i ? { ...r, language: v } : r
                   );
                   set({ eastCoastSeminar: rows });
@@ -411,7 +411,7 @@ function ServicesTab({
             <RemoveBtn
               onClick={() =>
                 set({
-                  eastCoastSeminar: data.eastCoastSeminar.filter(
+                  eastCoastSeminar: (data.eastCoastSeminar ?? []).filter(
                     (_, idx) => idx !== i
                   ),
                 })
@@ -423,7 +423,7 @@ function ServicesTab({
           onClick={() =>
             set({
               eastCoastSeminar: [
-                ...data.eastCoastSeminar,
+                ...(data.eastCoastSeminar ?? []),
                 { date: "", church: "", speaker: "", language: "" },
               ],
             })
@@ -5019,7 +5019,9 @@ export default function Home() {
       calendarMonth: `${String(month).padStart(2, "0")}/${year}`,
       calendarBanners,
       weekSchedule: generatedWeekSchedule,
-      eastCoastSeminar: upcomingEastCoast.length > 0 ? upcomingEastCoast : undefined,
+      // Only set when we have rows: patch() spreads over existing data, so an explicit
+      // `undefined` would wipe the array and crash the preview.
+      ...(upcomingEastCoast.length > 0 ? { eastCoastSeminar: upcomingEastCoast } : {}),
     };
 
     try {
