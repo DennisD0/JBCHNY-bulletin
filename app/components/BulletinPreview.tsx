@@ -216,9 +216,11 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
               const key = `${cell.month}/${cell.day}`;
               const evts = events[key] ?? [];
               const evtSet = new Set(evts.map(e => e.trim().toLowerCase()));
-              const recurring = cell.outside ? [] : weeklyRecurring
+              const recurringLabelsForDay = cell.outside ? [] : weeklyRecurring
                 .filter(r => r.dayOfWeek === di)
-                .map(r => r.label)
+                .map(r => r.label);
+              const recurringLabelSet = new Set(recurringLabelsForDay.map(l => l.trim().toLowerCase()));
+              const recurring = recurringLabelsForDay
                 .filter(label => !evtSet.has(label.trim().toLowerCase()));
               const totalCount = evts.length + recurring.length;
               // shrink font as events accumulate: 10px for ≤3, down to 7px minimum
@@ -247,26 +249,52 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
                   {evts.map((e,ei) => {
                     const itemKey = `${key}-${ei}`;
                     const isNew = focusKey === itemKey;
+                    const isRecurringDup = recurringLabelSet.has(e.trim().toLowerCase());
                     return (
-                      <E key={ei} block
-                        value={"•" + e}
-                        autoFocus={isNew}
-                        style={{
-                          fontSize:evtFs,
-                          color:GR,
-                          lineHeight:1.18,
-                          overflowWrap:"break-word",
-                          wordBreak:"normal",
-                        }}
-                        onSave={onUpdate ? (v) => {
-                          if (isNew) setFocusKey(null);
-                          const clean = v.replace(/^•\s*/, "").trim();
-                          const newEvts = clean
-                            ? evts.map((ev,j) => j===ei ? clean : ev)
-                            : evts.filter((_,j) => j!==ei);
-                          onUpdate({ calendarEvents: { ...events, [key]: newEvts } });
-                        } : undefined}
-                      />
+                      <div key={ei} style={{ display:"flex", alignItems:"flex-start", gap:1 }}>
+                        <E block
+                          value={"•" + e}
+                          autoFocus={isNew}
+                          style={{
+                            fontSize:evtFs,
+                            color:GR,
+                            lineHeight:1.18,
+                            overflowWrap:"break-word",
+                            wordBreak:"normal",
+                            flex:1,
+                            minWidth:0,
+                          }}
+                          onSave={onUpdate ? (v) => {
+                            if (isNew) setFocusKey(null);
+                            const clean = v.replace(/^•\s*/, "").trim();
+                            const newEvts = clean
+                              ? evts.map((ev,j) => j===ei ? clean : ev)
+                              : evts.filter((_,j) => j!==ei);
+                            onUpdate({ calendarEvents: { ...events, [key]: newEvts } });
+                          } : undefined}
+                        />
+                        {onUpdate && !isRecurringDup && (
+                          <button
+                            type="button"
+                            aria-label={`Remove ${e}`}
+                            title="Remove event"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              const newEvts = evts.filter((_, j) => j !== ei);
+                              const next = { ...events };
+                              if (newEvts.length === 0) delete next[key];
+                              else next[key] = newEvts;
+                              onUpdate({ calendarEvents: next });
+                            }}
+                            style={{
+                              flexShrink:0, width:8, height:8, padding:0, border:0,
+                              background:"transparent", color:"#9CA3AF", cursor:"pointer",
+                              fontSize:8, fontWeight:700, lineHeight:"8px", textAlign:"center",
+                            }}
+                          >×</button>
+                        )}
+                      </div>
                     );
                   })}
                   {recurring.map((label, ri) => (
