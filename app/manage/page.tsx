@@ -389,10 +389,11 @@ function ReadingSection({ src, onRefresh }: { src: DataSource; onRefresh: () => 
 // ── Section: Monthly Schedule ──────────────────────────────
 function ScheduleSection({ src, today, onRefresh }: { src: ScheduleSource; today: string; onRefresh: () => void }) {
   const [showUpload, setShowUpload] = useState(false);
+  const [editSaved, setEditSaved] = useState(false);
 
   return (
     <>
-      {showUpload && <UploadModal name="Monthly Schedule" uploadType="schedule" onClose={()=>setShowUpload(false)} onSaved={()=>{setShowUpload(false);onRefresh();}} />}
+      {showUpload && <UploadModal name="Monthly Schedule" uploadType="schedule" startInEdit={editSaved} onClose={()=>{setShowUpload(false);setEditSaved(false);}} onSaved={()=>{setShowUpload(false);setEditSaved(false);onRefresh();}} />}
       <div>
         <h1 style={{ fontSize:22, fontWeight:900, color:"#1E3A8A", margin:"0 0 4px" }}>Monthly Schedule</h1>
         <p style={{ fontSize:13, color:"#64748B", margin:"0 0 24px", lineHeight:1.6 }}>
@@ -441,6 +442,15 @@ function ScheduleSection({ src, today, onRefresh }: { src: ScheduleSource; today
               </>
             )}
 
+            {src.planFile && (
+              <button onClick={()=>{setEditSaved(true);setShowUpload(true);}} style={{
+                width:"100%", borderRadius:12, padding:"11px 16px", marginBottom:10,
+                fontSize:14, fontWeight:700, cursor:"pointer",
+                background:"#fff", color:BL, border:`1.5px solid ${BL_M}`,
+              }}>
+                ✏️ Edit saved schedule
+              </button>
+            )}
             <button onClick={()=>setShowUpload(true)} style={{
               width:"100%", borderRadius:12, padding:"11px 16px",
               fontSize:14, fontWeight:700, cursor:"pointer",

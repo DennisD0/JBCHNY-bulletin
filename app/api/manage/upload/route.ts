@@ -448,7 +448,7 @@ interface ScheduleFile {
 // A new upload only replaces what falls inside its own date range. Everything else
 // already saved (other quarters' East Coast rows and events, and anything the upload
 // couldn't read) is kept, so a bad or partial parse can't wipe the schedule.
-function mergeSchedule(existing: ScheduleFile | null, incoming: ScheduleFile): ScheduleFile {
+function mergeSchedule(existing: ScheduleFile | null, incoming: ScheduleFile, opts: { replaceEvents?: boolean } = {}): ScheduleFile {
   const start = incoming.coverageStart ?? existing?.coverageStart;
   const end   = incoming.coverageEnd   ?? existing?.coverageEnd;
   const outside = (a: string, b: string) => !!start && !!end && (b < start || a > end);
@@ -460,7 +460,8 @@ function mergeSchedule(existing: ScheduleFile | null, incoming: ScheduleFile): S
     coverageStart: [existing?.coverageStart, start].filter(Boolean).sort()[0],
     coverageEnd:   [existing?.coverageEnd, end].filter(Boolean).sort().reverse()[0],
     quarter: incoming.quarter ?? existing?.quarter,
-    events: [...keptEvents, ...(incoming.events ?? [])],
+    // Editing the saved schedule shows every event, so the edited list replaces the old one.
+    events: opts.replaceEvents ? (incoming.events ?? []) : [...keptEvents, ...(incoming.events ?? [])],
     eastCoastSeminars: [...keptEast, ...east].sort((a, b) => a.date.localeCompare(b.date)),
     ...(incoming.churches ? { churches: incoming.churches } : {}),
   };
@@ -488,6 +489,30 @@ function isGridChurches(v: unknown): v is GridChurch[] {
     c.sundays.every((s: { date?: unknown; name?: unknown }) => typeof s.date === "string" && typeof s.name === "string"));
 }
 
+// ── GET: the saved schedule, for re-opening it in the review window ──────────
+export async function GET() {
+  try {
+    const saved = await readDataJson<ScheduleFile>("monthly_schedule.json");
+    if (!saved || !isGridChurches(saved.churches)) {
+      return NextResponse.json(
+        { error: "No saved grid to edit yet — upload the schedule image once, then it can be re-opened." },
+        { status: 404 },
+      );
+    }
+    // The grid covers one quarter; the file's own coverage can span several.
+    const days = saved.churches.flatMap((c) => c.sundays.map((s) => s.date)).sort();
+    return NextResponse.json({
+      coverageStart: days[0],
+      coverageEnd: days[days.length - 1],
+      quarter: saved.quarter ?? "",
+      churches: saved.churches,
+      events: saved.events ?? [],
+    });
+  } catch (err) {
+    return NextResponse.json({ error: String(err instanceof Error ? err.message : err) }, { status: 500 });
+  }
+}
+
 // ── POST handler ────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
@@ -502,7 +527,7 @@ export async function POST(request: NextRequest) {
       const merged = mergeSchedule(existing, {
         coverageStart, coverageEnd, quarter, churches,
         events: cleanEvents(events),
-      });
+      }, { replaceEvents: body.replaceEvents === true });
       await writeDataJson("monthly_schedule.json", merged);
       // Remember what the person fixed so the same misread is corrected automatically next time.
       await saveLearnedFromGrid(churches).catch((e) => console.error("Failed to save learned names", e));

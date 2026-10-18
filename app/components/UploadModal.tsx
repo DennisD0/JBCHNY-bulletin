@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   EAST_ROWS, formatCell, parseCellInput,
   type BandEvent, type GridChurch,
@@ -39,13 +39,17 @@ export function UploadModal({
   uploadType,
   onClose,
   onSaved,
+  startInEdit = false,
 }: {
   name: string;
   uploadType: "reading" | "schedule";
   onClose: () => void;
   onSaved?: () => void;
+  /** Open straight into the saved schedule (schedule only) instead of the file picker. */
+  startInEdit?: boolean;
 }) {
-  const [stage, setStage]     = useState<Stage>("idle");
+  const [editing, setEditing] = useState(startInEdit && uploadType === "schedule"); // reviewing the saved schedule, not a fresh upload
+  const [stage, setStage]     = useState<Stage>(startInEdit && uploadType === "schedule" ? "parsing" : "idle");
   const [file, setFile]       = useState<File | null>(null);
   const [preview, setPreview] = useState<string[]>([]);
   const [rawText, setRawText] = useState("");
@@ -54,7 +58,39 @@ export function UploadModal({
   const [showRaw, setShowRaw] = useState(false);
   const [year, setYear]       = useState(new Date().getFullYear());
 
+  // Re-open what is already saved, with the same review window as a fresh upload.
+  async function fetchSavedData(): Promise<GridData> {
+    const res = await fetch("/api/manage/upload");
+    const json = await readUploadResponse(res);
+    if (!res.ok || json.error) throw new Error(json.error ?? "Could not load the saved schedule");
+    return json as unknown as GridData;
+  }
+  function showSaved(d: GridData) {
+    const fmt = (x: string) => `${Number(x.slice(5, 7))}/${Number(x.slice(8))}`;
+    setGrid(d);
+    setPreview([`${d.quarter || "Saved schedule"}: ${fmt(d.coverageStart)} – ${fmt(d.coverageEnd)} · ${d.churches.length} churches`]);
+    setRawText("");
+    setStage("review");
+  }
+  function failSaved(e: unknown) {
+    setEditing(false);
+    setError(e instanceof Error ? e.message : String(e));
+    setStage("error");
+  }
+  function loadSaved() {
+    setStage("parsing");
+    setError("");
+    setEditing(true);
+    fetchSavedData().then(showSaved).catch(failSaved);
+  }
+  useEffect(() => {
+    // The initial state already shows "loading" when startInEdit is set.
+    if (startInEdit && uploadType === "schedule") fetchSavedData().then(showSaved).catch(failSaved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleFile(f: File) {
+    setEditing(false);
     setFile(f);
     setStage("parsing");
     setError("");
@@ -79,7 +115,7 @@ export function UploadModal({
   }
 
   async function handleSave() {
-    if (!file) return;
+    if (!file && !editing) return;
     setStage("saving");
     try {
       // A reviewed grid is saved as-is (with the user's corrections), not re-read from the file.
@@ -88,15 +124,17 @@ export function UploadModal({
         res = await fetch("/api/manage/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "schedule", data: grid }),
+          body: JSON.stringify({ type: "schedule", data: grid, replaceEvents: editing }),
         });
-      } else {
+      } else if (file) {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("type", uploadType);
         fd.append("year", String(year));
         fd.append("save", "true");
         res = await fetch("/api/manage/upload", { method: "POST", body: fd });
+      } else {
+        return;
       }
       const json = await readUploadResponse(res);
       if (!res.ok || json.error) throw new Error(json.error ?? "Save failed");
@@ -188,7 +226,7 @@ export function UploadModal({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 900, color: "#1E3A8A" }}>
-              {stage === "done" ? "✅ Saved!" : `Upload ${name}`}
+              {stage === "done" ? "✅ Saved!" : `${editing ? "Edit" : "Upload"} ${name}`}
             </div>
             <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>Accepts PDF, PNG, or JPG</div>
           </div>
@@ -228,6 +266,14 @@ export function UploadModal({
               <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 6 }}>PDF · PNG · JPG &nbsp;·&nbsp; Korean or English</div>
               {file && <div style={{ marginTop: 10, fontSize: 12, color: BL, fontWeight: 600 }}>Selected: {file.name}</div>}
             </div>
+            {uploadType === "schedule" && (
+              <button
+                onClick={loadSaved}
+                style={{ width: "100%", marginBottom: 16, borderRadius: 12, padding: "10px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", background: "#fff", color: BL, border: `1.5px solid ${BL_M}` }}
+              >
+                ✏️ Edit the saved schedule instead
+              </button>
+            )}
             {stage === "error" && (
               <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: RED, marginBottom: 14 }}>
                 ⚠️ {error}
@@ -240,8 +286,8 @@ export function UploadModal({
         {stage === "parsing" && (
           <div style={{ textAlign: "center", padding: "32px 0" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#1E3A8A", marginBottom: 6 }}>Reading the file…</div>
-            <div style={{ fontSize: 13, color: "#64748B" }}>Running OCR and extracting data. This may take 10–30 seconds.</div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#1E3A8A", marginBottom: 6 }}>{editing ? "Loading the saved schedule…" : "Reading the file…"}</div>
+            {!editing && <div style={{ fontSize: 13, color: "#64748B" }}>Running OCR and extracting data. This may take 10–30 seconds.</div>}
           </div>
         )}
 
@@ -250,7 +296,7 @@ export function UploadModal({
           <>
             <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: GN, marginBottom: 14, display: "flex", gap: 8 }}>
               <span>✅</span>
-              <span>Parsed successfully. Review below, then click <strong>Save</strong>.</span>
+              <span>{editing ? <>Saved schedule loaded. Change anything below, then click <strong>Save</strong>.</> : <>Parsed successfully. Review below, then click <strong>Save</strong>.</>}</span>
             </div>
             {doubleCheck.length > 0 && (
               <div style={{ background: "#FFF7ED", border: "1.5px solid #FDBA74", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
@@ -279,7 +325,7 @@ export function UploadModal({
             )}
             <div style={{ background: BL_L, border: `1px solid ${BL_M}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                {uploadType === "reading" ? "Parsed Readings (first 10)" : "Parsed Events"}
+                {uploadType === "reading" ? "Parsed Readings (first 10)" : editing ? "Saved schedule" : "Parsed Events"}
               </div>
               {preview.map((line, i) => (
                 <div key={i} style={{ fontSize: 13, color: "#1E3A8A", padding: "3px 0", borderBottom: i < preview.length - 1 ? `1px solid ${BL_M}` : "none" }}>
@@ -365,17 +411,17 @@ export function UploadModal({
                 </div>
               </>
             )}
-            <button onClick={() => setShowRaw((v) => !v)} style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 12, cursor: "pointer", padding: "0 0 10px", textDecoration: "underline" }}>
+            {!editing && <button onClick={() => setShowRaw((v) => !v)} style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 12, cursor: "pointer", padding: "0 0 10px", textDecoration: "underline" }}>
               {showRaw ? "Hide" : "Show"} raw OCR text
-            </button>
-            {showRaw && (
+            </button>}
+            {showRaw && !editing && (
               <pre style={{ fontSize: 11, color: "#374151", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 12px", maxHeight: 180, overflowY: "auto", marginBottom: 14, whiteSpace: "pre-wrap" }}>
                 {rawText || "(empty)"}
               </pre>
             )}
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setStage("idle"); setPreview([]); }} style={{ flex: 1, borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", background: "#F1F5F9", color: "#475569", border: "1.5px solid #E2E8F0" }}>
-                Re-upload
+              <button onClick={() => { setStage("idle"); setPreview([]); setEditing(false); setGrid(null); }} style={{ flex: 1, borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", background: "#F1F5F9", color: "#475569", border: "1.5px solid #E2E8F0" }}>
+                {editing ? "Upload new file" : "Re-upload"}
               </button>
               <button onClick={handleSave} style={{ flex: 2, borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 800, cursor: "pointer", background: BL, color: "#fff", border: "none" }}>
                 Save to Bulletin
