@@ -42,6 +42,7 @@ import {
   type LanguageLocks,
 } from "@/lib/bulletin-languages";
 import { SECTION_FIELD_MAP } from "@/lib/section-field-map";
+import { buildEastCoastRows, buildSeminarInfo, buildServiceRows } from "@/lib/week-generation";
 
 // ---------------------------------------------------------------------------
 // Shared small components
@@ -4996,22 +4997,8 @@ export default function Home() {
 
     // Build East Coast Seminar rows: upcoming entries from bulletin Sunday onward, sorted ascending
     const bulletinIso = `${week.start.getFullYear()}-${String(week.start.getMonth() + 1).padStart(2,"0")}-${String(week.start.getDate()).padStart(2,"0")}`;
-    const upcomingEastCoast = (schedule?.eastCoastSeminars ?? [])
-      .filter(e => e.date >= bulletinIso)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 8)
-      .map(e => {
-        const [, em, ed] = e.date.split("-").map(Number);
-        const sat = new Date(new Date(e.date).getTime() + 6 * 86400000);
-        const satM = sat.getMonth() + 1;
-        const satD = sat.getDate();
-        return {
-          date: `${em}/${ed}-${satM}/${satD}`,
-          church: e.church,
-          speaker: e.speaker,
-          language: e.language,
-        };
-      });
+    const upcomingEastCoast = buildEastCoastRows(schedule?.eastCoastSeminars ?? [], bulletinIso);
+    const seminarInfo = buildSeminarInfo(schedule?.events ?? [], bulletinIso);
 
     const nextPatch: Partial<BulletinData> = {
       date,
@@ -5019,6 +5006,14 @@ export default function Home() {
       calendarMonth: `${String(month).padStart(2, "0")}/${year}`,
       calendarBanners,
       weekSchedule: generatedWeekSchedule,
+      ...(activeLang === "en" ? { services: buildServiceRows(bulletinIso, data?.services) } : {}),
+      ...(activeLang === "en" && seminarInfo ? {
+        seminarInfo: {
+          title: seminarInfo.title,
+          date: seminarInfo.date,
+          speaker: seminarInfo.speaker ?? data?.seminarInfo?.speaker ?? "",
+        },
+      } : {}),
       // Only set when we have rows: patch() spreads over existing data, so an explicit
       // `undefined` would wipe the array and crash the preview.
       ...(upcomingEastCoast.length > 0 ? { eastCoastSeminar: upcomingEastCoast } : {}),

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types lib/hymn-crop.test.ts lib/audiveris.test.ts lib/hymn-presets.test.ts lib/schedule-grid.test.ts lib/bible-lookup.test.ts"
+    "test": "node --test --experimental-strip-types lib/hymn-crop.test.ts lib/audiveris.test.ts lib/hymn-presets.test.ts lib/schedule-grid.test.ts lib/bible-lookup.test.ts lib/week-generation.test.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^8.4.0",

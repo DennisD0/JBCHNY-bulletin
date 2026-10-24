@@ -288,6 +288,7 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
                               onUpdate({ calendarEvents: next });
                             }}
                             style={{
+                              position:"relative", zIndex:2,
                               flexShrink:0, width:8, height:8, padding:0, border:0,
                               background:"transparent", color:"#9CA3AF", cursor:"pointer",
                               fontSize:8, fontWeight:700, lineHeight:"8px", textAlign:"center",

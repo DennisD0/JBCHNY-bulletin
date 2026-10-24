@@ -1,0 +1,88 @@
+import type { ServiceRow } from "./bulletin-types";
+
+const MS_DAY = 86_400_000;
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+
+// Rotation anchored on the printed 10/18/2026 bulletin (Jungho Park / John Park),
+// which advanced to Andrew Kim / Jiwook Jang on 10/25.
+export const USHER_ROTATION = {
+  anchorIso: "2026-10-18",
+  sun: ["Jungho Park", "Andrew Kim", "Jose H"],
+  wed: ["John Park", "Jiwook Jang"],
+};
+
+const utc = (iso: string) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Date.UTC(y, m - 1, d);
+};
+const md = (ms: number) => `${new Date(ms).getUTCMonth() + 1}/${new Date(ms).getUTCDate()}`;
+const mod = (n: number, m: number) => ((n % m) + m) % m;
+const ordinal = (n: number) => {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return `${n}th`;
+  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
+};
+
+export function ushersForWeek(sundayIso: string) {
+  const weeks = Math.round((utc(sundayIso) - utc(USHER_ROTATION.anchorIso)) / (7 * MS_DAY));
+  return {
+    usherSun: USHER_ROTATION.sun[mod(weeks, USHER_ROTATION.sun.length)],
+    usherWed: USHER_ROTATION.wed[mod(weeks, USHER_ROTATION.wed.length)],
+  };
+}
+
+// Two rows: the bulletin Sunday and the next one. Lunch duty and child care are
+// kept when a row for the same date already exists.
+export function buildServiceRows(sundayIso: string, existing: ServiceRow[] = []): ServiceRow[] {
+  return [0, 1].map((offset) => {
+    const ms = utc(sundayIso) + offset * 7 * MS_DAY;
+    const iso = new Date(ms).toISOString().slice(0, 10);
+    const date = md(ms);
+    const prior = existing.find((row) => row.date === date);
+    return {
+      date,
+      ...ushersForWeek(iso),
+      lunchDuty: prior?.lunchDuty ?? "",
+      childCare: prior?.childCare ?? "",
+    };
+  });
+}
+
+interface EastCoastEntry { date: string; church: string; speaker: string; language: string }
+
+// Each entry is keyed by the Sunday before its seminar week; the seminar runs
+// Monday through the following Sunday. Only the nearest seminar week is listed.
+export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: string) {
+  const upcoming = entries.filter((e) => e.date >= bulletinIso).sort((a, b) => a.date.localeCompare(b.date));
+  if (upcoming.length === 0) return [];
+  const first = upcoming[0].date;
+  const start = utc(first);
+  const toMonday = ((1 - new Date(start).getUTCDay() + 7) % 7) || 7;
+  const monday = start + toMonday * MS_DAY;
+  const range = `${md(monday)}-${md(monday + 6 * MS_DAY)}`;
+  return upcoming
+    .filter((e) => e.date === first)
+    .map((e) => ({ date: range, church: e.church, speaker: e.speaker, language: e.language }));
+}
+
+interface SeminarEvent { type: string; startDate: string; endDate: string; pastor?: string }
+
+export function buildSeminarInfo(events: SeminarEvent[], bulletinIso: string) {
+  const next = events
+    .filter((e) => e.type === "grand-bible-seminar" && e.endDate >= bulletinIso)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+  if (!next) return null;
+  const start = utc(next.startDate);
+  const end = utc(next.endDate);
+  const s = new Date(start);
+  const e = new Date(end);
+  const part = (d: Date, ms: number) => `${ordinal(d.getUTCDate())}(${DOW[new Date(ms).getUTCDay()]})`;
+  const sameMonth = s.getUTCMonth() === e.getUTCMonth();
+  const endText = sameMonth ? part(e, end) : `${MONTHS[e.getUTCMonth()]} ${part(e, end)}`;
+  return {
+    title: `${MONTHS[s.getUTCMonth()]} Bible Seminar`,
+    date: `${MONTHS[s.getUTCMonth()]} ${part(s, start)} - ${endText}`,
+    speaker: next.pastor ? `Pastor ${next.pastor}` : undefined,
+  };
+}
