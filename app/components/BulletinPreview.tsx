@@ -210,6 +210,23 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
           .filter(({ banner }) =>
             week.some((cell) => cell.month * 100 + cell.day === bVal(banner.startDate))
           );
+        // Banners that share a column go on separate lanes, stacked upward from the
+        // bottom of the row, so one never covers (and visually cuts) another.
+        const laneOf = new Map<number, number>();
+        const spanOf = new Map<number, { startCol: number; count: number }>();
+        const lanes: boolean[][] = [];
+        for (const { banner, index } of activeBanners) {
+          let startCol = week.findIndex((cell) => inBanner(banner, cell));
+          let count = week.filter((cell) => inBanner(banner, cell)).length;
+          // A one-day banner with a long label borrows the column before it.
+          if (count === 1 && banner.label.length > 12 && startCol > 0) { startCol -= 1; count = 2; }
+          let lane = 0;
+          while (lanes[lane]?.slice(startCol, startCol + count).some(Boolean)) lane++;
+          lanes[lane] ??= [];
+          for (let c = startCol; c < startCol + count; c++) lanes[lane][c] = true;
+          laneOf.set(index, lane);
+          spanOf.set(index, { startCol, count });
+        }
         return (
           <Fragment key={`${week[0].month}-${week[0].day}`}>
             {week.map((cell, di) => {
@@ -311,15 +328,13 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
               );
             })}
             {activeBanners.map(({ banner, index: bannerIndex }) => {
-              let startCol = week.findIndex((cell) => inBanner(banner, cell));
-              let count = week.filter((cell) => inBanner(banner, cell)).length;
-              if (count === 1 && banner.label.length > 12 && startCol > 0) {
-                startCol -= 1; count = 2;
-              }
+              const { startCol, count } = spanOf.get(bannerIndex)!;
+              const lane = laneOf.get(bannerIndex) ?? 0;
               return (
                 <div key={`${bannerIndex}-${banner.startDate}`} title="Clear the label and click away to remove this banner" style={{
                   gridRow, gridColumn: `${startCol + 1} / span ${count}`,
                   position:"relative", alignSelf:"end", zIndex:1,
+                  marginBottom: lane * 16,
                   height:17, boxSizing:"border-box", overflow:"hidden",
                   display:"flex", alignItems:"center", justifyContent:"center",
                   background: (BANNER_PALETTE[banner.type ?? "retreat"] ?? BANNER_PALETTE.retreat).bg,
