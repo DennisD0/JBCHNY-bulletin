@@ -188,6 +188,8 @@ export async function readScheduleGrid(
 
     const churches: GridChurch[] = [];
     let corrected = 0, unmatched = 0;
+    // Ink per named cell, to tell the bold (evangelistic-meeting speaker) names from regular ones.
+    const inked: Array<{ cell: GridCell; count: number }> = [];
     for (let r = 0; r < EXPECTED_ROWS; r++) {
       const cells: GridCell[] = [];
       let prevName = ""; let prevTitle: "p" | "e" = "p";
@@ -225,10 +227,19 @@ export async function readScheduleGrid(
         const m = matchPreacher(raw, roster, aliases);
         if (m.status === "corrected") corrected++;
         if (m.status === "unknown") unmatched++;
-        cells.push({ date, name: m.name, title: m.title, status: m.status, raw });
+        const named: GridCell = { date, name: m.name, title: m.title, status: m.status, raw };
+        cells.push(named);
+        if (m.name) inked.push({ cell: named, count: box.count });
         prevName = m.name; prevTitle = m.title;
       }
       churches.push({ no: r + 1, ko: CHURCHES[r].ko, en: CHURCHES[r].en, region: CHURCHES[r].region, sundays: cells });
+    }
+
+    // Bold glyphs carry clearly more ink than regular ones in the same font size.
+    if (inked.length >= 10) {
+      const sorted = inked.map((i) => i.count).sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      for (const { cell, count } of inked) cell.seminar = count > median * 1.3;
     }
 
     return {

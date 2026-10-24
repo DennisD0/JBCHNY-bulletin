@@ -1,4 +1,5 @@
 import type { ServiceRow } from "./bulletin-types";
+import { bulletinChurchName, speakerFromKo } from "./schedule-grid-shared.ts";
 
 const MS_DAY = 86_400_000;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -49,7 +50,7 @@ export function buildServiceRows(sundayIso: string, existing: ServiceRow[] = [])
   });
 }
 
-interface EastCoastEntry { date: string; church: string; speaker: string; language: string }
+interface EastCoastEntry { date: string; church: string; speaker: string; speakerKo?: string; language: string }
 
 // Each entry is keyed by the Sunday before its seminar week; the seminar runs
 // Monday through the following Sunday. Only the nearest seminar week is listed.
@@ -60,17 +61,30 @@ export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: strin
   const start = utc(first);
   const toMonday = ((1 - new Date(start).getUTCDay() + 7) % 7) || 7;
   const monday = start + toMonday * MS_DAY;
-  const range = `${md(monday)}-${md(monday + 6 * MS_DAY)}`;
+  const sunday = monday + 6 * MS_DAY;
+  const sameMonth = new Date(monday).getUTCMonth() === new Date(sunday).getUTCMonth();
+  const range = `${md(monday)}-${sameMonth ? new Date(sunday).getUTCDate() : md(sunday)}`;
+  // Older saved schedules stored surname-only speakers and long church names;
+  // rebuild both the way the bulletin prints them.
   return upcoming
     .filter((e) => e.date === first)
-    .map((e) => ({ date: range, church: e.church, speaker: e.speaker, language: e.language }));
+    .map((e) => ({
+      date: range,
+      church: bulletinChurchName(e.church),
+      speaker: (e.speakerKo && speakerFromKo(e.speakerKo)) || e.speaker,
+      language: e.language,
+    }));
 }
 
-interface SeminarEvent { type: string; startDate: string; endDate: string; pastor?: string }
+interface SeminarEvent { type: string; label?: string; startDate: string; endDate: string; pastor?: string }
+
+// Events added by hand in the review window have type "other"; recognise them by name.
+const isBibleSeminar = (e: SeminarEvent) =>
+  e.type === "grand-bible-seminar" || (!!e.label && /bible seminar/i.test(e.label) && !/special|christian life/i.test(e.label));
 
 export function buildSeminarInfo(events: SeminarEvent[], bulletinIso: string) {
   const next = events
-    .filter((e) => e.type === "grand-bible-seminar" && e.endDate >= bulletinIso)
+    .filter((e) => isBibleSeminar(e) && e.endDate >= bulletinIso)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
   if (!next) return null;
   const start = utc(next.startDate);

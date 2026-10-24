@@ -48,7 +48,7 @@ test("parseEventBand keeps East/US-wide/NY events and fixes the year", () => {
   const ev = parseEventBand(text, 4, 2026);
   assert.deepEqual(ev.map((e) => [e.label, e.startDate, e.endDate]), [
     ["Special Christian Life Seminar", "2026-09-28", "2026-10-05"],
-    ["EC Pastor Retreat", "2026-10-12", "2026-10-16"],
+    ["US Pastor Retreat", "2026-10-12", "2026-10-16"],
     ["EC Teacher Retreat", "2026-10-17", "2026-10-17"],
     ["EC Winter Retreat", "2026-11-26", "2026-11-29"],
   ]);
@@ -91,4 +91,24 @@ test("learned aliases fix a repeated misread; new names join the roster", () => 
   // Never alias a string that is itself a real preacher.
   const bad = learnFromGrid([{ ...churches[0], sundays: [cell("김상원", "김승준[")] }], { names: {}, aliases: {} });
   assert.deepEqual(bad.aliases, {});
+});
+
+test("only bold (marked) East Coast speakers become seminar rows", () => {
+  const cell = (name: string, seminar?: boolean) => ({ date: "2026-10-18", name, title: "p" as const, status: "ok" as const, seminar });
+  const row = (no: number, en: string, c?: ReturnType<typeof cell>): GridChurch => ({ no, ko: "x", en, region: "East", sundays: c ? [c] : [] });
+  const churches: GridChurch[] = [
+    row(1, "Orlando", cell("오동준", false)),
+    row(2, "Atlanta"),
+    row(3, "Southern Virginia", cell("조정훈", true)),
+    row(4, "Washington DC", cell("우성준", true)),
+    ...Array.from({ length: 5 }, (_, i) => row(i + 5, "x")),
+  ];
+  assert.deepEqual(buildEastCoastEntries(churches).map((e) => [e.church, e.speaker]), [
+    ["S.Virginia", "P.Joseph Cho"], ["Washington", "P.Sungjun Woo"],
+  ]);
+  // "*" after a typed name marks it; formatCell round-trips it.
+  const c = parseCellInput("우성준p*", "2026-10-18");
+  assert.equal(c.seminar, true);
+  assert.equal(formatCell(c), "우성준p*");
+  assert.equal(parseCellInput("우성준p", "2026-10-18").seminar, false);
 });

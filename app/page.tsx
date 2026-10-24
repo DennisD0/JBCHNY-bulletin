@@ -1905,7 +1905,7 @@ type ManageData = {
     endDate: string | null;
     daysRemaining: number;
     percentUsed: number;
-    events: Array<{ label: string; startDate: string; endDate: string; type: string; pastor?: string }>;
+    events: Array<{ label: string; startDate: string; endDate: string; type: string; pastor?: string; location?: string }>;
     eastCoastSeminars?: Array<{ date: string; church: string; speaker: string; speakerKo: string; language: string }>;
   } | null;
   today?: string;
@@ -4956,7 +4956,8 @@ export default function Home() {
     const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
     const monthEnd = localIso(new Date(year, month, 0));
     const calendarBanners = (schedule?.events ?? [])
-      .filter((event) => event.endDate >= monthStart && event.startDate <= monthEnd)
+      // Online-only events (e.g. the EC online teacher retreat) aren't drawn on the printed calendar.
+      .filter((event) => event.endDate >= monthStart && event.startDate <= monthEnd && event.location !== "Online")
       .map((event) => {
         const [, startMonth, startDay] = event.startDate.split("-").map(Number);
         const [, endMonth, endDay] = event.endDate.split("-").map(Number);
@@ -5005,13 +5006,16 @@ export default function Home() {
       number: bulletinNumber,
       calendarMonth: `${String(month).padStart(2, "0")}/${year}`,
       calendarBanners,
+      // Day notes are keyed "m/d" with no year, so a new month must not inherit the old month's.
+      ...(data?.calendarMonth !== `${String(month).padStart(2, "0")}/${year}` ? { calendarEvents: {} } : {}),
       weekSchedule: generatedWeekSchedule,
       ...(activeLang === "en" ? { services: buildServiceRows(bulletinIso, data?.services) } : {}),
       ...(activeLang === "en" && seminarInfo ? {
         seminarInfo: {
           title: seminarInfo.title,
           date: seminarInfo.date,
-          speaker: seminarInfo.speaker ?? data?.seminarInfo?.speaker ?? "",
+          // Bible seminars are led by the church's own pastor unless the event names someone else.
+          speaker: seminarInfo.speaker ?? (data?.pastor ? `Pastor ${data.pastor}` : data?.seminarInfo?.speaker ?? ""),
         },
       } : {}),
       // Only set when we have rows: patch() spreads over existing data, so an explicit

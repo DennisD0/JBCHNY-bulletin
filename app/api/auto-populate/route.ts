@@ -8,11 +8,23 @@ function fmt(raw: string | null): string {
   return raw.replace(/^(\w+) /, (_, a) => (DISPLAY[a] ?? a) + " ");
 }
 
+/** "Jer 4-5" + "Jer 6-7" → "Jer 4-7"; null when the books differ or the chapters aren't consecutive. */
+function mergeContiguous(a: string, b: string): string | null {
+  const re = /^(.+?) (\d+)(?:-(\d+))?$/;
+  const ma = a.match(re);
+  const mb = b.match(re);
+  if (!ma || !mb || ma[1] !== mb[1]) return null;
+  const aEnd = Number(ma[3] ?? ma[2]);
+  if (Number(mb[2]) !== aEnd + 1) return null;
+  return `${ma[1]} ${ma[2]}-${mb[3] ?? mb[2]}`;
+}
+
 // "2 Readings" runs at 2x the "1 Reading" pace through the SAME year plan:
 // each day it covers that day's Reading-1 block AND the next one, so it
 // finishes the whole plan around the year's midpoint and wraps back to the
-// start for the remainder of the year. Both blocks are shown as-is, stacked
-// on two lines — never merged into a single combined range.
+// start for the remainder of the year. The two blocks are stacked on two lines,
+// except back-to-back chapters of one book ("Jer 4-5" then "Jer 6-7"), which print
+// as one range ("Jer 4-7") like the hand-made bulletins.
 function computeReading2(sortedKeys: string[], plan: Record<string, string | null>, dayKey: string): string {
   const total = sortedKeys.length;
   const n = sortedKeys.indexOf(dayKey);
@@ -23,7 +35,7 @@ function computeReading2(sortedKeys: string[], plan: Record<string, string | nul
   const b = fmt(plan[sortedKeys[posB]] ?? null);
   if (!a) return b;
   if (!b) return a;
-  return `${a}\n${b}`;
+  return mergeContiguous(a, b) ?? `${a}\n${b}`;
 }
 
 export async function GET(request: Request) {

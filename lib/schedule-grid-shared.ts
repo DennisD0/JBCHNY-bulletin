@@ -10,6 +10,7 @@ export interface GridCell {
   title: "p" | "e";
   status: CellStatus;
   raw?: string;       // what OCR actually read, for review
+  seminar?: boolean;  // printed in bold = this person leads that church's evangelistic meeting week
 }
 
 export interface GridChurch {
@@ -66,8 +67,40 @@ const SURNAME_EN: Record<string, string> = {
   우: "Woo", 문: "Moon", 박: "Park", 구: "Koo", 정: "Jung", 양: "Yang", 고: "Ko",
 };
 
+// Full English names from the US pastors' name list (as written on the printed bulletin).
+// Anyone missing here falls back to the surname-only form.
+const GIVEN_NAME_EN: Record<string, string> = {
+  우성준: "Sungjun Woo", 신민철: "Minchul Shin", 김상원: "Sang Won Kim", 김성열: "Song Yeol Kim",
+  최현우: "Hyeon Woo Choi", 박철웅: "Timothy Park", 권종안: "John Kweon", 이혜찬: "Kenny Lee",
+  이재준: "Ezra Lee", 이지은: "Joshua Lee", 고봉산: "Bongsan Ko", 박철오: "Joel Park",
+  정성호: "Jacob Jeong", 박철민: "Samuel Park", 정광국: "Timothy Jung", 박종경: "Chongkyung Park",
+  조정훈: "Joseph Cho", 김재호: "John Kim", 김태우: "Jonas Kim", 김승준: "Paul Kim", 신종근: "Jong Geun Shin",
+};
+
 export function speakerEn(name: string, title: "p" | "e"): string {
   return `${title}.${SURNAME_EN[name[0]] ?? name[0]}`;
+}
+
+/** Speaker as printed in the East Coast table: "P.Sungjun Woo" (surname only if the name isn't on the list). */
+export function speakerFull(name: string, title: "p" | "e"): string {
+  const full = GIVEN_NAME_EN[name];
+  return full ? `${title.toUpperCase()}.${full}` : speakerEn(name, title);
+}
+
+/** Rebuild the printed speaker from a stored Korean value like "조정훈p". */
+export function speakerFromKo(speakerKo: string): string | null {
+  const name = speakerKo.replace(/[^가-힣]/g, "");
+  const title = /e\s*$/i.test(speakerKo) ? "e" : "p";
+  return GIVEN_NAME_EN[name] ? speakerFull(name, title) : null;
+}
+
+const CHURCH_SHORT: Record<string, string> = {
+  "Southern Virginia": "S.Virginia", "Southern Illinois": "S.Illinois", "Washington DC": "Washington",
+};
+
+/** Church name as printed in the East Coast table. */
+export function bulletinChurchName(en: string): string {
+  return CHURCH_SHORT[en] ?? en;
 }
 
 function editDistance(a: string, b: string): number {
@@ -113,7 +146,9 @@ export function matchPreacher(
 
 /** Parse what a user typed in a review cell: "→"/blank = same as last week, else "박종경p". */
 export function parseCellInput(text: string, date: string): GridCell {
-  const t = text.trim();
+  // A trailing "*" marks the church's evangelistic-meeting speaker (printed in bold).
+  const seminar = /\*\s*$/.test(text);
+  const t = text.replace(/\*\s*$/, "").trim();
   if (!t) return { date, name: "", title: "p", status: "empty" };
   if (/^dvd$/i.test(t)) return { date, name: "DVD", title: "p", status: "ok" };
   if (/^[→>~\-–—=]+$/.test(t)) return { date, name: "", title: "p", status: "same" };
@@ -121,7 +156,7 @@ export function parseCellInput(text: string, date: string): GridCell {
   const name = t.replace(/[^가-힣]/g, "");
   const suffix = t.match(/[pPeE]\s*$/)?.[0].toLowerCase();
   const title = (suffix === "e" ? "e" : suffix === "p" ? "p" : PREACHERS[name] ?? "p") as "p" | "e";
-  return { date, name, title, status: name ? "ok" : "unknown" };
+  return { date, name, title, status: name ? "ok" : "unknown", seminar: seminar && !!name };
 }
 
 export function formatCell(c: GridCell): string {
@@ -129,7 +164,7 @@ export function formatCell(c: GridCell): string {
   if (c.status === "retreat") return "동계";
   if (c.name === "DVD") return "DVD";
   if (!c.name) return "";
-  return `${c.name}${c.title}`;
+  return `${c.name}${c.title}${c.seminar ? "*" : ""}`;
 }
 
 function iso(d: Date) {
@@ -151,18 +186,24 @@ export function quarterSundays(year: number, quarter: number): string[] {
 /**
  * East Coast table rows: one per explicit preacher cell of the East churches.
  * "Same as last week" arrows are left out — that matches how the bulletin's
- * existing eastCoastSeminars data was entered.
+ * existing eastCoastSeminars data was entered. Once any cell is marked as a
+ * bold (evangelistic-meeting) speaker, only those cells are listed; grids saved
+ * before that marking existed list every named cell, as before.
  */
 export function buildEastCoastEntries(churches: GridChurch[]): EastCoastEntry[] {
   const out: EastCoastEntry[] = [];
-  for (const ch of churches.slice(0, EAST_ROWS)) {
+  const east = churches.slice(0, EAST_ROWS);
+  const marked = east.some((ch) => ch.sundays.some((c) => c.seminar === true));
+  const detected = east.some((ch) => ch.sundays.some((c) => c.seminar === false));
+  for (const ch of east) {
     for (const cell of ch.sundays) {
       if (!cell.name || cell.name === "DVD" || cell.status === "same" || cell.status === "retreat" || cell.status === "empty") continue;
+      if ((marked || detected) && !cell.seminar) continue;
       out.push({
         date: cell.date,
-        church: ch.en,
+        church: bulletinChurchName(ch.en),
         speakerKo: `${cell.name}${cell.title}`,
-        speaker: speakerEn(cell.name, cell.title),
+        speaker: speakerFull(cell.name, cell.title),
         language: "Korean",
       });
     }
@@ -227,7 +268,11 @@ export function parseEventBand(text: string, quarter: number, year: number): Ban
     const startDate = `${sy}-${String(sm).padStart(2, "0")}-${String(sd).padStart(2, "0")}`;
     const endDate = `${ey}-${String(em).padStart(2, "0")}-${String(ed).padStart(2, "0")}`;
     const location = LOCATIONS.find(([re]) => re.test(line))?.[1] ?? "";
-    out.push({ id: `${kind.type}-${startDate}`, type: kind.type, label: kind.label, startDate, endDate, location });
+    // The same retreat is "US" when the sheet says 미주 (US-wide) and "EC" when it says 동부.
+    const us = /^미주/.test(line) && /^(ec-pastor-retreat|ec-pastor-couples-retreat)$/.test(kind.type);
+    const type = us ? kind.type.replace(/^ec-/, "us-") : kind.type;
+    const label = us ? kind.label.replace(/^EC /, "US ") : kind.label;
+    out.push({ id: `${type}-${startDate}`, type, label, startDate, endDate, location });
   }
   return out.sort((a, b) => a.startDate.localeCompare(b.startDate));
 }

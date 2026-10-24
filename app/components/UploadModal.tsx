@@ -361,7 +361,7 @@ export function UploadModal({
                   <button onClick={addEvent} style={{ marginTop: 6, border: `1.5px dashed ${BL}`, background: BL_L, color: BL, borderRadius: 8, padding: "5px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>＋ Add event</button>
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 900, color: BL, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-                  Preachers by church — fix any cell, then save <span style={{ fontWeight: 600, textTransform: "none", color: "#94A3B8" }}>(top 9 rows feed the East Coast table · → = same as last week · amber = auto-corrected · red = not recognised)</span>
+                  Preachers by church — fix any cell, then save <span style={{ fontWeight: 600, textTransform: "none", color: "#94A3B8" }}>(top 9 rows feed the East Coast table, only the bold names marked * — add or remove the * after a name to match the sheet's bold speakers · → = same as last week · amber = auto-corrected · red = not recognised)</span>
                 </div>
                 <div style={{ overflow: "auto", maxHeight: 360, marginBottom: 14, border: `1px solid ${BL_M}`, borderRadius: 12 }}>
                   <table style={{ borderCollapse: "collapse", fontSize: 12, minWidth: 900 }}>
@@ -400,6 +400,7 @@ export function UploadModal({
                                   border: `1.5px solid ${cell.status === "unknown" ? "#FCA5A5" : cell.status === "corrected" ? "#FCD34D" : "#E2E8F0"}`,
                                   background: cell.status === "unknown" ? "#FEF2F2" : cell.status === "corrected" ? "#FFFBEB" : cell.status === "retreat" ? "#F1F5F9" : "#fff",
                                   color: cell.status === "same" ? "#94A3B8" : "#1E293B",
+                                  fontWeight: cell.seminar ? 800 : 400,
                                 }}
                               />
                             </td>
