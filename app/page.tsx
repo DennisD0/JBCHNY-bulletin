@@ -4998,7 +4998,7 @@ export default function Home() {
 
     // Build East Coast Seminar rows: upcoming entries from bulletin Sunday onward, sorted ascending
     const bulletinIso = `${week.start.getFullYear()}-${String(week.start.getMonth() + 1).padStart(2,"0")}-${String(week.start.getDate()).padStart(2,"0")}`;
-    const upcomingEastCoast = buildEastCoastRows(schedule?.eastCoastSeminars ?? [], bulletinIso);
+    const upcomingEastCoast = buildEastCoastRows(schedule?.eastCoastSeminars ?? [], bulletinIso, activeLang);
     const seminarInfo = buildSeminarInfo(schedule?.events ?? [], bulletinIso);
 
     const nextPatch: Partial<BulletinData> = {

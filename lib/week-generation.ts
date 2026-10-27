@@ -1,5 +1,5 @@
 import type { ServiceRow } from "./bulletin-types";
-import { bulletinChurchName, speakerFromKo } from "./schedule-grid-shared.ts";
+import { bulletinChurchName, CHURCHES, speakerFromKo } from "./schedule-grid-shared.ts";
 
 const MS_DAY = 86_400_000;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -54,7 +54,18 @@ interface EastCoastEntry { date: string; church: string; speaker: string; speake
 
 // Each entry is keyed by the Sunday before its seminar week; the seminar runs
 // Monday through the following Sunday. Only the nearest seminar week is listed.
-export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: string) {
+const KO_LANGUAGE: Record<string, string> = { Korean: "한국어", English: "영어" };
+
+// The Korean bulletin prints the table the way the printed Korean edition does:
+// Korean church name, "이지은목사" speaker, 한국어/영어 language.
+function koreanRow(e: EastCoastEntry, date: string) {
+  const church = CHURCHES.find((c) => c.en === e.church)?.ko ?? e.church;
+  const name = (e.speakerKo ?? "").replace(/[^가-힣]/g, "");
+  const title = /e\s*$/i.test(e.speakerKo ?? "") ? "전도사" : "목사";
+  return { date, church, speaker: name ? `${name}${title}` : e.speaker, language: KO_LANGUAGE[e.language] ?? e.language };
+}
+
+export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: string, lang: string = "en") {
   const upcoming = entries.filter((e) => e.date >= bulletinIso).sort((a, b) => a.date.localeCompare(b.date));
   if (upcoming.length === 0) return [];
   const first = upcoming[0].date;
@@ -68,7 +79,7 @@ export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: strin
   // rebuild both the way the bulletin prints them.
   return upcoming
     .filter((e) => e.date === first)
-    .map((e) => ({
+    .map((e) => lang === "ko" ? koreanRow(e, range) : ({
       date: range,
       church: bulletinChurchName(e.church),
       speaker: (e.speakerKo && speakerFromKo(e.speakerKo)) || e.speaker,

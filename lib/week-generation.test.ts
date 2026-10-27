@@ -70,3 +70,14 @@ test("seminar info also recognises a hand-added Bible Seminar event", () => {
   assert.equal(info?.date, "October 19th(MON) - 23rd(FRI)");
   assert.equal(buildSeminarInfo([{ type: "other", label: "Special Christian Life Bible Seminar", startDate: "2026-10-19", endDate: "2026-10-23" }], "2026-10-18"), null);
 });
+
+test("korean east coast rows use Korean church, speaker and language", () => {
+  const rows = buildEastCoastRows([
+    { date: "2026-07-05", church: "Southern Virginia", speaker: "p.Jacob Jeong", speakerKo: "정성호p", language: "English" },
+    { date: "2026-07-05", church: "Chicago", speaker: "e.Kim", speakerKo: "김재호e", language: "Korean" },
+  ], "2026-07-05", "ko");
+  assert.deepEqual(rows.map((r) => [r.date, r.church, r.speaker, r.language]), [
+    ["7/6-12", "남버지니아", "정성호목사", "영어"],
+    ["7/6-12", "시카고", "김재호전도사", "한국어"],
+  ]);
+});
