@@ -66,7 +66,10 @@ function koreanRow(e: EastCoastEntry, date: string) {
 }
 
 export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: string, lang: string = "en") {
-  const upcoming = entries.filter((e) => e.date >= bulletinIso).sort((a, b) => a.date.localeCompare(b.date));
+  // Only a seminar within two weeks belongs on this bulletin; a schedule that
+  // doesn't reach this week must not pull in a seminar months away.
+  const latest = new Date(utc(bulletinIso) + 14 * MS_DAY).toISOString().slice(0, 10);
+  const upcoming = entries.filter((e) => e.date >= bulletinIso && e.date <= latest).sort((a, b) => a.date.localeCompare(b.date));
   if (upcoming.length === 0) return [];
   const first = upcoming[0].date;
   const start = utc(first);

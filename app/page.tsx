@@ -5018,9 +5018,9 @@ export default function Home() {
           speaker: seminarInfo.speaker ?? (data?.pastor ? `Pastor ${data.pastor}` : data?.seminarInfo?.speaker ?? ""),
         },
       } : {}),
-      // Only set when we have rows: patch() spreads over existing data, so an explicit
-      // `undefined` would wipe the array and crash the preview.
-      ...(upcomingEastCoast.length > 0 ? { eastCoastSeminar: upcomingEastCoast } : {}),
+      // Always an array (never `undefined`, which would wipe it and crash the preview):
+      // a week with no seminar clears last week's rows instead of keeping them.
+      eastCoastSeminar: upcomingEastCoast,
     };
 
     try {

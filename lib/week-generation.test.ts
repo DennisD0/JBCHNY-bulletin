@@ -81,3 +81,9 @@ test("korean east coast rows use Korean church, speaker and language", () => {
     ["7/6-12", "시카고", "김재호전도사", "한국어"],
   ]);
 });
+
+test("east coast rows ignore a seminar more than two weeks away", () => {
+  const entries = [{ date: "2026-10-04", church: "Orlando", speaker: "p.Oh", speakerKo: "오동준p", language: "Korean" }];
+  assert.deepEqual(buildEastCoastRows(entries, "2026-07-12"), []);
+  assert.equal(buildEastCoastRows(entries, "2026-09-27").length, 1);
+});
