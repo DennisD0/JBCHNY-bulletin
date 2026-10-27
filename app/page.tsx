@@ -4990,7 +4990,9 @@ export default function Home() {
       }
       for (const r of (data?.weeklyRecurring ?? [])) {
         if (r.dayOfWeek === i) {
-          items.push({ name: r.label, location: "", time: "" });
+          // The language-group fellowship has no fixed room yet; print TBA like the Korean edition.
+          const tba = /fellowship by lang|언어\s*(권)?별\s*(교제|모임)/i.test(r.label);
+          items.push({ name: r.label, location: tba ? "TBA" : "", time: "" });
         }
       }
       return { date: `${m}/${dayNum}(${DOW_SHORT[i]})`, items };
