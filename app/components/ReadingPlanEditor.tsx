@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { VerseThemeEditor } from "./VerseThemeEditor";
 
 const BL   = "#4472C4";
 const BL_L = "#EEF3FB";
@@ -18,7 +19,7 @@ const monthLabel = (ym: string) =>
  * Edit the saved Year Reading Plan day by day, like the quarterly schedule's review table.
  * Saving replaces the saved plan with what is shown here.
  */
-export function ReadingPlanEditor({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
+function DayReadingEditor({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
   const [plan, setPlan]     = useState<Plan | null>(null);
   const [error, setError]   = useState("");
   const [saving, setSaving] = useState(false);
@@ -158,6 +159,24 @@ export function ReadingPlanEditor({ onSaved, onCancel }: { onSaved: () => void; 
           {saving ? "Saving…" : "Save reading plan"}
         </button>
       </div>
+    </>
+  );
+}
+
+/** The saved reading plan: day-by-day readings, and the weekly memory verses with their themes (Hope, Peace, …). */
+export function ReadingPlanEditor({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
+  const [tab, setTab] = useState<"days" | "themes">("days");
+  const tabStyle = (on: boolean) => ({
+    flex: 1, borderRadius: 10, padding: "8px 0", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    background: on ? BL : "#fff", color: on ? "#fff" : BL, border: `1.5px solid ${BL}`,
+  }) as const;
+  return (
+    <>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <button onClick={() => setTab("days")} style={tabStyle(tab === "days")}>Daily readings</button>
+        <button onClick={() => setTab("themes")} style={tabStyle(tab === "themes")}>Memory verses &amp; themes</button>
+      </div>
+      {tab === "days" ? <DayReadingEditor onSaved={onSaved} onCancel={onCancel} /> : <VerseThemeEditor onSaved={onSaved} />}
     </>
   );
 }

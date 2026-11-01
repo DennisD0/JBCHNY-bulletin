@@ -1282,8 +1282,8 @@ export default function BulletinPreview({
           </div>{/* /prayer-requests wrapper */}
 
           <div data-fit-section="joint-prayer" style={{
-            flex: (data.retreatInfo?.enabled || data.seminarService?.enabled) ? undefined : 1,
-            height: (data.retreatInfo?.enabled || data.seminarService?.enabled) ? 190 : undefined,
+            flex: ((data.retreatInfo?.enabled && (!!onUpdate || !!(data.retreatInfo.title || data.retreatInfo.date || data.retreatInfo.location))) || data.seminarService?.enabled) ? undefined : 1,
+            height: ((data.retreatInfo?.enabled && (!!onUpdate || !!(data.retreatInfo.title || data.retreatInfo.date || data.retreatInfo.location))) || data.seminarService?.enabled) ? 190 : undefined,
             overflow:"hidden",
           }}>
             <SecHead title={data.labels?.headJointPrayer ?? "Joint Prayer"} />
@@ -1371,7 +1371,7 @@ export default function BulletinPreview({
             </div>
           )}
 
-          {data.retreatInfo?.enabled && (
+          {(data.retreatInfo?.enabled && (!!onUpdate || !!(data.retreatInfo.title || data.retreatInfo.date || data.retreatInfo.location))) && (
             <div style={{ position: "relative", flex:1, minHeight:0 }}>
             <PendingBadge sectionKey="retreatInfo" enContent={pendingDiffs?.["retreatInfo"]} show={!!pendingDiffs?.["retreatInfo"]} onDismiss={onDismissPending ? () => onDismissPending("retreatInfo") : undefined} />
             <div data-fit-section="retreat-info" style={{ height:"100%", overflow:"hidden" }}>

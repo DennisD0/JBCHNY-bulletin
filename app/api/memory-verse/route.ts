@@ -308,6 +308,27 @@ export async function POST(request: Request) {
   const body   = await request.json();
   const verses = getVerseList();
 
+  // ── saveList: replace the whole weekly verse + theme list (edited in the reading plan editor) ──
+  if (body.action === "saveList") {
+    const entries = body.entries;
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return NextResponse.json({ error: "The verse list can't be empty" }, { status: 400 });
+    }
+    const clean: VerseEntry[] = [];
+    for (const [i, e] of entries.entries()) {
+      const theme = typeof e?.theme === "string" ? e.theme.trim() : "";
+      const reference = typeof e?.reference === "string" ? e.reference.trim() : "";
+      if (!theme || !reference) {
+        return NextResponse.json({ error: `Row ${i + 1} needs both a theme and a verse` }, { status: 400 });
+      }
+      clean.push({ theme, themeKorean: typeof e.themeKorean === "string" ? e.themeKorean.trim() : "", reference });
+    }
+    writeFileSync(VERSE_LIST_PATH, `[\n${clean.map((e) => "  " + JSON.stringify(e)).join(",\n")}\n]\n`);
+    const idx = Math.min(getNextWeekIndex(), clean.length - 1);
+    saveNextWeekIndex(idx);
+    return NextResponse.json({ ok: true, total: clean.length, ...buildStats(clean, idx, getTextCache()) });
+  }
+
   // ── setIndex ──
   if (body.action === "setIndex") {
     const parsed = parseInt(body.index ?? 0, 10);
