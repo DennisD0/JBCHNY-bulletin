@@ -270,6 +270,9 @@ export async function GET(request: Request) {
   const dateParam  = searchParams.get("date");
 
   const verses = getVerseList();
+  if (searchParams.get("list") !== null) {
+    return NextResponse.json({ entries: verses, nextWeekIndex: getNextWeekIndex() });
+  }
   let idx: number;
   if (indexParam !== null) {
     const parsed = parseInt(indexParam, 10);
