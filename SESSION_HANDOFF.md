@@ -23,9 +23,18 @@ Every push to `main` runs the "Deploy to VM" GitHub Action (`.github/workflows/d
 - Live PDFs for en/es/ko/zh/ru exported one at a time and read: Korean, Chinese and Russian show real characters; layout matches the hand-made reference bulletins.
 - Export the languages **sequentially**. Running 5 at once on the e2-micro makes Chrome fail with 500 errors.
 
+## Spanish translation (found and fixed late)
+- The Spanish bulletin body was English. The app's "translate from English" endpoint (`POST /api/bulletin/<lang>/translate`) uses `translate.googleapis.com`, which **the VM cannot reach** (requests hang → nginx 504). The code used to swallow those failures and save English as if translated; it now retries and returns an error naming the cause.
+- Workaround used: run the app locally against a copy of the live English data (put the `.data` of `/api/bulletin/en` into `data/bulletin.en.json`, `next start`, POST `/translate` on localhost), then `POST /api/bulletin/es {data}` to the live site, and `git checkout data/` afterwards. Spanish now matches the live English edition (2026-30, 08/02/2026).
+- Names in the Bible Seminar Service table (`cells`) are no longer machine-translated; long translated row labels (e.g. "PREPARACIÓN") shrink to fit.
+- Spanish Bible Seminar Info date/speaker lines are still English text (`date` is deliberately untranslated).
+- A real fix for the VM would be outbound access to Google Translate, or a different translation provider.
+
+## Live checks done after the last deploy
+Theme save (edited and restored via `saveList`), Bible Seminar Info hide/show (hidden PDF drops the section, shown PDF is byte-identical to before), calendar edit modal opens with the saved calendar, month .xlsx parse endpoint returns banners/events/seminars, and a manual redeploy left en/es/ko/zh/ru bulletins, the verse list and the reading plan byte-identical.
+
 ## Known open items
 - **No login / write protection yet**: ~14 write endpoints are unauthenticated, and lock takeover is open (see `PRE_DEPLOY_CHECKLIST.md`). The owner will decide on login later; nothing was added.
-- Spanish PDF body is still English text (the Spanish translation hasn't been initialised/synced from English).
 - The zh and ru data files had Retreat Info switched on while en/ko/es had it off; the print view now hides it when empty, but the flag itself is unsynced.
 - Lint: 52 pre-existing errors (react-hooks rules, `require()` imports, unescaped quotes).
 - `next build` prints a harmless-looking warning that `mupdf` "can't be external".
