@@ -147,7 +147,6 @@ export interface BulletinData {
   fellowship: FellowshipRow[];
 
   phone: string;
-  email: string;
   address: string;
 
   bibleReadingDates: string[];

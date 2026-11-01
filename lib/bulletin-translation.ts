@@ -11,7 +11,7 @@ const TARGET_LANGUAGE: Record<Exclude<BulletinLanguage, "en">, string> = {
 };
 
 const UNTRANSLATED_KEYS = new Set([
-  "number", "date", "startDate", "endDate", "phone", "email", "address",
+  "number", "date", "startDate", "endDate", "phone", "address",
   "pastor", "sermonSpeaker", "speaker", "reference", "quoteRef", "sermonVerse",
   "who", "whom", "usherSun", "lunchDuty", "childCare", "usherWed", "church",
   "amount",

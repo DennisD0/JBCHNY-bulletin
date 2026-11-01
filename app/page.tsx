@@ -212,18 +212,11 @@ function HeaderTab({
 
       <Card>
         <SectionTitle>Contact info</SectionTitle>
-        <div className="grid grid-cols-2 gap-4">
-          <Field
-            label="Phone"
-            value={data.phone}
-            onChange={(v) => set({ phone: v })}
-          />
-          <Field
-            label="Email"
-            value={data.email}
-            onChange={(v) => set({ email: v })}
-          />
-        </div>
+        <Field
+          label="Phone"
+          value={data.phone}
+          onChange={(v) => set({ phone: v })}
+        />
         <Field
           label="Address"
           value={data.address}
@@ -2424,7 +2417,7 @@ const TAB_SECTION_KEY: Record<TabId, string> = {
 const FIELD_TO_TAB: Partial<Record<keyof BulletinData, TabId>> = {
   bulletinTitle: "header", labels: "header", number: "header", date: "header",
   quote: "header", quoteRef: "header", pastor: "header",
-  phone: "header", email: "header", address: "header",
+  phone: "header", address: "header",
   sermonTitle: "sermon", sermonVerse: "sermon", sermonSpeaker: "sermon", sermonEndingPraise: "sermon",
   services: "services", eastCoastSeminar: "services", fellowship: "services",
   bibleReadingDates: "bible", bibleReading1: "bible", bibleReading2: "bible",

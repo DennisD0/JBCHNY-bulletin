@@ -1040,7 +1040,7 @@ export default function BulletinPreview({
           {/* Contact — pinned to bottom */}
           <div style={{ marginTop:"auto", paddingTop:6, borderTop:`${RULE}px solid ${B}` }}>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
-              {data.labels?.lblPastor ?? "Pastor"} <E value={data.phone} onSave={upK("phone")} />&nbsp;&nbsp;&nbsp;&nbsp;<E value={data.email} onSave={upK("email")} />
+              {data.labels?.lblPastor ?? "Pastor"} <E value={data.phone} onSave={upK("phone")} />
             </p>
             <p style={{ color:B, fontWeight:700, fontSize:F.contact, lineHeight:1.5, margin:0 }}>
               {data.labels?.lblAddress ?? "Address"} <E value={data.address} onSave={upK("address")} />
