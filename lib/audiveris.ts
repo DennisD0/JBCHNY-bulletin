@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 import { promises as fs, existsSync } from "fs";
-import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
+import { DOMParser, XMLSerializer, type Document as XmlDocument } from "@xmldom/xmldom";
 import JSZip from "jszip";
 import path from "path";
 
@@ -132,16 +132,17 @@ async function findFiles(dir: string, suffix: string): Promise<string[]> {
   return matches.sort((a, b) => b.size - a.size).map((match) => match.path);
 }
 
-function parsePlayableMusicXml(xml: string, source: string): Document {
+function parsePlayableMusicXml(xml: string, source: string): XmlDocument {
   const errors: string[] = [];
   const parser = new DOMParser({
-    errorHandler: {
-      warning: (message) => errors.push(message),
-      error: (message) => errors.push(message),
-      fatalError: (message) => errors.push(message),
-    },
+    onError: (_level, message) => { errors.push(message); },
   });
-  const document = parser.parseFromString(xml, "application/xml");
+  let document: XmlDocument;
+  try {
+    document = parser.parseFromString(xml, "application/xml");
+  } catch (err) {
+    throw new AudiverisError(`Invalid MusicXML in ${source}: ${err instanceof Error ? err.message : String(err)}`);
+  }
   const root = document.documentElement?.localName;
   if (errors.length || (root !== "score-partwise" && root !== "score-timewise")) {
     throw new AudiverisError(`Invalid MusicXML in ${source}: ${errors[0] ?? "bad root"}`);
@@ -156,7 +157,7 @@ function parsePlayableMusicXml(xml: string, source: string): Document {
   return document;
 }
 
-function qualityForDocument(document: Document): MusicXmlQuality {
+function qualityForDocument(document: XmlDocument): MusicXmlQuality {
   const parts = Array.from(document.getElementsByTagName("part"));
   const measureCounts: number[] = [];
   const noteCounts: number[] = [];

@@ -1,4 +1,4 @@
-import { DOMParser } from "@xmldom/xmldom";
+import { DOMParser, type Element as XmlElement } from "@xmldom/xmldom";
 import JSZip from "jszip";
 import type { CalendarBanner, WeeklyRecurringEvent } from "./bulletin-types";
 import { fullDate, type MonthSeminar } from "./month-seminars.ts";
@@ -87,7 +87,7 @@ const addDays = (d: Date, n: number) => new Date(d.getTime() + n * DAY_MS);
 const md = (d: Date) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 
 /** Visible text of a <si>/<is> node, ignoring phonetic (rPh) runs. */
-function stringText(node: Element): string {
+function stringText(node: XmlElement): string {
   let out = "";
   const ts = node.getElementsByTagName("t");
   for (let i = 0; i < ts.length; i++) {

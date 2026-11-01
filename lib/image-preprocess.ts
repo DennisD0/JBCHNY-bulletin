@@ -1,4 +1,5 @@
 import sharp from "sharp";
+type Region = { left: number; top: number; width: number; height: number };
 
 const IMAGE_EXT = /\.(jpe?g|png|gif|bmp|tiff?|webp|heic|heif)$/i;
 
@@ -54,7 +55,7 @@ function widestRun(a: Float64Array, thr: number): [number, number] {
  * Returns a crop region for the (already EXIF/upright-oriented) image, or null
  * if there's nothing safe to trim.
  */
-async function detectPageCrop(oriented: Buffer): Promise<sharp.Region | null> {
+async function detectPageCrop(oriented: Buffer): Promise<Region | null> {
   try {
     const { data, info } = await sharp(oriented)
       .grayscale()

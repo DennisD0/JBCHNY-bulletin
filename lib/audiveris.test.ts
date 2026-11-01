@@ -67,7 +67,7 @@ test("removes lyric elements without consuming lyric-font or score structure", a
     assert.match(cleaned, /<note>/);
     assert.match(cleaned, /<duration>1<\/duration>/);
     assert.equal(
-      new DOMParser().parseFromString(cleaned, "application/xml").documentElement.localName,
+      new DOMParser().parseFromString(cleaned, "application/xml").documentElement!.localName,
       "score-partwise"
     );
   } finally {
