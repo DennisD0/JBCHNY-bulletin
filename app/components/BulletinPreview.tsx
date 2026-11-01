@@ -1141,6 +1141,7 @@ export default function BulletinPreview({
           </div>
           </div>{/* /monthly-calendar wrapper */}
 
+          {!data.seminarInfo.hidden && (
           <div data-fit-section="seminar-info" style={{ flex:1, overflow:"hidden" }}>
             <SecHead title={data.labels?.headSeminarInfo ?? "Bible Seminar Info"} />
             <div data-fit-body>
@@ -1170,6 +1171,7 @@ export default function BulletinPreview({
             </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* ╔══ COL 2: This week's schedule · NY Church News ══╗ */}

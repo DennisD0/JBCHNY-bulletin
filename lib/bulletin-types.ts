@@ -167,7 +167,7 @@ export interface BulletinData {
   prayerRequests: PrayerRequest[];
   jointPrayer: NewsItem[];
 
-  seminarInfo: { title: string; date: string; speaker: string };
+  seminarInfo: { title: string; date: string; speaker: string; hidden?: boolean };
 
   seminarService?: SeminarServiceData;
 

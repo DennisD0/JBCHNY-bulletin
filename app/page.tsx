@@ -1186,28 +1186,47 @@ function CalendarTab({
       </Card>
 
       <Card>
-        <SectionTitle>Bible Seminar info</SectionTitle>
-        <Field
-          label="Title"
-          value={data.seminarInfo.title}
-          onChange={(v) =>
-            set({ seminarInfo: { ...data.seminarInfo, title: v } })
-          }
-        />
-        <Field
-          label="Date / time"
-          value={data.seminarInfo.date}
-          onChange={(v) =>
-            set({ seminarInfo: { ...data.seminarInfo, date: v } })
-          }
-        />
-        <Field
-          label="Speaker"
-          value={data.seminarInfo.speaker}
-          onChange={(v) =>
-            set({ seminarInfo: { ...data.seminarInfo, speaker: v } })
-          }
-        />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: data.seminarInfo.hidden ? 0 : 12 }}>
+          <SectionTitle>Bible Seminar info</SectionTitle>
+          <button
+            onClick={() => set({ seminarInfo: { ...data.seminarInfo, hidden: !data.seminarInfo.hidden } })}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              fontSize: 11, fontWeight: 700,
+              color: data.seminarInfo.hidden ? "#4472C4" : "#fff",
+              background: data.seminarInfo.hidden ? "#EFF6FF" : "#4472C4",
+              border: `1px solid ${data.seminarInfo.hidden ? "#BFDBFE" : "#4472C4"}`,
+              borderRadius: 6, padding: "4px 10px", cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            {data.seminarInfo.hidden ? "Show" : "Hide"}
+          </button>
+        </div>
+        {!data.seminarInfo.hidden && (
+          <>
+            <Field
+              label="Title"
+              value={data.seminarInfo.title}
+              onChange={(v) =>
+                set({ seminarInfo: { ...data.seminarInfo, title: v } })
+              }
+            />
+            <Field
+              label="Date / time"
+              value={data.seminarInfo.date}
+              onChange={(v) =>
+                set({ seminarInfo: { ...data.seminarInfo, date: v } })
+              }
+            />
+            <Field
+              label="Speaker"
+              value={data.seminarInfo.speaker}
+              onChange={(v) =>
+                set({ seminarInfo: { ...data.seminarInfo, speaker: v } })
+              }
+            />
+          </>
+        )}
       </Card>
 
     </div>
