@@ -8,9 +8,13 @@ set -e
 cd ~/bulletin
 
 echo "▸ Pulling latest code..."
+# The reset below would put the bulletins and plans people saved on the live site back to
+# the committed copies, so set them aside and bring them back afterwards.
+bash ~/bulletin/scripts/keep-data.sh save
 git fetch origin main
 git reset --hard origin/main
 git clean -fd
+bash ~/bulletin/scripts/keep-data.sh restore
 
 echo "▸ Installing dependencies..."
 npm install

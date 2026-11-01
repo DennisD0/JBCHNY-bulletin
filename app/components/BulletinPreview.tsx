@@ -330,6 +330,10 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
             {activeBanners.map(({ banner, index: bannerIndex }) => {
               const { startCol, count } = spanOf.get(bannerIndex)!;
               const lane = laneOf.get(bannerIndex) ?? 0;
+              // A label longer than its columns (Russian runs long) would be clipped at both
+              // ends, so shrink it to fit: ~62px per day column; CJK glyphs are about twice as wide.
+              const labelEm = [...banner.label].reduce((sum, ch) => sum + (/[⺀-鿿가-힯]/.test(ch) ? 1 : 0.56), 0);
+              const bannerFs = Math.min(10, Math.max(6.5, (count * 62 - 12) / Math.max(1, labelEm)));
               return (
                 <div key={`${bannerIndex}-${banner.startDate}`} title="Clear the label and click away to remove this banner" style={{
                   gridRow, gridColumn: `${startCol + 1} / span ${count}`,
@@ -340,7 +344,7 @@ function CalGrid({ month, year, events, banners, weeklyRecurring = [], onUpdate 
                   background: (BANNER_PALETTE[banner.type ?? "retreat"] ?? BANNER_PALETTE.retreat).bg,
                   border:`${RULE}px solid ${(BANNER_PALETTE[banner.type ?? "retreat"] ?? BANNER_PALETTE.retreat).border}`,
                 }}>
-                  <span style={{ fontSize:10, color:(BANNER_PALETTE[banner.type ?? "retreat"] ?? BANNER_PALETTE.retreat).text, fontWeight:700, whiteSpace:"nowrap" }}>
+                  <span style={{ fontSize:bannerFs, color:(BANNER_PALETTE[banner.type ?? "retreat"] ?? BANNER_PALETTE.retreat).text, fontWeight:700, whiteSpace:"nowrap" }}>
                     <E
                       value={banner.label}
                       onSave={onUpdate ? (v) => {

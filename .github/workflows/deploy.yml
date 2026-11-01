@@ -28,7 +28,17 @@ jobs:
           command_timeout: 20m
           script: |
             cd ~/bulletin
+            # Bulletins and plans saved on the live site sit in tracked data/*.json files,
+            # so set them aside before the reset and put them back after it.
+            if [ -f scripts/keep-data.sh ]; then
+              bash scripts/keep-data.sh save
+            else
+              rm -rf ~/bulletin-data-live && mkdir -p ~/bulletin-data-live
+              cp -a data/*.json ~/bulletin-data-live/
+              git rev-parse HEAD > ~/bulletin-data-live/.head
+            fi
             git fetch origin main
             git reset --hard origin/main
             git clean -fd
+            bash scripts/keep-data.sh restore
             bash ~/bulletin/scripts/deploy.sh
