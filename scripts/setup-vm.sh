@@ -44,6 +44,8 @@ https://dl.google.com/linux/chrome/deb/ stable main" \
   | sudo tee /etc/apt/sources.list.d/google-chrome.list > /dev/null
 sudo apt-get update -y -q
 sudo apt-get install -y -q google-chrome-stable --no-install-recommends
+# --no-install-recommends leaves Chrome with no CJK fonts: Korean/Chinese PDFs print as boxes.
+sudo apt-get install -y -q fonts-noto-cjk fonts-liberation fonts-dejavu-core
 
 # ── 6. Clone repo ─────────────────────────────────────────────
 echo "▸ Cloning repo..."

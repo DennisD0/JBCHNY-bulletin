@@ -26,6 +26,16 @@ if grep -rqs "proxy_read_timeout 60s" /etc/nginx/sites-available/bulletin; then
     && sudo -n nginx -t && sudo -n systemctl reload nginx || echo "  (skipped — needs manual nginx update)"
 fi
 
+# PDF export prints through headless Chrome on this VM. Without CJK fonts every Korean and
+# Chinese character comes out as an empty box. Idempotent, best-effort on provisioned VMs
+# (each export starts a fresh Chrome, so no restart is needed to pick the fonts up).
+if ! fc-list 2>/dev/null | grep -qi "noto.*cjk"; then
+  echo "▸ Installing CJK/Cyrillic fonts for PDF export..."
+  sudo -n apt-get install -y -q fonts-noto-cjk fonts-liberation fonts-dejavu-core \
+    && sudo -n fc-cache -f \
+    || echo "  (skipped — run: sudo apt-get install -y fonts-noto-cjk fonts-liberation fonts-dejavu-core)"
+fi
+
 echo "▸ Restarting app..."
 pm2 restart bulletin
 

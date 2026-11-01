@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { ReadingPlanEditor } from "./ReadingPlanEditor";
 import {
   EAST_ROWS, formatCell, parseCellInput,
   type BandEvent, type GridChurch,
@@ -49,6 +50,7 @@ export function UploadModal({
   startInEdit?: boolean;
 }) {
   const [editing, setEditing] = useState(startInEdit && uploadType === "schedule"); // reviewing the saved schedule, not a fresh upload
+  const [planEditing, setPlanEditing] = useState(startInEdit && uploadType === "reading"); // editing the saved reading plan
   const [stage, setStage]     = useState<Stage>(startInEdit && uploadType === "schedule" ? "parsing" : "idle");
   const [file, setFile]       = useState<File | null>(null);
   const [preview, setPreview] = useState<string[]>([]);
@@ -216,7 +218,7 @@ export function UploadModal({
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff", borderRadius: 24,
-          padding: "28px 24px", maxWidth: grid && stage === "review" ? 980 : 480, width: "100%",
+          padding: "28px 24px", maxWidth: grid && stage === "review" ? 980 : planEditing ? 640 : 480, width: "100%",
           boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
           maxHeight: "90vh", overflowY: "auto",
           fontFamily: "'Segoe UI', system-ui, sans-serif",
@@ -226,9 +228,9 @@ export function UploadModal({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 900, color: "#1E3A8A" }}>
-              {stage === "done" ? "✅ Saved!" : `${editing ? "Edit" : "Upload"} ${name}`}
+              {stage === "done" ? "✅ Saved!" : `${editing || planEditing ? "Edit" : "Upload"} ${name}`}
             </div>
-            <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>Accepts PDF, PNG, or JPG</div>
+            <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{planEditing ? "Change any day, then save" : "Accepts PDF, PNG, or JPG"}</div>
           </div>
           <button
             onClick={onClose}
@@ -239,7 +241,7 @@ export function UploadModal({
         </div>
 
         {/* Year selector */}
-        {(stage === "idle" || stage === "error") && (
+        {(stage === "idle" || stage === "error") && !planEditing && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, background: BL_L, border: `1.5px solid ${BL_M}`, borderRadius: 12, padding: "10px 14px" }}>
             <span style={{ fontSize: 13, color: "#1E3A8A", fontWeight: 700 }}>Plan year:</span>
             <input
@@ -252,8 +254,16 @@ export function UploadModal({
           </div>
         )}
 
+        {/* Saved reading plan, editable day by day */}
+        {planEditing && stage !== "done" && (
+          <ReadingPlanEditor
+            onSaved={() => { setStage("done"); onSaved?.(); }}
+            onCancel={() => setPlanEditing(false)}
+          />
+        )}
+
         {/* Drop zone */}
-        {(stage === "idle" || stage === "error") && (
+        {(stage === "idle" || stage === "error") && !planEditing && (
           <>
             <div
               onDrop={handleDrop}
@@ -272,6 +282,14 @@ export function UploadModal({
                 style={{ width: "100%", marginBottom: 16, borderRadius: 12, padding: "10px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", background: "#fff", color: BL, border: `1.5px solid ${BL_M}` }}
               >
                 ✏️ Edit the saved schedule instead
+              </button>
+            )}
+            {uploadType === "reading" && (
+              <button
+                onClick={() => setPlanEditing(true)}
+                style={{ width: "100%", marginBottom: 16, borderRadius: 12, padding: "10px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", background: "#fff", color: BL, border: `1.5px solid ${BL_M}` }}
+              >
+                ✏️ Edit the saved reading plan instead
               </button>
             )}
             {stage === "error" && (

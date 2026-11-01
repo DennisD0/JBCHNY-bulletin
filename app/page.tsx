@@ -19,6 +19,7 @@ import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPrevie
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
 import { MonthCalendarModal } from "@/app/components/MonthCalendarModal";
+import { ExportAllModal } from "@/app/components/ExportAllModal";
 import { monthCalendarPatch } from "@/lib/month-calendar-patch";
 import PresenceModal from "@/app/components/PresenceModal";
 import type {
@@ -2595,6 +2596,21 @@ function monthFromBulletinDate(value: string) {
   return month && year ? `${year}-${String(month).padStart(2, "0")}` : "";
 }
 
+/** How far through its calendar month `now` is ("MM/YYYY" → percent, whole days left). */
+function monthProgress(calendarMonth: string | undefined, now: number) {
+  const m = /^(\d{2})\/(\d{4})$/.exec(calendarMonth ?? "");
+  if (!m) return null;
+  const start = new Date(Number(m[2]), Number(m[1]) - 1, 1);
+  const end = new Date(Number(m[2]), Number(m[1]), 1);
+  const share = (now - start.getTime()) / (end.getTime() - start.getTime());
+  return {
+    percentUsed: Math.min(100, Math.max(0, Math.round(share * 100))),
+    daysRemaining: Math.max(0, Math.ceil((end.getTime() - now) / 86_400_000)),
+    expired: now >= end.getTime(),
+    label: start.toLocaleString("en-US", { month: "long", year: "numeric" }),
+  };
+}
+
 function usageColor(percentUsed: number, status?: string) {
   if (status === "missing" || status === "expired" || percentUsed >= 90) return "#DC2626";
   if (percentUsed >= 75) return "#EA580C";
@@ -2783,62 +2799,6 @@ function SidebarSourceProgress({
         <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{detail}</span>
         {!missing && <span style={{ flexShrink:0 }}>{daysRemaining}d left</span>}
       </div>
-    </button>
-  );
-}
-
-/** A sidebar auto-fill source that applies a file once, with no coverage meter. */
-function SidebarSourceAction({
-  icon: Icon, label, detail, onClick, collapsed, disabled,
-}: {
-  icon: LucideIcon;
-  label: string;
-  detail: string;
-  onClick: () => void;
-  collapsed?: boolean;
-  disabled?: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-  if (collapsed) {
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        title={label}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          display:"flex", alignItems:"center", justifyContent:"center",
-          width:36, height:36, margin:"0 auto 6px", borderRadius:10,
-          background: hovered ? "#EEF3FB" : "#F8FAFC",
-          border:`1px solid ${hovered ? "#4472C4" : "#E2E8F0"}`,
-          cursor: disabled ? "not-allowed" : "pointer", color:"#64748B", opacity: disabled ? 0.5 : 1,
-          transition:"background 150ms ease-out, border-color 150ms ease-out",
-        }}
-      >
-        <Icon size={16} strokeWidth={2} />
-      </button>
-    );
-  }
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display:"block", width:"calc(100% - 20px)", margin:"0 10px 8px", padding:"10px 12px",
-        background:"#F8FAFC", border:`1px solid ${hovered ? "#CBD5E1" : "#E2E8F0"}`, borderRadius:10,
-        cursor: disabled ? "not-allowed" : "pointer", textAlign:"left", color:"#475569", opacity: disabled ? 0.5 : 1,
-        transition:"border-color 150ms ease-out, box-shadow 150ms ease-out",
-        boxShadow: hovered ? "0 2px 8px rgba(15,23,42,0.06)" : "none",
-      }}
-    >
-      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-        <Icon size={15} strokeWidth={2} style={{ color:"#64748B", flexShrink:0 }} />
-        <span style={{ fontSize:13, fontWeight:700, color:"#1E3A8A", flex:1 }}>{label}</span>
-      </div>
-      <div style={{ fontSize:10.5, color:"#94A3B8", marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{detail}</div>
     </button>
   );
 }
@@ -4205,6 +4165,14 @@ export default function Home() {
   const [generatingWeek, setGeneratingWeek] = useState(false);
   const [generationNotice, setGenerationNotice] = useState("");
   const [showMonthCalendar, setShowMonthCalendar] = useState(false);
+  const [showExportAll, setShowExportAll] = useState(false);
+  // Real clock for the Monthly Calendar meter: how much of its month has gone by.
+  const [clock, setClock] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+  const calendarProgress = monthProgress(data?.calendarMonth, clock);
 
   const [mgmt, setMgmt]           = useState<ManageData | null>(null);
   const [uploadTarget, setUploadTarget] = useState<null | "reading" | "schedule">(null);
@@ -5142,38 +5110,44 @@ export default function Home() {
     }
   };
 
+  // Prints one language's saved bulletin and downloads it. Returns an error message, or null.
+  async function downloadPdf(lang: BulletinLanguage): Promise<string | null> {
+    const res = await fetch(`/api/export-pdf?lang=${lang}`);
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}));
+      return `Export failed: ${result.error ?? `HTTP ${res.status}`}`;
+    }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const langName = LANGUAGE_CONFIG[lang].name;
+    const bulletinDate = data?.date ?? "00/00/0000";
+    const filename = `${langName} Bulletin_${bulletinDate}.pdf`;
+    // iOS Safari ignores the `download` attribute and just navigates to the
+    // blob URL, so open it directly there instead of faking an <a> click.
+    const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      window.open(url, "_blank");
+    } else {
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    // Revoking right after click() races the (often async on mobile) blob
+    // load and can hand the viewer a dangling URL, which renders as a
+    // broken/blank PDF. Give it time to finish loading before freeing it.
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    return null;
+  }
+
   async function exportPDF() {
     setExporting(true);
     setExportError("");
     try {
-      const res = await fetch(`/api/export-pdf?lang=${activeLang}`);
-      if (!res.ok) {
-        const result = await res.json();
-        setExportError(`Export failed: ${result.error ?? "unknown"}`);
-        return;
-      }
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const langName = LANGUAGE_CONFIG[activeLang].name;
-      const bulletinDate = data?.date ?? "00/00/0000";
-      const filename = `${langName} Bulletin_${bulletinDate}.pdf`;
-      // iOS Safari ignores the `download` attribute and just navigates to the
-      // blob URL, so open it directly there instead of faking an <a> click.
-      const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent)
-        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      if (isIOS) {
-        window.open(url, "_blank");
-      } else {
-        const a = document.createElement("a");
-        a.href = url; a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-      // Revoking right after click() races the (often async on mobile) blob
-      // load and can hand the viewer a dangling URL, which renders as a
-      // broken/blank PDF. Give it time to finish loading before freeing it.
-      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      const err = await downloadPdf(activeLang);
+      if (err) setExportError(err);
     } finally { setExporting(false); }
   }
 
@@ -5311,9 +5285,18 @@ export default function Home() {
           onSaved={() => { setUploadTarget(null); refreshBulletin(); }}
         />
       )}
+      {showExportAll && (
+        <ExportAllModal
+          languages={BULLETIN_LANGUAGES.map((code) => ({ code, name: LANGUAGE_CONFIG[code].name }))}
+          initial={[...BULLETIN_LANGUAGES]}
+          exportOne={(code) => downloadPdf(code as BulletinLanguage)}
+          onClose={() => setShowExportAll(false)}
+        />
+      )}
       {showMonthCalendar && (
         <MonthCalendarModal
           currentMonth={data?.calendarMonth}
+          current={data ?? undefined}
           buildPatch={(sheet) => monthCalendarPatch(sheet, { bulletinDate: data?.date, pastor: data?.pastor, seminarInfo: data?.seminarInfo })}
           onApply={patch}
           onClose={() => setShowMonthCalendar(false)}
@@ -5694,13 +5677,15 @@ export default function Home() {
             onClick={() => setUploadTarget("schedule")}
             collapsed={sidebarCollapsed}
           />
-          <SidebarSourceAction
+          <SidebarSourceProgress
             icon={CalendarDays}
             label="Monthly Calendar"
-            detail={data?.calendarMonth ? `Fill ${data.calendarMonth} from a sheet` : "Fill one month from a sheet"}
-            onClick={() => setShowMonthCalendar(true)}
+            detail={calendarProgress ? calendarProgress.label : "Fill one month from a sheet"}
+            percentUsed={calendarProgress?.percentUsed ?? 100}
+            status={calendarProgress ? (calendarProgress.expired ? "expired" : "active") : "missing"}
+            daysRemaining={calendarProgress?.daysRemaining ?? 0}
+            onClick={() => { if (data && !readOnly) setShowMonthCalendar(true); }}
             collapsed={sidebarCollapsed}
-            disabled={!data || readOnly}
           />
           {!sidebarCollapsed && (
             <div style={{ padding:"0 13px 6px", fontSize:9.5, color:"#94A3B8", lineHeight:1.4 }}>
@@ -5736,6 +5721,15 @@ export default function Home() {
               )}
             </AnimatePresence>
           </motion.button>
+          <button
+            onClick={() => setShowExportAll(true)}
+            disabled={!data}
+            title={sidebarCollapsed ? "Export all languages" : undefined}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, width: "100%", padding: "9px 10px", borderRadius: 8, background: "#fff", color: "#1E3A8A", border: "1.5px solid #CBD5E1", cursor: data ? "pointer" : "not-allowed", opacity: data ? 1 : 0.5, fontSize: 13, fontWeight: 700 }}
+          >
+            <Download size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span style={{ whiteSpace: "nowrap" }}>Export all languages</span>}
+          </button>
         </div>
         </motion.div>
       </div>

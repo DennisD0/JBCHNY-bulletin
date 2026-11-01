@@ -490,8 +490,16 @@ function isGridChurches(v: unknown): v is GridChurch[] {
 }
 
 // ── GET: the saved schedule, for re-opening it in the review window ──────────
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // The saved reading plan: a flat { "YYYY-MM-DD": "Gen 1-3" | null } map.
+    if (request.nextUrl.searchParams.get("type") === "reading") {
+      const plan = await readDataJson<Record<string, string | null>>("year_reading_plan.json");
+      if (!plan || Object.keys(plan).length === 0) {
+        return NextResponse.json({ error: "No reading plan saved yet — upload one first." }, { status: 404 });
+      }
+      return NextResponse.json({ plan });
+    }
     const saved = await readDataJson<ScheduleFile>("monthly_schedule.json");
     if (!saved || !isGridChurches(saved.churches)) {
       return NextResponse.json(
@@ -519,6 +527,18 @@ export async function POST(request: NextRequest) {
     // Reviewed/corrected schedule from the upload modal's table (no file involved).
     if ((request.headers.get("content-type") ?? "").includes("application/json")) {
       const body = await request.json();
+      // The edited reading plan replaces the saved one outright, so deleted days stay deleted.
+      if (body?.type === "reading") {
+        const plan = body.data;
+        const valid = plan && typeof plan === "object" && !Array.isArray(plan)
+          && Object.entries(plan).every(([day, reading]) =>
+            /^\d{4}-\d{2}-\d{2}$/.test(day) && (reading === null || typeof reading === "string"));
+        if (!valid || Object.keys(plan).length === 0) {
+          return NextResponse.json({ error: "Invalid reading plan data" }, { status: 400 });
+        }
+        await writeDataJson("year_reading_plan.json", plan);
+        return NextResponse.json({ success: true, saved: true });
+      }
       if (body?.type !== "schedule" || !isGridChurches(body?.data?.churches)) {
         return NextResponse.json({ error: "Invalid schedule data" }, { status: 400 });
       }

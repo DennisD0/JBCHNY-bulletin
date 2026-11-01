@@ -1,6 +1,7 @@
 import { DOMParser } from "@xmldom/xmldom";
 import JSZip from "jszip";
 import type { CalendarBanner, WeeklyRecurringEvent } from "./bulletin-types";
+import { fullDate, type MonthSeminar } from "./month-seminars.ts";
 
 // Reads the church's one-month calendar spreadsheet (.xlsx) into the bulletin's calendar
 // section. Each sheet is a month grid: a title cell holding the month's first day, a
@@ -17,7 +18,7 @@ export interface MonthSheetResult {
   calendarEvents: Record<string, string[]>;
   weeklyRecurring: WeeklyRecurringEvent[];
   /** Bible seminars among the banners, with full dates, for the Bible Seminar Info section. */
-  seminars: Array<{ label: string; startDate: string; endDate: string; pastor?: string }>;
+  seminars: MonthSeminar[];
   /** Banners left off the printed calendar (online-only events). */
   skipped: string[];
   /** Things worth a second look: unrecognised labels, dates that don't line up. */
@@ -157,13 +158,6 @@ function bannerPastor(text: string): string | undefined {
   return /^p\.\s*(.+)$/i.exec(rest)?.[1].trim();
 }
 
-/** "m/d" → "YYYY-MM-DD", picking the year nearest the calendar month (a Dec banner in a Jan sheet is last year). */
-function fullDate(mdText: string, year: number, month: number): string {
-  const [m, d] = mdText.split("/").map(Number);
-  const y = m - (month + 1) > 6 ? year - 1 : (month + 1) - m > 6 ? year + 1 : year;
-  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
 function parseMonth(sheet: Sheet): MonthSheetResult | null {
   const { cells, merges } = sheet;
 
@@ -203,7 +197,7 @@ function parseMonth(sheet: Sheet): MonthSheetResult | null {
   const skipped: string[] = [];
   const calendarEvents: Record<string, string[]> = {};
   const banners: CalendarBanner[] = [];
-  const seminars: MonthSheetResult["seminars"] = [];
+  const seminars: MonthSeminar[] = [];
   const unknownLabels = new Set<string>();
   // Per label+weekday: the dates (inside this month) it appears on.
   const seen = new Map<string, { dow: number; label: string; dates: Set<string> }>();
