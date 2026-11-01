@@ -33,9 +33,11 @@ Every push to `main` runs the "Deploy to VM" GitHub Action (`.github/workflows/d
 ## Live checks done after the last deploy
 Theme save (edited and restored via `saveList`), Bible Seminar Info hide/show (hidden PDF drops the section, shown PDF is byte-identical to before), calendar edit modal opens with the saved calendar, month .xlsx parse endpoint returns banners/events/seminars, and a manual redeploy left en/es/ko/zh/ru bulletins, the verse list and the reading plan byte-identical.
 
+Also verified through the live UI: a calendar edit applied and saved to the live Spanish bulletin (then restored), and a memory-verse theme edited and saved from the editor's Memory verses & themes tab (then restored). The real .xlsx fill was run end to end against a local build (the live site can't take a file from this machine's tools): October 2026 banners, weekly meetings, day notes and Bible Seminar Info applied to the bulletin.
+
 ## Known open items
 - **No login / write protection yet**: ~14 write endpoints are unauthenticated, and lock takeover is open (see `PRE_DEPLOY_CHECKLIST.md`). The owner will decide on login later; nothing was added.
 - The zh and ru data files had Retreat Info switched on while en/ko/es had it off; the print view now hides it when empty, but the flag itself is unsynced.
 - Lint: 52 pre-existing errors (react-hooks rules, `require()` imports, unescaped quotes).
-- `next build` prints a harmless-looking warning that `mupdf` "can't be external".
+- Fixed late: PDF uploads (`/api/manage/upload`) failed with "Cannot read properties of undefined (reading 'openDocument')" because `require("mupdf")` can't load an ES module with top-level await (this was also the cause of the old `mupdf can't be external` build warning). It now uses `await import("mupdf")`; verified on the live site (a PDF now parses and the live schedule is unchanged).
 - Local dev: Node is installed under `C:\Program Files\nodejs`; the PATH may need refreshing in new shells.
