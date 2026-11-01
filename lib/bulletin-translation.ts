@@ -36,6 +36,8 @@ function shouldTranslate(text: string, key?: string, skipValues?: Set<string>) {
   if (!text.trim()) return false;
   if (key && UNTRANSLATED_KEYS.has(key)) return false;
   if (skipValues?.has(text)) return false;
+  // "TBA" is printed as-is in every language, never machine-translated.
+  if (/^TBA$/i.test(text.trim())) return false;
   if (/https?:\/\/|@/.test(text)) return false;
   if (/^[\d\s/.,:()+$-]+$/.test(text)) return false;
   return true;

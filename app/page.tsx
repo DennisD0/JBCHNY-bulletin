@@ -42,7 +42,7 @@ import {
   type LanguageLocks,
 } from "@/lib/bulletin-languages";
 import { SECTION_FIELD_MAP } from "@/lib/section-field-map";
-import { buildEastCoastRows, buildSeminarInfo, buildServiceRows } from "@/lib/week-generation";
+import { buildEastCoastRows, buildSeminarInfo, buildServiceRows, buildWeekSchedule } from "@/lib/week-generation";
 
 // ---------------------------------------------------------------------------
 // Shared small components
@@ -4970,7 +4970,17 @@ export default function Home() {
 
     const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     const bValLocal = (v: string) => { const [bm, bd] = v.split("/").map(Number); return bm * 100 + bd; };
-    const generatedWeekSchedule = Array.from({ length: 7 }, (_, i) => {
+    // Day notes for the new month: a month change clears them (see nextPatch), so don't read the old month's.
+    const calendarEventsForWeek = data?.calendarMonth === `${String(month).padStart(2, "0")}/${year}` ? (data?.calendarEvents ?? {}) : {};
+    // English prints the full wording with place and time; other languages keep their own labels.
+    const generatedWeekSchedule = activeLang === "en"
+      ? buildWeekSchedule({
+          sundayIso: localIso(week.start),
+          recurring: data?.weeklyRecurring ?? [],
+          events: calendarEventsForWeek,
+          banners: calendarBanners,
+        })
+      : Array.from({ length: 7 }, (_, i) => {
       const d = new Date(week.start.getFullYear(), week.start.getMonth(), week.start.getDate() + i);
       const m = d.getMonth() + 1;
       const dayNum = d.getDate();
@@ -4983,8 +4993,8 @@ export default function Home() {
       }
       for (const r of (data?.weeklyRecurring ?? [])) {
         if (r.dayOfWeek === i) {
-          // The language-group fellowship has no fixed room yet; print TBA like the Korean edition.
-          const tba = /fellowship by lang|언어\s*(권)?별\s*(교제|모임)/i.test(r.label);
+          // The language-group fellowship has no fixed room yet; print TBA in every language.
+          const tba = /fellowship by lang|fel\.? by lang|언어\s*(권)?별\s*(교제|모임)|por idioma|语言|по\s+язык/i.test(r.label);
           items.push({ name: r.label, location: tba ? "TBA" : "", time: "" });
         }
       }

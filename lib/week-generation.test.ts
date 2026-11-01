@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildEastCoastRows, buildSeminarInfo, buildServiceRows, ushersForWeek } from "./week-generation.ts";
+import { buildEastCoastRows, buildSeminarInfo, buildServiceRows, buildWeekSchedule, ushersForWeek } from "./week-generation.ts";
 
 test("usher rotation matches the printed 10/18 and 10/25 bulletins", () => {
   assert.deepEqual(ushersForWeek("2026-10-18"), { usherSun: "Jungho Park", usherWed: "John Park" });
@@ -86,4 +86,46 @@ test("east coast rows ignore a seminar more than two weeks away", () => {
   const entries = [{ date: "2026-10-04", church: "Orlando", speaker: "p.Oh", speakerKo: "오동준p", language: "Korean" }];
   assert.deepEqual(buildEastCoastRows(entries, "2026-07-12"), []);
   assert.equal(buildEastCoastRows(entries, "2026-09-27").length, 1);
+});
+
+const RECURRING = [
+  { dayOfWeek: 0, label: "Sermon" }, { dayOfWeek: 3, label: "Wed sermon" }, { dayOfWeek: 4, label: "Teachers'" },
+  { dayOfWeek: 6, label: "Translators'" }, { dayOfWeek: 6, label: "YA'" },
+];
+
+test("this week's schedule uses the full wording, places and times (printed 10/25 bulletin)", () => {
+  const rows = buildWeekSchedule({
+    sundayIso: "2026-10-25",
+    recurring: RECURRING,
+    events: {
+      "10/25": ["Sermon", "Region 3", "Fel. by Lang"], "10/26": ["Region 2"], "10/27": ["Region 1"],
+      "11/1": ["Sermon", "Officers'", "Mothers Officers'"],
+    },
+    banners: [],
+  });
+  const flat = rows.map((r) => [r.date, r.items.map((i) => `${i.name}|${i.location}|${i.time}`)]);
+  assert.deepEqual(flat, [
+    ["10/25(Sun)", ["Sunday Sermon|Main Hall|11 AM", "Region 3 Fellowship|Fellowship Hall|2 PM", "Fellowship by Language|TBA|2 PM"]],
+    ["10/26(Mon)", ["Region 2 Fellowship|TBA|8 PM"]],
+    ["10/27(Tue)", ["Region 1 Fellowship|TBA|8 PM"]],
+    ["10/28(Wed)", ["Wednesday Sermon|Main Hall|8 PM"]],
+    ["10/29(Thu)", ["Teacher Training|Fellowship Hall|8 PM"]],
+    ["10/31(Sat)", ["Translator Meeting|Counseling #1|5 PM", "Young Adults Fellowship|Fellowship Hall|7 PM"]],
+    ["11/1(Sun)", ["Sunday Sermon|Main Hall|11 AM", "Officer Meeting|Fellowship Hall|2:30 PM", "Mother Officer Meeting|Fellowship Hall|4 PM"]],
+  ]);
+});
+
+test("a Bible seminar week shows one ranged row and drops the weekday routine (printed 10/18 bulletin)", () => {
+  const rows = buildWeekSchedule({
+    sundayIso: "2026-10-18",
+    recurring: RECURRING,
+    events: { "10/18": ["Sermon", "New believers'", "Choirs'"], "10/25": ["Sermon", "Region 3", "Fel by Lang"] },
+    banners: [
+      { label: "US Pastor Retreat", startDate: "10/12", endDate: "10/16" },
+      { label: "October Bible Seminar", startDate: "10/19", endDate: "10/23" },
+    ],
+  });
+  assert.deepEqual(rows.map((r) => r.date), ["10/18(Sun)", "10/19-23", "10/24(Sat)", "10/25(Sun)"]);
+  assert.deepEqual(rows[1].items, [{ name: "5-Day Bible Seminar", location: "TBA", time: "8 PM" }]);
+  assert.deepEqual(rows[0].items.map((i) => i.name), ["Sunday Sermon", "New Believer Sermon", "Choir Meeting"]);
 });
