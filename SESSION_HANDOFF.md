@@ -37,6 +37,8 @@ Also verified through the live UI: a calendar edit applied and saved to the live
 
 Final pass on the live site after the last deploy: all five PDFs re-read (en/es/ko/zh/ru), the "Export 5 PDFs" dialog downloaded all five, Bible Seminar Info Hide/Show worked through the editor buttons (PDF 1,685,196 bytes hidden vs 1,686,979 shown), and the calendar fill was applied with a copy of the Feb sheet carrying every non-empty cell and merge (4 banners incl. US Pastor Retreat 10/12–10/15, 19 event days, 3 weekly meetings, 2 seminars — identical to the full file's parse), saved, then Spanish restored from a backup.
 
+The original full .xlsx (154,396 bytes) was also applied on the live site (served briefly from `public/`, since removed): same result as above, and the printed Spanish PDF showed October 2026 with all four banners and the September Bible Seminar info. Spanish was restored afterwards.
+
 ## Known open items
 - **No login / write protection yet**: ~14 write endpoints are unauthenticated, and lock takeover is open (see `PRE_DEPLOY_CHECKLIST.md`). The owner will decide on login later; nothing was added.
 - The zh and ru data files had Retreat Info switched on while en/ko/es had it off; the print view now hides it when empty, but the flag itself is unsynced.
