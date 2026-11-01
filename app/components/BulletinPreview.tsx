@@ -441,6 +441,7 @@ const SECTION_DIFF_FIELDS: Record<string, Array<{ key: string; label: string }>>
   memoryVerses: [{ key:"memoryVerses", label:"Memory Verses" }],
   cleaning:     [{ key:"cleaningAreas", label:"Areas" }],
   calendar:     [{ key:"calendarMonth", label:"Month" }, { key:"calendarEvents", label:"Events" }],
+  seminarInfo:  [{ key:"seminarInfo", label:"Bible Seminar Info" }],
   weekSchedule: [{ key:"weekSchedule", label:"Schedule" }],
   news:         [{ key:"news", label:"Items" }],
   prayer:       [{ key:"prayerRequests", label:"Prayer Requests" }, { key:"jointPrayer", label:"Joint Prayer" }],

@@ -16,6 +16,8 @@ export interface MonthSheetResult {
   /** Day notes keyed "m/d". */
   calendarEvents: Record<string, string[]>;
   weeklyRecurring: WeeklyRecurringEvent[];
+  /** Bible seminars among the banners, with full dates, for the Bible Seminar Info section. */
+  seminars: Array<{ label: string; startDate: string; endDate: string; pastor?: string }>;
   /** Banners left off the printed calendar (online-only events). */
   skipped: string[];
   /** Things worth a second look: unrecognised labels, dates that don't line up. */
@@ -149,6 +151,19 @@ function bannerLabel(text: string): string {
   return strip([first, rest].filter(Boolean).join(" "));
 }
 
+/** "P.Samuel Park" on a banner's second line → "Samuel Park". */
+function bannerPastor(text: string): string | undefined {
+  const rest = text.split(/\r?\n/).slice(1).join(" ").replace(/\(\s*\d{1,2}\/\d{1,2}[^)]*\)/g, "").trim();
+  return /^p\.\s*(.+)$/i.exec(rest)?.[1].trim();
+}
+
+/** "m/d" → "YYYY-MM-DD", picking the year nearest the calendar month (a Dec banner in a Jan sheet is last year). */
+function fullDate(mdText: string, year: number, month: number): string {
+  const [m, d] = mdText.split("/").map(Number);
+  const y = m - (month + 1) > 6 ? year - 1 : (month + 1) - m > 6 ? year + 1 : year;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
 function parseMonth(sheet: Sheet): MonthSheetResult | null {
   const { cells, merges } = sheet;
 
@@ -188,6 +203,7 @@ function parseMonth(sheet: Sheet): MonthSheetResult | null {
   const skipped: string[] = [];
   const calendarEvents: Record<string, string[]> = {};
   const banners: CalendarBanner[] = [];
+  const seminars: MonthSheetResult["seminars"] = [];
   const unknownLabels = new Set<string>();
   // Per label+weekday: the dates (inside this month) it appears on.
   const seen = new Map<string, { dow: number; label: string; dates: Set<string> }>();
@@ -258,6 +274,14 @@ function parseMonth(sheet: Sheet): MonthSheetResult | null {
         if (/online/i.test(label)) { skipped.push(`${label} (${startDate}) — online only`); continue; }
         if (!banners.some((b) => b.label === label && b.startDate === startDate)) {
           banners.push({ label, startDate, endDate });
+          if (/bible seminar/i.test(label)) {
+            seminars.push({
+              label,
+              startDate: fullDate(startDate, year, month),
+              endDate: fullDate(endDate, year, month),
+              pastor: bannerPastor(text),
+            });
+          }
         }
       }
     }
@@ -283,6 +307,7 @@ function parseMonth(sheet: Sheet): MonthSheetResult | null {
     calendarBanners: banners,
     calendarEvents,
     weeklyRecurring,
+    seminars,
     skipped,
     warnings,
   };

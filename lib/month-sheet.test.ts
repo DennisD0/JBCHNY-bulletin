@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import JSZip from "jszip";
 import { readMonthSheets, shortenLabel } from "./month-sheet.ts";
+import { monthCalendarPatch } from "./month-calendar-patch.ts";
 
 // Builds a minimal .xlsx from { "B5": 46296, "B6": "- Item" } cell maps.
 async function workbook(sheets: Record<string, { cells: Record<string, string | number>; merges?: string[] }>) {
@@ -43,7 +44,7 @@ const october = {
     B14: "- Altogether Fel. (2:00p)",
     B19: 11, C19: 12, D19: 13, E19: 14, F19: 15, G19: 16, H19: 17,
     B20: "- Lord's Day Sermon (11:00a)", H20: "- Translator Meeting (5:00p)",
-    E24: "DC Dedication Ceremony", C25: "US Pastor Retreat", H25: "EC Online Teacher Retreat",
+    E24: "DC Dedication Ceremony", C25: "US Pastor Retreat", H25: "EC Online Teacher Retreat", C32: "October Bible Seminar",
     B26: 18, C26: 19, D26: 20, E26: 21, F26: 22, G26: 23, H26: 24,
     B27: "- Lord's Day Sermon (11:00a)", H27: "- Translator Meeting (5:00p)",
     B28: "- New Believers (2:00p)",
@@ -51,7 +52,7 @@ const october = {
     B34: "- Lord's Day Sermon (11:00a)", H34: "- Translator Meeting (5:00p)",
     B35: "- Region 3 (2:00p)\n- Fellowship by Lang (2:00p)",
   } as Record<string, string | number>,
-  merges: ["B3:F3", "D11:F11", "C25:F25"],
+  merges: ["B3:F3", "D11:F11", "C25:F25", "C32:G32"],
 };
 
 test("shortenLabel maps the sheet's wording to the bulletin's short labels", () => {
@@ -82,6 +83,7 @@ test("banner width comes from the merged cells, in the week they sit in", async 
     { label: "Special Christian Life Bible Seminar", startDate: "9/29", endDate: "10/1" },
     { label: "DC Dedication Ceremony", startDate: "10/14", endDate: "10/14" },
     { label: "US Pastor Retreat", startDate: "10/12", endDate: "10/15" },
+    { label: "October Bible Seminar", startDate: "10/19", endDate: "10/23" },
   ]);
   assert.equal(oct.skipped.length, 1);
   assert.match(oct.skipped[0], /Online Teacher Retreat/);
@@ -132,4 +134,38 @@ test("week dates come from the sheet's own date cells when the title isn't the 1
   assert.equal(result.calendarMonth, "11/2025");
   assert.deepEqual(Object.keys(result.calendarEvents), ["11/2", "11/9"]);
   assert.deepEqual(result.warnings, []);
+});
+
+test("any Bible seminar banner fills Bible Seminar Info — the next one on or after the bulletin date", async () => {
+  const [oct] = await readMonthSheets(await workbook({ Feb: october }));
+  assert.deepEqual(oct.seminars.map((s) => [s.label, s.startDate, s.endDate]), [
+    ["Special Christian Life Bible Seminar", "2026-09-29", "2026-10-01"],
+    ["October Bible Seminar", "2026-10-19", "2026-10-23"],
+  ]);
+
+  const ctx = { bulletinDate: "10/04/2026", pastor: "Chang Kyung Park", seminarInfo: { title: "", date: "", speaker: "", hidden: true } };
+  const patch = monthCalendarPatch(oct, ctx);
+  assert.deepEqual(patch.seminarInfo, {
+    title: "October Bible Seminar",
+    date: "October 19th(MON) - 23rd(FRI)",
+    speaker: "Pastor Chang Kyung Park",
+    hidden: false,
+  });
+  assert.equal(patch.calendarMonth, "10/2026");
+
+  // Before the special seminar ends, that one is next.
+  assert.equal(monthCalendarPatch(oct, { ...ctx, bulletinDate: "09/27/2026" }).seminarInfo?.title, "September Bible Seminar");
+  // After the last seminar: the section is left alone.
+  assert.equal(monthCalendarPatch(oct, { ...ctx, bulletinDate: "10/25/2026" }).seminarInfo, undefined);
+});
+
+test("a named speaker on the banner is used for the seminar", async () => {
+  const sheet = {
+    cells: { B3: 45717, ...HEADER, H5: 45717, B40: 45746, C44: "Bible Seminar_\nP.Samuel Park(3/31~4/6)" } as Record<string, string | number>,
+    merges: ["C44:C46"],
+  };
+  const [mar] = await readMonthSheets(await workbook({ Mar: sheet }));
+  const info = monthCalendarPatch(mar, { bulletinDate: "03/30/2025", pastor: "Someone Else" }).seminarInfo;
+  assert.equal(info?.speaker, "Pastor Samuel Park");
+  assert.equal(info?.date, "March 31st(MON) - April 6th(SUN)");
 });

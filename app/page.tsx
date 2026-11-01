@@ -19,6 +19,7 @@ import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPrevie
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
 import { MonthCalendarModal } from "@/app/components/MonthCalendarModal";
+import { monthCalendarPatch } from "@/lib/month-calendar-patch";
 import PresenceModal from "@/app/components/PresenceModal";
 import type {
   BulletinData,
@@ -1185,51 +1186,48 @@ function CalendarTab({
         />
       </Card>
 
-      <Card>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: data.seminarInfo.hidden ? 0 : 12 }}>
-          <SectionTitle>Bible Seminar info</SectionTitle>
-          <button
-            onClick={() => set({ seminarInfo: { ...data.seminarInfo, hidden: !data.seminarInfo.hidden } })}
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              fontSize: 11, fontWeight: 700,
-              color: data.seminarInfo.hidden ? "#4472C4" : "#fff",
-              background: data.seminarInfo.hidden ? "#EFF6FF" : "#4472C4",
-              border: `1px solid ${data.seminarInfo.hidden ? "#BFDBFE" : "#4472C4"}`,
-              borderRadius: 6, padding: "4px 10px", cursor: "pointer", flexShrink: 0,
-            }}
-          >
-            {data.seminarInfo.hidden ? "Show" : "Hide"}
-          </button>
-        </div>
-        {!data.seminarInfo.hidden && (
-          <>
-            <Field
-              label="Title"
-              value={data.seminarInfo.title}
-              onChange={(v) =>
-                set({ seminarInfo: { ...data.seminarInfo, title: v } })
-              }
-            />
-            <Field
-              label="Date / time"
-              value={data.seminarInfo.date}
-              onChange={(v) =>
-                set({ seminarInfo: { ...data.seminarInfo, date: v } })
-              }
-            />
-            <Field
-              label="Speaker"
-              value={data.seminarInfo.speaker}
-              onChange={(v) =>
-                set({ seminarInfo: { ...data.seminarInfo, speaker: v } })
-              }
-            />
-          </>
-        )}
-      </Card>
-
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab: Bible Seminar Info
+// ---------------------------------------------------------------------------
+
+function SeminarInfoPanel({
+  data,
+  set,
+}: {
+  data: BulletinData;
+  set: (patch: Partial<BulletinData>) => void;
+}) {
+  const info = data.seminarInfo;
+  return (
+    <Card>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: info.hidden ? 0 : 12 }}>
+        <SectionTitle>Bible Seminar info</SectionTitle>
+        <button
+          onClick={() => set({ seminarInfo: { ...info, hidden: !info.hidden } })}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            fontSize: 11, fontWeight: 700,
+            color: info.hidden ? "#4472C4" : "#fff",
+            background: info.hidden ? "#EFF6FF" : "#4472C4",
+            border: `1px solid ${info.hidden ? "#BFDBFE" : "#4472C4"}`,
+            borderRadius: 6, padding: "4px 10px", cursor: "pointer", flexShrink: 0,
+          }}
+        >
+          {info.hidden ? "Show" : "Hide"}
+        </button>
+      </div>
+      {!info.hidden && (
+        <>
+          <Field label="Title" value={info.title} onChange={(v) => set({ seminarInfo: { ...info, title: v } })} />
+          <Field label="Date / time" value={info.date} onChange={(v) => set({ seminarInfo: { ...info, date: v } })} />
+          <Field label="Speaker" value={info.speaker} onChange={(v) => set({ seminarInfo: { ...info, speaker: v } })} />
+        </>
+      )}
+    </Card>
   );
 }
 
@@ -2410,6 +2408,7 @@ const SECTIONS = [
   { id: "memory",    label: "Memory Verses",   icon: Quote,           page: 1 },
   { id: "cleaning",  label: "Cleaning",        icon: Sparkles,        page: 1 },
   { id: "calendar",  label: "Calendar",        icon: CalendarDays,    page: 2 },
+  { id: "seminar-info", label: "Bible Seminar Info", icon: BookMarked,  page: 2 },
   { id: "schedule",  label: "Weekly Schedule", icon: CalendarClock,   page: 2 },
   { id: "news",      label: "News",            icon: Newspaper,       page: 2 },
   { id: "prayer",    label: "Prayer",          icon: HandHeart,       page: 2 },
@@ -2427,6 +2426,7 @@ const TAB_SECTION_KEY: Record<TabId, string> = {
   memory: "memoryVerses",
   cleaning: "cleaning",
   calendar: "calendar",
+  "seminar-info": "seminarInfo",
   schedule: "weekSchedule",
   news: "news",
   prayer: "prayer",
@@ -2445,7 +2445,7 @@ const FIELD_TO_TAB: Partial<Record<keyof BulletinData, TabId>> = {
   cleaningAreas: "cleaning",
   calendarMonth: "calendar", calendarEvents: "calendar", calendarBanners: "calendar", weeklyRecurring: "calendar",
   weekSchedule: "schedule",
-  news: "news", jointPrayer: "news", seminarInfo: "news",
+  news: "news", jointPrayer: "news", seminarInfo: "seminar-info",
   prayerRequests: "prayer",
   retreatInfo: "retreat",
   seminarService: "seminar-service",
@@ -2530,6 +2530,7 @@ const SECTION_ZOOM: Record<TabId, { cx: number; cy: number; h: number }> = {
   cleaning: { cx: 225,  cy: 698,  h: 236 }, // col 1, y 580–816
   // Page 2 (y: 818–1634)
   calendar: { cx: 225,  cy: 1098, h: 560 }, // col 1 p2
+  "seminar-info": { cx: 225, cy: 1530, h: 200 }, // col 1 p2, below the calendar
   schedule: { cx: 673,  cy: 967,  h: 299 }, // col 2 p2, top half
   news:     { cx: 673,  cy: 1374, h: 330 }, // col 2 p2, bottom half
   prayer:   { cx: 1120, cy: 967,  h: 299 }, // col 3 p2, top half
@@ -3836,6 +3837,8 @@ function SectionEditorPanel({
         return <CleaningTab data={data} set={set} />;
       case "calendar":
         return <CalendarTab data={data} set={set} />;
+      case "seminar-info":
+        return <SeminarInfoPanel data={data} set={set} />;
       case "schedule":
         return <WeeklyScheduleTab data={data} set={set} />;
       case "news":
@@ -5311,6 +5314,7 @@ export default function Home() {
       {showMonthCalendar && (
         <MonthCalendarModal
           currentMonth={data?.calendarMonth}
+          buildPatch={(sheet) => monthCalendarPatch(sheet, { bulletinDate: data?.date, pastor: data?.pastor, seminarInfo: data?.seminarInfo })}
           onApply={patch}
           onClose={() => setShowMonthCalendar(false)}
         />

@@ -35,11 +35,14 @@ const byDay = (a: string, b: string) => {
 
 export function MonthCalendarModal({
   currentMonth,
+  buildPatch,
   onApply,
   onClose,
 }: {
   /** The bulletin's calendarMonth ("MM/YYYY"), used to preselect a matching sheet. */
   currentMonth?: string;
+  /** What applying a sheet changes in the bulletin (shown in the review, then applied). */
+  buildPatch: (sheet: MonthSheetResult) => Partial<BulletinData>;
   onApply: (patch: Partial<BulletinData>) => void;
   onClose: () => void;
 }) {
@@ -80,14 +83,11 @@ export function MonthCalendarModal({
 
   const sheet = sheets[picked];
 
+  const patch = sheet ? buildPatch(sheet) : null;
+
   function apply() {
-    if (!sheet) return;
-    onApply({
-      calendarMonth: sheet.calendarMonth,
-      calendarEvents: sheet.calendarEvents,
-      calendarBanners: sheet.calendarBanners,
-      weeklyRecurring: sheet.weeklyRecurring,
-    });
+    if (!patch) return;
+    onApply(patch);
     onClose();
   }
 
@@ -165,6 +165,19 @@ export function MonthCalendarModal({
               </div>
             )}
 
+            <div style={card}>
+              <div style={label}>Bible Seminar Info</div>
+              {patch?.seminarInfo ? (
+                <div style={{ fontSize: 13, color: "#1E3A8A" }}>
+                  <div style={{ fontWeight: 700 }}>{patch.seminarInfo.title}</div>
+                  <div>{patch.seminarInfo.date}</div>
+                  <div style={{ color: "#64748B" }}>{patch.seminarInfo.speaker}</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#64748B" }}>No Bible Seminar on or after the bulletin date in this sheet — left as it is.</div>
+              )}
+            </div>
+
             {sheet.calendarBanners.length > 0 && (
               <div style={card}>
                 <div style={label}>Banners</div>
@@ -202,7 +215,7 @@ export function MonthCalendarModal({
             </div>
 
             <div style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>
-              Applying replaces this bulletin&apos;s calendar month, banners, day notes and weekly meetings. You can still edit them afterwards or undo.
+              Applying replaces this bulletin&apos;s calendar month, banners, day notes, weekly meetings and Bible Seminar Info. You can still edit them afterwards or undo.
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>

@@ -68,7 +68,12 @@ test("seminar info also recognises a hand-added Bible Seminar event", () => {
     "2026-10-18",
   );
   assert.equal(info?.date, "October 19th(MON) - 23rd(FRI)");
-  assert.equal(buildSeminarInfo([{ type: "other", label: "Special Christian Life Bible Seminar", startDate: "2026-10-19", endDate: "2026-10-23" }], "2026-10-18"), null);
+  // Special / small seminars count too.
+  assert.equal(
+    buildSeminarInfo([{ type: "other", label: "Special Christian Life Bible Seminar", startDate: "2026-10-19", endDate: "2026-10-23" }], "2026-10-18")?.title,
+    "October Bible Seminar",
+  );
+  assert.equal(buildSeminarInfo([{ type: "other", label: "US Pastor Retreat", startDate: "2026-10-19", endDate: "2026-10-23" }], "2026-10-18"), null);
 });
 
 test("korean east coast rows use Korean church, speaker and language", () => {

@@ -92,9 +92,10 @@ export function buildEastCoastRows(entries: EastCoastEntry[], bulletinIso: strin
 
 interface SeminarEvent { type: string; label?: string; startDate: string; endDate: string; pastor?: string }
 
-// Events added by hand in the review window have type "other"; recognise them by name.
+// Any Bible seminar counts (grand, special, mini…). Events added by hand or read from a
+// month sheet have type "other"; recognise them by name.
 const isBibleSeminar = (e: SeminarEvent) =>
-  e.type === "grand-bible-seminar" || (!!e.label && /bible seminar/i.test(e.label) && !/special|christian life/i.test(e.label));
+  e.type === "grand-bible-seminar" || (!!e.label && /bible seminar/i.test(e.label));
 
 export function buildSeminarInfo(events: SeminarEvent[], bulletinIso: string) {
   const next = events
