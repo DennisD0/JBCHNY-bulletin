@@ -18,6 +18,7 @@ import type { BulletinComment } from "@/app/api/comments/route";
 import BulletinPreview, { PAGE_W, PAGE_H } from "@/app/components/BulletinPreview";
 import BulletinFitController from "@/app/components/BulletinFitController";
 import { UploadModal } from "@/app/components/UploadModal";
+import { MonthCalendarModal } from "@/app/components/MonthCalendarModal";
 import PresenceModal from "@/app/components/PresenceModal";
 import type {
   BulletinData,
@@ -2766,6 +2767,62 @@ function SidebarSourceProgress({
   );
 }
 
+/** A sidebar auto-fill source that applies a file once, with no coverage meter. */
+function SidebarSourceAction({
+  icon: Icon, label, detail, onClick, collapsed, disabled,
+}: {
+  icon: LucideIcon;
+  label: string;
+  detail: string;
+  onClick: () => void;
+  collapsed?: boolean;
+  disabled?: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  if (collapsed) {
+    return (
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        title={label}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display:"flex", alignItems:"center", justifyContent:"center",
+          width:36, height:36, margin:"0 auto 6px", borderRadius:10,
+          background: hovered ? "#EEF3FB" : "#F8FAFC",
+          border:`1px solid ${hovered ? "#4472C4" : "#E2E8F0"}`,
+          cursor: disabled ? "not-allowed" : "pointer", color:"#64748B", opacity: disabled ? 0.5 : 1,
+          transition:"background 150ms ease-out, border-color 150ms ease-out",
+        }}
+      >
+        <Icon size={16} strokeWidth={2} />
+      </button>
+    );
+  }
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display:"block", width:"calc(100% - 20px)", margin:"0 10px 8px", padding:"10px 12px",
+        background:"#F8FAFC", border:`1px solid ${hovered ? "#CBD5E1" : "#E2E8F0"}`, borderRadius:10,
+        cursor: disabled ? "not-allowed" : "pointer", textAlign:"left", color:"#475569", opacity: disabled ? 0.5 : 1,
+        transition:"border-color 150ms ease-out, box-shadow 150ms ease-out",
+        boxShadow: hovered ? "0 2px 8px rgba(15,23,42,0.06)" : "none",
+      }}
+    >
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <Icon size={15} strokeWidth={2} style={{ color:"#64748B", flexShrink:0 }} />
+        <span style={{ fontSize:13, fontWeight:700, color:"#1E3A8A", flex:1 }}>{label}</span>
+      </div>
+      <div style={{ fontSize:10.5, color:"#94A3B8", marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{detail}</div>
+    </button>
+  );
+}
+
 function LanguageTabBar({
   activeLanguage,
   metaByLanguage,
@@ -4125,6 +4182,7 @@ export default function Home() {
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [generatingWeek, setGeneratingWeek] = useState(false);
   const [generationNotice, setGenerationNotice] = useState("");
+  const [showMonthCalendar, setShowMonthCalendar] = useState(false);
 
   const [mgmt, setMgmt]           = useState<ManageData | null>(null);
   const [uploadTarget, setUploadTarget] = useState<null | "reading" | "schedule">(null);
@@ -5231,6 +5289,13 @@ export default function Home() {
           onSaved={() => { setUploadTarget(null); refreshBulletin(); }}
         />
       )}
+      {showMonthCalendar && (
+        <MonthCalendarModal
+          currentMonth={data?.calendarMonth}
+          onApply={patch}
+          onClose={() => setShowMonthCalendar(false)}
+        />
+      )}
 
       {/* ── Figma-style layers sidebar (always visible) ── */}
       <LanguageTabBar
@@ -5605,6 +5670,14 @@ export default function Home() {
             daysRemaining={schedule?.daysRemaining ?? 0}
             onClick={() => setUploadTarget("schedule")}
             collapsed={sidebarCollapsed}
+          />
+          <SidebarSourceAction
+            icon={CalendarDays}
+            label="Monthly Calendar"
+            detail={data?.calendarMonth ? `Fill ${data.calendarMonth} from a sheet` : "Fill one month from a sheet"}
+            onClick={() => setShowMonthCalendar(true)}
+            collapsed={sidebarCollapsed}
+            disabled={!data || readOnly}
           />
           {!sidebarCollapsed && (
             <div style={{ padding:"0 13px 6px", fontSize:9.5, color:"#94A3B8", lineHeight:1.4 }}>
