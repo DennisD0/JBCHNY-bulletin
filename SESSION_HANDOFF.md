@@ -35,6 +35,8 @@ Theme save (edited and restored via `saveList`), Bible Seminar Info hide/show (h
 
 Also verified through the live UI: a calendar edit applied and saved to the live Spanish bulletin (then restored), and a memory-verse theme edited and saved from the editor's Memory verses & themes tab (then restored). The calendar fill was also run end to end on the live site (Spanish tab): a reduced copy of the .xlsx was dropped into the Fill dialog, applied, saved, and the live data showed October 2026 with banners, 17 event days and the seminar info; Spanish was then restored from a backup.
 
+Final pass on the live site after the last deploy: all five PDFs re-read (en/es/ko/zh/ru), the "Export 5 PDFs" dialog downloaded all five, Bible Seminar Info Hide/Show worked through the editor buttons (PDF 1,685,196 bytes hidden vs 1,686,979 shown), and the calendar fill was applied with a copy of the Feb sheet carrying every non-empty cell and merge (4 banners incl. US Pastor Retreat 10/12–10/15, 19 event days, 3 weekly meetings, 2 seminars — identical to the full file's parse), saved, then Spanish restored from a backup.
+
 ## Known open items
 - **No login / write protection yet**: ~14 write endpoints are unauthenticated, and lock takeover is open (see `PRE_DEPLOY_CHECKLIST.md`). The owner will decide on login later; nothing was added.
 - The zh and ru data files had Retreat Info switched on while en/ko/es had it off; the print view now hides it when empty, but the flag itself is unsynced.
