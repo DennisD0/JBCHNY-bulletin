@@ -167,17 +167,33 @@ export async function translateBulletinContent<T>(value: T, language: Exclude<Bu
       const index = nextIndex;
       nextIndex += 1;
       const text = queue[index];
-      try {
-        translations.set(text, await translateText(text, TARGET_LANGUAGE[language]));
-      } catch {
+      let done = false;
+      for (let attempt = 0; attempt < 3 && !done; attempt++) {
+        try {
+          translations.set(text, await translateText(text, TARGET_LANGUAGE[language]));
+          done = true;
+        } catch (err) {
+          firstError ??= err instanceof Error ? `${err.message}${err.cause ? ` (${String((err.cause as Error).message ?? err.cause)})` : ""}` : String(err);
+          await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+        }
+      }
+      if (!done) {
         // One failed string shouldn't abort the whole bulletin translation —
         // keep the original text and continue with the rest of the queue.
+        failed += 1;
         translations.set(text, text);
       }
     }
   }
 
+  let failed = 0;
+  let firstError: string | undefined;
   await Promise.all(Array.from({ length: Math.min(4, queue.length || 1) }, () => worker()));
+  // If most strings failed the service is unreachable; saving the untranslated English
+  // as if it were translated would look like a success, so say so instead.
+  if (queue.length > 0 && failed > queue.length / 2) {
+    throw new Error(`Translation service unavailable (${failed}/${queue.length} strings failed): ${firstError ?? "unknown error"}`);
+  }
   const result = replaceStrings(enriched, translations, undefined, replacedValues) as T;
 
   // Lock in the fixed per-language cover title regardless of source content
