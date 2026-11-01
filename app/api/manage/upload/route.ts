@@ -386,9 +386,9 @@ function parseScheduleText(text: string, year: number): {
 
 // ── Render PDF pages → image buffers via mupdf ─────────────
 async function renderPdfToImages(pdfBuffer: Buffer): Promise<Buffer[]> {
-  // Dynamic import to avoid loading mupdf at module level
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const mupdf = require("mupdf") as typeof import("mupdf");
+  // mupdf is an ES module with top-level await, so it can only be import()ed (never require()d);
+  // loading it lazily also keeps its WASM out of every other request.
+  const mupdf = await import("mupdf");
   const doc = mupdf.Document.openDocument(pdfBuffer as unknown as ArrayBuffer, "application/pdf");
   const pageCount = doc.countPages();
   const images: Buffer[] = [];
