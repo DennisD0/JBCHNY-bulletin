@@ -14,7 +14,7 @@ const UNTRANSLATED_KEYS = new Set([
   "number", "date", "startDate", "endDate", "phone", "address",
   "pastor", "sermonSpeaker", "speaker", "reference", "quoteRef", "sermonVerse",
   "who", "whom", "usherSun", "lunchDuty", "childCare", "usherWed", "church",
-  "amount",
+  "amount", "cells", // names of people are never machine-translated
   // Bible reading values are scripture references (e.g. "Psalms 73-77", "1 Pet 1-5") —
   // translating them mangles abbreviations ("Pet" → "mascota", "Rev" → "Rev.", etc.)
   "bibleReading1", "bibleReading2", "bibleReadingDates",

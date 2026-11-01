@@ -1336,7 +1336,8 @@ export default function BulletinPreview({
                       {ss.rows.map((row, ri) => (
                         <tr key={ri} style={{ borderTop:`0.5px solid ${LG}` }}>
                           <td style={{
-                            color:BL, fontWeight:700, fontSize:F.small, textAlign:"center",
+                            // long translated words ("PREPARACIÓN") must fit the narrow label column
+                            color:BL, fontWeight:700, fontSize:Math.min(F.small, 82 / Math.max(1, ...row.label.split(/\s+/).map((w) => w.length))), textAlign:"center",
                             padding:"2px 3px", whiteSpace:"pre-line", lineHeight:1.2,
                             borderRight:`${RULE}px solid ${BL}`,
                             verticalAlign:"middle",
